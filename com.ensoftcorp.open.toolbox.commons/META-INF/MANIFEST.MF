@@ -18,4 +18,6 @@ Require-Bundle:
  org.apache.commons.io;bundle-version="2.2.0"
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
-Export-Package: com.ensoftcorp.open.toolbox.commons
+Export-Package: com.ensoftcorp.open.toolbox.commons,
+ com.ensoftcorp.open.toolbox.commons.analysis,
+ com.ensoftcorp.open.toolbox.commons.utils

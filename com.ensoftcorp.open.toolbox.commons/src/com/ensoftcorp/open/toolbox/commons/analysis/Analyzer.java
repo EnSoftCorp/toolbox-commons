@@ -15,7 +15,7 @@ import com.ensoftcorp.open.toolbox.commons.SetDefinitions;
  * @author Tom Deering, Ben Holland
  * 
  */
-public abstract class Script {
+public abstract class Analyzer {
 
 	private Q envelope = null;
 
@@ -57,7 +57,7 @@ public abstract class Script {
 	/**
 	 * Constructs a new script without options
 	 */
-	public Script() {}
+	public Analyzer() {}
 
 	/**
 	 * Evaluate and cache the analysis result
