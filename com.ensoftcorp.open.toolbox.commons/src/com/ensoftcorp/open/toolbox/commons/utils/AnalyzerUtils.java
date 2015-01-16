@@ -30,8 +30,8 @@ import com.ensoftcorp.atlas.core.script.CommonQueries.TraversalDirection;
  * the interpreter.
  * @author Tom Deering, Ben Holland
  */
-public final class ScriptUtilities {
-	private ScriptUtilities() {}
+public final class AnalyzerUtils {
+	private AnalyzerUtils() {}
 
 	/**
 	 * Everything declared under the given methods, but NOT declared under

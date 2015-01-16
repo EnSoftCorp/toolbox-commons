@@ -9,6 +9,8 @@ import org.apache.commons.io.FilenameUtils;
 
 public class OSUtils {
 
+	private OSUtils() {}
+	
 	private static String OS = null;
 	private static boolean isWindows = false;
 	private static boolean isMac = false;

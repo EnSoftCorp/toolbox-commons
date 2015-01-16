@@ -12,6 +12,7 @@ import com.ensoftcorp.atlas.java.core.script.CommonQueries;
  * @author Tom Deering, Ben Holland
  */
 public final class SetDefinitions {
+
 	private SetDefinitions() {}
 
 	/**

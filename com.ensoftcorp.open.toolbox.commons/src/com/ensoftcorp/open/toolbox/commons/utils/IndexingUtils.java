@@ -9,6 +9,8 @@ import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
  */
 public class IndexingUtils {
 
+	private IndexingUtils() {}
+	
 	private static class IndexerErrorListener implements IIndexListener {
 
 		private Throwable t = null;
