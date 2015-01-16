@@ -9,6 +9,7 @@ import com.ensoftcorp.atlas.java.core.script.CommonQueries;
 
 /**
  * Common set definitions which are useful for program analysis
+ * 
  * @author Tom Deering, Ben Holland
  */
 public final class SetDefinitions {

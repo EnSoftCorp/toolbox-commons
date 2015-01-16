@@ -13,8 +13,8 @@ import java.util.TreeSet;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
-import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.index.common.SourceCorrespondence;
 import com.ensoftcorp.atlas.core.query.Attr.Edge;
 import com.ensoftcorp.atlas.core.query.Attr.Node;
@@ -24,7 +24,7 @@ import com.ensoftcorp.open.toolbox.commons.utils.OSUtils;
 
 /**
  * A wrapper for some hacks to get file names, lines numbers, and other
- * properties out of Q's.
+ * properties out of Q and GraphElement objects.
  * 
  * @author Ben Holland
  */
@@ -216,29 +216,19 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	 * @param q
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public static Collection<FormattedSourceCorrespondence> getSourceCorrespondents(Q q) {
 		LinkedList<FormattedSourceCorrespondence> sourceCorrespondents = new LinkedList<FormattedSourceCorrespondence>();
-		AtlasSet<GraphElement> nodes = q.eval().nodes();
-		for (GraphElement node : nodes) {
-			Object name = node.attr().get(Node.NAME);
-			Object sc = node.attr().get(Node.SC);
-			if (sc != null && sc instanceof SourceCorrespondence) {
-				if (name != null) {
-					sourceCorrespondents.add(new FormattedSourceCorrespondence((SourceCorrespondence) sc, name.toString()));
-				} else {
-					sourceCorrespondents.add(new FormattedSourceCorrespondence((SourceCorrespondence) sc));
-				}
+		Graph graph = q.eval();
+		for (GraphElement node : graph.nodes()) {
+			FormattedSourceCorrespondence sc = getSourceCorrespondent(node);
+			if(sc != null){
+				sourceCorrespondents.add(sc);
 			}
-			Object scList = node.attr().get(Edge.SC_LIST);
-			if (scList != null && scList instanceof List) {
-				for (SourceCorrespondence scListItem : (List<SourceCorrespondence>) scList) {
-					if (name != null) {
-						sourceCorrespondents.add(new FormattedSourceCorrespondence((SourceCorrespondence) scListItem, name.toString()));
-					} else {
-						sourceCorrespondents.add(new FormattedSourceCorrespondence((SourceCorrespondence) scListItem));
-					}
-				}
+		}
+		for (GraphElement edge : graph.edges()){
+			FormattedSourceCorrespondence sc = getSourceCorrespondent(edge);
+			if(sc != null){
+				sourceCorrespondents.add(sc);
 			}
 		}
 		return sourceCorrespondents;
@@ -246,7 +236,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 
 	/**
 	 * Returns a formatted source correspondent given a GraphElement
-	 * Returns null if no source correpondents are found.
+	 * Returns null if no source correspondents are found.
 	 * @param ge
 	 * @return
 	 */

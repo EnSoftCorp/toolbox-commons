@@ -5,6 +5,7 @@ import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 
 /**
  * A wrapper around Atlas indexing utils with added listeners for error handling.
+ * 
  * @author Ben Holland
  */
 public class IndexingUtils {

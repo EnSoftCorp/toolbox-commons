@@ -1,12 +1,9 @@
-package com.ensoftcorp.open.toolbox.commons.utils;
+package com.ensoftcorp.open.toolbox.commons.analysis.utils;
 
 import static com.ensoftcorp.atlas.core.script.Common.index;
 import static com.ensoftcorp.atlas.core.script.Common.toQ;
 import static com.ensoftcorp.atlas.core.script.CommonQueries.callStep;
 import static com.ensoftcorp.atlas.core.script.CommonQueries.declarations;
-import static com.ensoftcorp.atlas.core.script.CommonQueries.edgeSize;
-import static com.ensoftcorp.atlas.core.script.CommonQueries.nodeSize;
-import static com.ensoftcorp.atlas.java.core.script.Common.getQualifiedName;
 import static com.ensoftcorp.atlas.java.core.script.Common.stepFrom;
 import static com.ensoftcorp.atlas.java.core.script.Common.stepTo;
 
@@ -24,14 +21,15 @@ import com.ensoftcorp.atlas.core.query.Attr.Node;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.CommonQueries.TraversalDirection;
 
-
 /**
- * Common queries which are useful for writing larger scripts, and for using on
- * the interpreter.
+ * Common queries which are useful for writing larger analysis programs, 
+ * and for using on the shell.
+ * 
  * @author Tom Deering, Ben Holland
  */
-public final class AnalyzerUtils {
-	private AnalyzerUtils() {}
+public final class StandardQueries {
+	
+	private StandardQueries() {}
 
 	/**
 	 * Everything declared under the given methods, but NOT declared under
@@ -162,40 +160,6 @@ public final class AnalyzerUtils {
 	 */
 	public static Q calledBy(Q context, Q callers, Q called) {
 		return context.edgesTaggedWithAny(Edge.CALL).betweenStep(callers, called).retainEdges().leaves();
-	}
-
-	/**
-	 * Returns a comma separated string representing the nodes in the query.
-	 * 
-	 * @param query
-	 * @return
-	 */
-	public static String stringify(Q query) {
-		return stringify(query, false);
-	}
-
-	/**
-	 * Returns a comma separated string representing the nodes in the query.
-	 * 
-	 * The node names are optionally fully qualified.
-	 * 
-	 * @param query
-	 * @param qualified
-	 * @return
-	 */
-	public static String stringify(Q query, boolean qualified) {
-		StringBuilder sb = new StringBuilder();
-		String prefix = "";
-		for (GraphElement node : query.eval().nodes()) {
-			sb.append(prefix);
-			if (qualified) {
-				sb.append(getQualifiedName(node).trim());
-			} else {
-				sb.append(node.attr().get(Node.NAME).toString().trim());
-			}
-			prefix = ",";
-		}
-		return sb.toString().trim();
 	}
 
 	/**
@@ -482,77 +446,5 @@ public final class AnalyzerUtils {
 	 */
 	public static Q mutatedBy(Q context, Q mutators, Q origin) {
 		return writtenBy(context, origin).union(calledBy(context, origin, mutators)).intersection(origin);
-	}
-
-	/**
-	 * Calculates Graph Density of a Q, considering all nodes and edges
-	 * 
-	 * @param graph
-	 *            A Q representing the graph to calculate density for
-	 * @param directed
-	 *            A boolean to indicate if the edges should be treated as
-	 *            directed or undirected edges
-	 * @return graph density calculated as: An undirected graph has no loops and
-	 *         can have at most |N| * (|N| - 1) / 2 edges, so the density of an
-	 *         undirected graph is 2 * |E| / (|N| * (|N| - 1)).
-	 * 
-	 *         A directed graph has no loops and can have at most |N| * (|N| -
-	 *         1) edges, so the density of a directed graph is |E| / (|N| * (|N|
-	 *         - 1)).
-	 * 
-	 *         Note: N is the number of nodes and E is the number of edges in
-	 *         the graph. Note: A value of 0 would be a sparse graph and a value
-	 *         of 1 is a dense graph. Note: Because of the way the way the Atlas
-	 *         schema is constructed the above assumptions are likely to be
-	 *         violated based on the nodes/edges contained in the graph.
-	 *         Therefore the result of this calculation will likely not be
-	 *         between 0 and 1 as expected, and should be taken with a grain of
-	 *         salt.
-	 * 
-	 *         Reference: http://webwhompers.com/graph-theory.html
-	 */
-	public static double getDensity(Q graph, boolean directed) {
-		double N = new Double(nodeSize(graph));
-		double E = new Double(edgeSize(graph));
-
-		// no nodes means we don't even have a graph
-		// check this first
-		if (N <= 0) {
-			return -1;
-		}
-
-		// can't have any edges with just one node
-		if (N == 1) {
-			return -1;
-		}
-
-		// no edges is the sparsest you can get
-		if ((E <= 0)) {
-			return 0;
-		}
-
-		if (directed) {
-			return E / (N * (N - 1));
-		} else {
-			return 2 * E / (N * (N - 1));
-		}
-	}
-
-	/**
-	 * Returns the Graph Density of a Q, considering specified nodes and edges
-	 * 
-	 * @param graph
-	 * @param directed
-	 * @param nodeTypes
-	 *            An array of node type tags, or null for all nodes
-	 * @param edgeTypes
-	 *            An array of edge type tags, or null for all edges
-	 * @return See getDensity method for details
-	 */
-	public static double getDensity(Q graph, boolean directed, String[] nodeTypes, String[] edgeTypes) {
-		Q nodes = nodeTypes != null ? graph.nodesTaggedWithAny(nodeTypes).retainNodes() : graph.retainNodes();
-		Q edges = edgeTypes != null ? graph.edgesTaggedWithAll(edgeTypes).retainEdges() : graph.retainEdges();
-		graph = nodes.union(edges);
-		return getDensity(graph, directed);
 	}
 }
