@@ -15,7 +15,7 @@ Require-Bundle:
  com.ensoftcorp.atlas.java.ui;bundle-version="2.0.5";visibility:=reexport,
  com.ensoftcorp.atlas.c.core;bundle-version="2.0.5";visibility:=reexport,
  com.ensoftcorp.atlas.c.ui;bundle-version="2.0.5";visibility:=reexport,
- org.apache.commons.io;bundle-version="2.2.0"
+ org.apache.commons.io;bundle-version="2.2.0";visibility:=reexport
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Export-Package: com.ensoftcorp.open.toolbox.commons,

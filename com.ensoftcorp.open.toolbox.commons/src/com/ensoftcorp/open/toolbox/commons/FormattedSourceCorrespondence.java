@@ -15,9 +15,11 @@ import org.eclipse.core.resources.ResourcesPlugin;
 
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.index.common.SourceCorrespondence;
 import com.ensoftcorp.atlas.core.query.Attr.Edge;
 import com.ensoftcorp.atlas.core.query.Attr.Node;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.toolbox.commons.utils.OSUtils;
 
 /**
@@ -27,7 +29,7 @@ import com.ensoftcorp.open.toolbox.commons.utils.OSUtils;
  * @author Ben Holland
  */
 public class FormattedSourceCorrespondence implements Comparable<FormattedSourceCorrespondence> {
-	private com.ensoftcorp.atlas.core.index.common.SourceCorrespondence sc;
+	private SourceCorrespondence sc;
 	private String lineNumbers;
 	private String relativeFile;
 	private String project;
@@ -36,15 +38,28 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	private int endLine = -1;
 	private String name;
 
-	private FormattedSourceCorrespondence(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence sc) {
+	/**
+	 * Constructs a FormattedSourceCorrespondence from an Atlas SourceCorrespondence
+	 * @param sc
+	 */
+	private FormattedSourceCorrespondence(SourceCorrespondence sc) {
 		this.sc = sc;
 	}
 
-	private FormattedSourceCorrespondence(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence sc, String name) {
+	/**
+	 * Constructs a FormattedSourceCorrespondence from an Atlas SourceCorrespondence and assigns a name
+	 * @param sc
+	 * @param name
+	 */
+	private FormattedSourceCorrespondence(SourceCorrespondence sc, String name) {
 		this.sc = sc;
 		this.name = name;
 	}
 
+	/**
+	 * Returns true if this formatted source correspondence was given a name
+	 * @return
+	 */
 	public boolean hasName() {
 		boolean result = false;
 		if (name != null) {
@@ -53,10 +68,18 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return result;
 	}
 
+	/**
+	 * Returns this formatted source correspondence name if one was set or null otherwise
+	 * @return
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Returns the condensed line numbers as a string of ranges for the correspondent(s)
+	 * @return
+	 */
 	public String getLineNumbers() {
 		if (lineNumbers == null) {
 			int start = getStartLineNumber();
@@ -70,6 +93,11 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return lineNumbers;
 	}
 
+	/**
+	 * Returns a relative file path string starting at the Eclipse project to the 
+	 * source file that contains this correspondent
+	 * @return
+	 */
 	public String getRelativeFile() {
 		if (relativeFile == null) {
 			File baseDirectory = ResourcesPlugin.getWorkspace().getRoot()
@@ -81,6 +109,10 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return relativeFile;
 	}
 
+	/**
+	 * Returns the String of the Eclipse project name containing this correspondent
+	 * @return
+	 */
 	public String getProject() {
 		if (project == null) {
 			String filename = sc.toString().replace("[", "").replace("]", "");
@@ -92,6 +124,10 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return project;
 	}
 
+	/**
+	 * Returns a File object representing the source file location of this correspondent
+	 * @return
+	 */
 	public File getFile() {
 		if (file == null) {
 			file = sc.sourceFile.getLocation().toFile();
@@ -99,6 +135,10 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return file;
 	}
 
+	/**
+	 * Returns a pretty print string of the format:
+	 * "Filename: <filename> + (line(s) <line number(s)>)"
+	 */
 	@Override
 	public String toString() {
 		String lines = getLineNumbers();
@@ -106,14 +146,29 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 				+ (lines.contains("-") ? "lines " : "line ") + lines + ")";
 	}
 
+	/**
+	 * Returns the beginning file character offset into the source file for 
+	 * this source correspondent
+	 * @return
+	 */
 	public int getOffset() {
 		return sc.offset;
 	}
 
+	/**
+	 * Returns the length from the beginning file character offset into the 
+	 * source file for this source correspondent
+	 * @return
+	 */
 	public int getLength() {
 		return sc.length;
 	}
 
+	/**
+	 * Returns the source file starting line number (the number of new lines 
+	 * to reach the offset of the source correspondent)
+	 * @return
+	 */
 	public int getStartLineNumber() {
 		if (startLine == -1) {
 			try {
@@ -132,6 +187,11 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return startLine;
 	}
 
+	/**
+	 * Returns the soruce file ending line number (the number of new lines 
+	 * to reach the offset plus the length of the source correspondent)
+	 * @return
+	 */
 	public int getEndLineNumber() {
 		if (endLine == -1) {
 			try {
@@ -163,30 +223,20 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		for (GraphElement node : nodes) {
 			Object name = node.attr().get(Node.NAME);
 			Object sc = node.attr().get(Node.SC);
-			if (sc != null) {
+			if (sc != null && sc instanceof SourceCorrespondence) {
 				if (name != null) {
-					sourceCorrespondents
-							.add(new FormattedSourceCorrespondence(
-									(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence) sc,
-									name.toString()));
+					sourceCorrespondents.add(new FormattedSourceCorrespondence((SourceCorrespondence) sc, name.toString()));
 				} else {
-					sourceCorrespondents
-							.add(new FormattedSourceCorrespondence(
-									(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence) sc));
+					sourceCorrespondents.add(new FormattedSourceCorrespondence((SourceCorrespondence) sc));
 				}
 			}
 			Object scList = node.attr().get(Edge.SC_LIST);
-			if (scList != null) {
-				for (com.ensoftcorp.atlas.core.index.common.SourceCorrespondence scListItem : (List<com.ensoftcorp.atlas.core.index.common.SourceCorrespondence>) scList) {
+			if (scList != null && scList instanceof List) {
+				for (SourceCorrespondence scListItem : (List<SourceCorrespondence>) scList) {
 					if (name != null) {
-						sourceCorrespondents
-								.add(new FormattedSourceCorrespondence(
-										(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence) scListItem,
-										name.toString()));
+						sourceCorrespondents.add(new FormattedSourceCorrespondence((SourceCorrespondence) scListItem, name.toString()));
 					} else {
-						sourceCorrespondents
-								.add(new FormattedSourceCorrespondence(
-										(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence) scListItem));
+						sourceCorrespondents.add(new FormattedSourceCorrespondence((SourceCorrespondence) scListItem));
 					}
 				}
 			}
@@ -194,40 +244,48 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return sourceCorrespondents;
 	}
 
+	/**
+	 * Returns a formatted source correspondent given a GraphElement
+	 * @param ge
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	public static FormattedSourceCorrespondence getSourceCorrespondent(GraphElement ge) {
 		FormattedSourceCorrespondence sourceCorrespondent = null;
 		Object name = ge.attr().get(Node.NAME);
 		Object sc = ge.attr().get(Node.SC);
-		if (sc != null) {
-			if (name != null) {
-				sourceCorrespondent = new FormattedSourceCorrespondence(
-						(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence) sc,
-						name.toString());
+		
+		if(sc != null && sc instanceof SourceCorrespondence){
+			if(name != null) {
+				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) sc, name.toString());
 			} else {
-				sourceCorrespondent = new FormattedSourceCorrespondence(
-						(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence) sc);
+				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) sc);
 			}
 		}
+		
 		Object scList = ge.attr().get(Edge.SC_LIST);
-		if (scList != null) {
-			for (com.ensoftcorp.atlas.core.index.common.SourceCorrespondence scListItem : (List<com.ensoftcorp.atlas.core.index.common.SourceCorrespondence>) scList) {
+		if (scList != null && scList instanceof List) {
+			for (SourceCorrespondence scListItem : (List<SourceCorrespondence>) scList) {
 				if (name != null) {
-					sourceCorrespondent = new FormattedSourceCorrespondence(
-							(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence) scListItem,
-							name.toString());
+					sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) scListItem, name.toString());
 				} else {
-					sourceCorrespondent = new FormattedSourceCorrespondence(
-							(com.ensoftcorp.atlas.core.index.common.SourceCorrespondence) scListItem);
+					sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) scListItem);
 				}
 			}
 		}
 		return sourceCorrespondent;
 	}
 
-	public static String summarize(Q q) {
+	/**
+	 * Given a Q, creates a pretty print summary the source graph element locations, line number ranges,
+	 * and names of graph elements that were methods (if enabled)
+	 * of 
+	 * @param q
+	 * @return
+	 */
+	public static String summarize(Q q, boolean includeMethodNames) {
 		return summarize(getSourceCorrespondents(q),
-				getSourceCorrespondents(q.nodesTaggedWithAny(Node.METHOD)));
+				getSourceCorrespondents(includeMethodNames ? q.nodesTaggedWithAny(Node.METHOD) : Common.empty()));
 	}
 
 	private static String summarize(
@@ -317,6 +375,11 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return result.toString().trim();
 	}
 
+	/**
+	 * Helper class for condense line number ranges
+	 * @param lines
+	 * @return
+	 */
 	private static SortedSet<LineNumber> condenseLineNumbers(SortedSet<LineNumber> lines) {
 		SortedSet<LineNumber> condensed = new TreeSet<LineNumber>();
 		SortedSet<LineNumber> ranges = getLineNumberRanges(lines);
