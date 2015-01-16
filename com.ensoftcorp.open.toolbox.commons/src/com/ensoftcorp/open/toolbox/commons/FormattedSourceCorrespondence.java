@@ -246,6 +246,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 
 	/**
 	 * Returns a formatted source correspondent given a GraphElement
+	 * Returns null if no source correpondents are found.
 	 * @param ge
 	 * @return
 	 */
