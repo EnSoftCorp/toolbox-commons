@@ -8,7 +8,7 @@ import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.db.set.UnionSet;
-import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.java.core.query.Q;
 import com.ensoftcorp.atlas.java.core.script.Common;
 
 /**

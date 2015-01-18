@@ -16,10 +16,10 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.index.common.SourceCorrespondence;
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
-import com.ensoftcorp.atlas.core.query.Attr.Node;
-import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.java.core.query.Attr.Edge;
+import com.ensoftcorp.atlas.java.core.query.Attr.Node;
+import com.ensoftcorp.atlas.java.core.query.Q;
+import com.ensoftcorp.atlas.java.core.script.Common;
 import com.ensoftcorp.open.toolbox.commons.utils.OSUtils;
 
 /**

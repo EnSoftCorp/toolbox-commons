@@ -4,9 +4,9 @@ import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.query.Attr;
-import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.java.core.query.Attr.Node;
+import com.ensoftcorp.atlas.java.core.query.Q;
+import com.ensoftcorp.atlas.java.core.script.Common;
 
 /**
  * A set of helper utilities for gathering literal values
@@ -31,7 +31,7 @@ public class Literals {
 	 */
 	public static Q literals(Q graph, String literalType) {
 		AtlasSet<GraphElement> literals = new AtlasHashSet<GraphElement>();
-		for (GraphElement node : graph.nodesTaggedWithAny(Attr.Node.IS_LITERAL).eval().nodes()) {
+		for (GraphElement node : graph.nodesTaggedWithAny(Node.IS_LITERAL).eval().nodes()) {
 			Object attr = node.attr().get("id");
 			if (attr != null && attr.toString().contains(literalType + "Literal")){
 				literals.add(node);

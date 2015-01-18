@@ -1,7 +1,7 @@
 package com.ensoftcorp.open.toolbox.commons.analysis;
 
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
-import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.java.core.query.Attr.Edge;
+import com.ensoftcorp.atlas.java.core.query.Q;
 import com.ensoftcorp.atlas.java.core.script.Common;
 import com.ensoftcorp.open.toolbox.commons.SetDefinitions;
 

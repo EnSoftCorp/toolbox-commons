@@ -1,9 +1,5 @@
 package com.ensoftcorp.open.toolbox.commons.analysis.utils;
 
-import static com.ensoftcorp.atlas.core.script.Common.index;
-import static com.ensoftcorp.atlas.core.script.Common.toQ;
-import static com.ensoftcorp.atlas.core.script.CommonQueries.callStep;
-import static com.ensoftcorp.atlas.core.script.CommonQueries.declarations;
 import static com.ensoftcorp.atlas.java.core.script.Common.stepFrom;
 import static com.ensoftcorp.atlas.java.core.script.Common.stepTo;
 
@@ -16,10 +12,12 @@ import com.ensoftcorp.atlas.core.db.graph.operation.InducedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.db.set.SingletonAtlasSet;
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
-import com.ensoftcorp.atlas.core.query.Attr.Node;
-import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.CommonQueries.TraversalDirection;
+import com.ensoftcorp.atlas.java.core.query.Attr.Edge;
+import com.ensoftcorp.atlas.java.core.query.Attr.Node;
+import com.ensoftcorp.atlas.java.core.query.Q;
+import com.ensoftcorp.atlas.java.core.script.Common;
+import com.ensoftcorp.atlas.java.core.script.CommonQueries;
+import com.ensoftcorp.atlas.java.core.script.CommonQueries.TraversalDirection;
 
 /**
  * Common queries which are useful for writing larger analysis programs, 
@@ -41,7 +39,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q localDeclarations(Q origin) {
-		return localDeclarations(index(), origin);
+		return localDeclarations(Common.index(), origin);
 	}
 
 	/**
@@ -69,7 +67,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q callers(Q origin) {
-		return callers(index(), origin);
+		return callers(Common.index(), origin);
 	}
 
 	/**
@@ -82,7 +80,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q callers(Q context, Q origin) {
-		return callStep(context, origin, TraversalDirection.REVERSE).retainEdges().roots();
+		return CommonQueries.callStep(context, origin, TraversalDirection.REVERSE).retainEdges().roots();
 	}
 
 	/**
@@ -94,7 +92,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q callsites(Q origin) {
-		return callsites(index(), origin).nodesTaggedWithAny(Node.CONTROL_FLOW);
+		return callsites(Common.index(), origin).nodesTaggedWithAny(Node.CONTROL_FLOW);
 	}
 
 	/**
@@ -119,7 +117,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q called(Q origin) {
-		return called(index(), origin);
+		return called(Common.index(), origin);
 	}
 
 	/**
@@ -132,7 +130,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q called(Q context, Q origin) {
-		return callStep(context, origin, TraversalDirection.REVERSE).retainEdges().leaves();
+		return CommonQueries.callStep(context, origin, TraversalDirection.REVERSE).retainEdges().leaves();
 	}
 
 	/**
@@ -145,7 +143,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q calledBy(Q callers, Q called) {
-		return calledBy(index(), callers, called);
+		return calledBy(Common.index(), callers, called);
 	}
 
 	/**
@@ -173,7 +171,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q firstDeclarator(Q declared, String... declaratorTypes) {
-		return firstDeclarator(index(), declared, declaratorTypes);
+		return firstDeclarator(Common.index(), declared, declaratorTypes);
 	}
 
 	/**
@@ -188,7 +186,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q firstDeclarator(Q context, Q declared, String... declaratorTypes) {
-		Q subContext = declarations(context, declared, TraversalDirection.REVERSE);
+		Q subContext = CommonQueries.declarations(context, declared, TraversalDirection.REVERSE);
 		subContext = subContext.differenceEdges(subContext.reverseStep(subContext.nodesTaggedWithAny(declaratorTypes)));
 		return subContext.reverse(declared).nodesTaggedWithAny(declaratorTypes);
 	}
@@ -218,7 +216,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q readersOf(Q origin) {
-		return readersOf(index(), origin);
+		return readersOf(Common.index(), origin);
 	}
 
 	/**
@@ -243,7 +241,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q writersOf(Q origin) {
-		return writersOf(index(), origin);
+		return writersOf(Common.index(), origin);
 	}
 
 	/**
@@ -268,7 +266,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q readBy(Q origin) {
-		return readBy(index(), origin);
+		return readBy(Common.index(), origin);
 	}
 
 	/**
@@ -293,7 +291,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q writtenBy(Q origin) {
-		return writtenBy(index(), origin);
+		return writtenBy(Common.index(), origin);
 	}
 
 	/**
@@ -317,7 +315,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q loops() {
-		return loops(index());
+		return loops(Common.index());
 	}
 
 	/**
@@ -341,7 +339,7 @@ public final class StandardQueries {
 			loopEdges.addAll(loopGraph.edges());
 		}
 
-		return toQ(new InducedGraph(loopNodes, loopEdges));
+		return Common.toQ(new InducedGraph(loopNodes, loopEdges));
 	}
 
 	/**
@@ -354,7 +352,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q conditionsAbove(Q origin) {
-		return conditionsAbove(index(), origin);
+		return conditionsAbove(Common.index(), origin);
 	}
 
 	/**
@@ -383,7 +381,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q mutators(Q origin) {
-		return mutators(index(), origin);
+		return mutators(Common.index(), origin);
 	}
 
 	/**
@@ -402,7 +400,7 @@ public final class StandardQueries {
 				res.add(to);
 		}
 
-		return toQ(new NodeGraph(res));
+		return Common.toQ(new NodeGraph(res));
 	}
 
 	/**
@@ -430,7 +428,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q mutatedBy(Q mutators, Q origin) {
-		return mutatedBy(index(), mutators, origin);
+		return mutatedBy(Common.index(), mutators, origin);
 	}
 
 	/**

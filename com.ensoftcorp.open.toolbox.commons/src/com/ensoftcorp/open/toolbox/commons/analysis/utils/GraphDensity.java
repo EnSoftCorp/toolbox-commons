@@ -1,7 +1,7 @@
 package com.ensoftcorp.open.toolbox.commons.analysis.utils;
 
-import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.CommonQueries;
+import com.ensoftcorp.atlas.java.core.query.Q;
+import com.ensoftcorp.atlas.java.core.script.CommonQueries;
 
 /**
  * A set of utilities for calculating graph density

@@ -1,7 +1,8 @@
 package com.ensoftcorp.open.toolbox.commons.utils;
 
-import com.ensoftcorp.atlas.core.indexing.IIndexListener;
-import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.atlas.java.ui.preferences.IIndexListener;
+import com.ensoftcorp.atlas.java.ui.preferences.IndexOperation;
+import com.ensoftcorp.atlas.java.ui.preferences.IndexingUtil;
 
 /**
  * A wrapper around Atlas indexing utils with added listeners for error handling.
