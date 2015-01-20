@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/ToolboxCommons_2.0.5.201501201505.jar" id="ToolboxCommons" version="2.0.5.201501201505">
+      <category name="Toolbox Commons"/>
+   </feature>
+   <category-def name="Toolbox Commons" label="Toolbox Commons">
+      <description>
+         A set of common utilities for program analysis using Atlas.
+      </description>
+   </category-def>
+</site>
