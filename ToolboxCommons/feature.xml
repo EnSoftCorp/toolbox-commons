@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="ToolboxCommons"
+      id="com.ensoftcorp.open.toolbox.commons"
       label="Toolbox Commons"
       version="2.0.5.qualifier"
       provider-name="EnSoft Corp.">
@@ -38,6 +38,7 @@ SOFTWARE.
    </license>
 
    <url>
+      <update label="ensoftcorp.github.io" url="https://ensoftcorp.github.io/toolbox-commons/updates/"/>
       <discovery label="ensoftcorp.github.io" url="https://ensoftcorp.github.io/toolbox-commons/updates/"/>
    </url>
 
