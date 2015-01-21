@@ -30,50 +30,117 @@
         <center>
             <b><a href="#Setup">Setup</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RunningExamples">Running Examples</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Examples">Examples</a></b>
         </center>
-		
+        
         <hr>
 
         <section id="main_content">
 
         <h3><a name="Setup" class="anchor" href="#Setup"><span class="octicon octicon-link"></span></a>Setup</h3>
         <p>If you haven't already, <a href="./install.html">install</a> the Toolbox Commons plugin into Eclipse.</p>
-		
-		<h3><a name="RunningExamples" class="anchor" href="#RunningExamples"><span class="octicon octicon-link"></span></a>Running Examples</h3>
-		<p>The easiest way to try out the Toolbox Commons is to fork or clone the <a href="https://github.com/EnSoftCorp/Starter-Toolbox">Starter-Toolbox</a> project, which already has a dependency on the Toolbox-Commons configured.</p>
-		<pre><code>git clone git@github.com:EnSoftCorp/Starter-Toolbox.git</code></pre>
-		<p>Import the <code>toolbox.analysis</code> and <code>toolbox.shell</code> projects into the workspace.  Navigate to <code>Window</code>&gt;<code>Show View</code>&gt;<code>Other...</code>&gt;<code>Atlas</code>&gt;<code>Atlas Shell</code>.  Select the <code>toolbox.shell</code> project and press <code>OK</code>.  You should also import and index an Eclipse project for analysis.</p>
-		<p>To run the examples below, copy and paste the code snippets into your toolbox project and invoke from the Atlas Shell.</p>
-		
-		<h3><a name="Examples" class="anchor" href="#Examples"><span class="octicon octicon-link"></span></a>Examples</h3>
-		<p>The Toolbox-Commons project contains several program analysis utilities that may or may not be applicable to your specific analysis needs.  The table of contents below categorizes the examples by general analysis needs.  You should jump to the examples that interest you.</p>
-		
-		<h4>1. <a href="#WritingAProgramAnalyzer">Writing a Program Analyzer</a><h4>
-		<h5>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<a href="#ExtendingTheAnalyzerFramework">Extending the Analyzer Framework</a></h5>
-		<h4>2. <a href="#FormattedSourceCorrespondence">Formatted SourceCorrespondence</a></h4>
-		<h5>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<a href="#PrettyPrintingQAndGraphElementSourceLocations">Pretty Printing Q and GraphElement Source Locations</a><h5>
-		<h4>3. <a href="#DisplayUtils">Display Utils</a><h4>
-		<h5>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<a href="#ShowingDisplayDialogs">Showing Display Dialogs</a></h5>
-		<h5>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<a href="#ShowingAndSavingAtlasGraphs">Showing and Saving Atlas Graphs</a></h5>
-		
-		<hr>
-		
-		<h3><a name="WritingAProgramAnalyzer" class="anchor" href="#WritingAProgramAnalyzer"><span class="octicon octicon-link"></span></a>1. Writing a Program Analyzer</h3>
-		<p>A program Analyzer is a modularized analysis program to analyze a certain aspect of the program graph.  The result of an analysis is an "envelope", which is a <code>Q</code> object containing the necessary elements from the program graph to convey the result of the analysis.  Typically an envelope is empty if the analysis property is not satisfied (undetected in the program graph), and not empty if the analysis property is satisfied (detected in the program graph).</p>
-		<h4><a name="ExtendingTheAnalyzerFramework" class="anchor" href="#ExtendingTheAnalyzerFramework"><span class="octicon octicon-link"></span></a>Extending the Analyzer Framework</h4>
-		<p>TODO</p>
-		
-		<h3><a name="FormattedSourceCorrespondence" class="anchor" href="#FormattedSourceCorrespondence"><span class="octicon octicon-link"></span></a>2. Formatted SourceCorrespondence</h3>
-		<p>Atlas conveniently provides <code>SourceCorrespondence</code> objects for <code>GraphElement</code> objects in the program graph, but the corresponding source file information is represented in terms of Eclipse resources and character offsets.  For non-interactive human readable output this isn't enough.  This utility converts Eclipse resources to standard File objects and relative file path strings, as well as converting resource character offsets to a line number or range of line numbers.</p>
-		<h4><a name="PrettyPrintingQAndGraphElementSourceLocations" class="anchor" href="#PrettyPrintingQAndGraphElementSourceLocations"><span class="octicon octicon-link"></span></a>Pretty Printing Q and GraphElement Source Locations</h4>
-		<p>TODO</p>
-		
-		<h3><a name="DisplayUtils" class="anchor" href="#DisplayUtils"><span class="octicon octicon-link"></span></a>3. Display Utils</h3>
-		<p>TODO</p>
-		<h4><a name="ShowingDisplayDialogs" class="anchor" href="#ShowingDisplayDialogs"><span class="octicon octicon-link"></span></a>Showing Display Dialogs</h4>
-		<p>TODO</p>
-		<h4><a name="ShowingAndSavingAtlasGraphs" class="anchor" href="#ShowingAndSavingAtlasGraphs"><span class="octicon octicon-link"></span></a>Showing and Saving Atlas Graphs</h4>
-		<p>TODO</p>
-		
+        
+        <h3><a name="RunningExamples" class="anchor" href="#RunningExamples"><span class="octicon octicon-link"></span></a>Running Examples</h3>
+        <p>The easiest way to try out the Toolbox Commons is to fork or clone the <a href="https://github.com/EnSoftCorp/Starter-Toolbox">Starter-Toolbox</a> project, which already has a dependency on the Toolbox-Commons configured.</p>
+        <pre><code>git clone git@github.com:EnSoftCorp/Starter-Toolbox.git</code></pre>
+        <p>Import the <code>toolbox.analysis</code> and <code>toolbox.shell</code> projects into the workspace.  Navigate to <code>Window</code>&gt;<code>Show View</code>&gt;<code>Other...</code>&gt;<code>Atlas</code>&gt;<code>Atlas Shell</code>.  Select the <code>toolbox.shell</code> project and press <code>OK</code>.  You should also import and index an Eclipse project for analysis.</p>
+        <p>To run the examples below, copy and paste the code snippets into your toolbox project and invoke from the Atlas Shell.</p>
+        
+        <h3><a name="Examples" class="anchor" href="#Examples"><span class="octicon octicon-link"></span></a>Examples</h3>
+        <p>The Toolbox-Commons project contains several program analysis utilities that may or may not be applicable to your specific analysis needs.  The table of contents below categorizes the examples by general analysis needs.  You should jump to the examples that interest you.</p>
+        
+        <h4>1. <a href="#WritingAProgramAnalyzer">Writing a Program Analyzer</a><h4>
+        <h5>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<a href="#ExtendingTheAnalyzerFramework">Extending the Analyzer Framework</a></h5>
+        <h4>2. <a href="#FormattedSourceCorrespondence">Formatted SourceCorrespondence</a></h4>
+        <h5>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<a href="#PrettyPrintingQAndGraphElementSourceLocations">Pretty Printing Q and GraphElement Source Locations</a><h5>
+        <h4>3. <a href="#DisplayUtils">Display Utils</a><h4>
+        <h5>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<a href="#ShowingDisplayDialogs">Showing Display Dialogs</a></h5>
+        <h5>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<a href="#ShowingAndSavingAtlasGraphs">Showing and Saving Atlas Graphs</a></h5>
+        
+        <hr>
+        
+        <h3><a name="WritingAProgramAnalyzer" class="anchor" href="#WritingAProgramAnalyzer"><span class="octicon octicon-link"></span></a>1. Writing a Program Analyzer</h3>
+        <p>A program Analyzer is a modularized analysis program to analyze a certain aspect of the program graph.  The result of an analysis is an "envelope", which is a <code>Q</code> object containing the necessary elements from the program graph to convey the result of the analysis.  Typically an envelope is empty if the analysis property is not satisfied (undetected in the program graph), and not empty if the analysis property is satisfied (detected in the program graph).</p>
+        <h4><a name="ExtendingTheAnalyzerFramework" class="anchor" href="#ExtendingTheAnalyzerFramework"><span class="octicon octicon-link"></span></a>Extending the Analyzer Framework</h4>
+        <p>To create a new <code>Analyzer</code> simply extend the <code>com.ensoftcorp.open.toolbox.commons.analysis.Analyzer</code> class and implement the required methods.  An example <code>Analyzer</code> to detect valid Java main methods is shown below.</p>
+        <pre><code>import com.ensoftcorp.atlas.core.query.Attr.Edge;
+import com.ensoftcorp.atlas.core.query.Attr.Node;
+import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.java.core.script.Common;
+import com.ensoftcorp.atlas.java.core.script.CommonQueries;
+import com.ensoftcorp.open.toolbox.commons.analysis.Analyzer;
+
+/**
+ * Discovers Java main methods.
+ * Tested on examples from http://rationalpi.wordpress.com/2007/01/29/main-methods-in-java/
+ * @author Ben Holland
+ */
+public class DiscoverMainMethods extends Analyzer {
+
+    @Override 
+    public String getName(){
+        return "Discover Main Methods";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Finds valid Java main methods.";
+    }
+
+    @Override
+    public String[] getAssumptions() {
+        return new String[]{"Main methods are methods.", 
+                            "Main methods are public.", 
+                            "Main methods are static.", 
+                            "Main methods return void.", 
+                            "Main methods take a single String[] array parameter", 
+                            "Main methods may be final.", 
+                            "Main methods may have the strictfp keyword.", 
+                            "Main methods may be synchronized."};
+    }
+
+    @Override
+    protected Q evaluateEnvelope() {
+        // Step 1) select nodes from the index that are marked as public, static, methods
+        Q mainMethods = context.nodesTaggedWithAll(Node.IS_PUBLIC, Node.IS_STATIC, Node.METHOD);
+
+        // Step 2) select nodes from the public static methods that are named "main"
+        mainMethods = mainMethods.selectNode(Node.NAME, "main");
+
+        // Step 3) filter out methods that are not void return types
+        mainMethods = mainMethods.intersection(Common.stepFrom(Common.edges(Edge.RETURNS), Common.types("void")));
+
+        // Step 4) filter out methods that do not take exactly one parameter
+        Q paramEdgesInContext = context.edgesTaggedWithAny(Edge.PARAM).retainEdges();
+        // methods with no parameters will not have a PARAM edge
+        Q methodsWithNoParams = mainMethods.difference(Common.stepFrom(paramEdgesInContext, Common.stepTo(paramEdgesInContext, mainMethods)));
+        // methods with 2 or more params will have at least one edge with PARAMETER_INDEX == 1 (index 0 is the first parameter)
+        Q methodsWithTwoOrMoreParams = Common.stepFrom(paramEdgesInContext, Common.stepTo(paramEdgesInContext, mainMethods).selectNode(Node.PARAMETER_INDEX, 1));
+        mainMethods = mainMethods.difference(methodsWithNoParams, methodsWithTwoOrMoreParams);
+
+        // Step 5) filter out methods that do not take a String array
+        // get the 1-dimensional String array type
+        Q stringArrays = Common.stepFrom(Common.edges(Edge.ELEMENTTYPE), Common.typeSelect("java.lang","String"));
+        Q oneDimensionStringArray = stringArrays.selectNode(Node.DIMENSION, 1);
+        Q mainMethodParams = CommonQueries.methodParameter(mainMethods, 0);
+        Q validMethodParams = mainMethodParams.intersection(Common.stepFrom(Common.edges(Edge.TYPEOF), oneDimensionStringArray));
+        mainMethods = Common.stepFrom(paramEdgesInContext, validMethodParams);
+
+        return mainMethods;
+    }
+
+}</code></pre>
+        
+        <h3><a name="FormattedSourceCorrespondence" class="anchor" href="#FormattedSourceCorrespondence"><span class="octicon octicon-link"></span></a>2. Formatted SourceCorrespondence</h3>
+        <p>Atlas conveniently provides <code>SourceCorrespondence</code> objects for <code>GraphElement</code> objects in the program graph, but the corresponding source file information is represented in terms of Eclipse resources and character offsets.  For non-interactive human readable output this isn't enough.  This utility converts Eclipse resources to standard File objects and relative file path strings, as well as converting resource character offsets to a line number or range of line numbers.</p>
+        <h4><a name="PrettyPrintingQAndGraphElementSourceLocations" class="anchor" href="#PrettyPrintingQAndGraphElementSourceLocations"><span class="octicon octicon-link"></span></a>Pretty Printing Q and GraphElement Source Locations</h4>
+        <p>TODO</p>
+        
+        <h3><a name="DisplayUtils" class="anchor" href="#DisplayUtils"><span class="octicon octicon-link"></span></a>3. Display Utils</h3>
+        <p>TODO</p>
+        <h4><a name="ShowingDisplayDialogs" class="anchor" href="#ShowingDisplayDialogs"><span class="octicon octicon-link"></span></a>Showing Display Dialogs</h4>
+        <p>TODO</p>
+        <h4><a name="ShowingAndSavingAtlasGraphs" class="anchor" href="#ShowingAndSavingAtlasGraphs"><span class="octicon octicon-link"></span></a>Showing and Saving Atlas Graphs</h4>
+        <p>TODO</p>
+        
         <footer>
           Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
         </footer>
