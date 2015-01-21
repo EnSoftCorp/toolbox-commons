@@ -6,7 +6,7 @@ import com.ensoftcorp.atlas.java.core.script.Common;
 import com.ensoftcorp.open.toolbox.commons.SetDefinitions;
 
 /**
- * A class containing common functionality needed for any script.
+ * A class containing common functionality needed for an analysis task.
  * 
  * This class is immutable. It should be instantiated with the script's
  * parameterized arguments, and the getter methods will do lazy evaluation as
