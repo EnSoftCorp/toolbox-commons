@@ -128,11 +128,39 @@ public class DiscoverMainMethods extends Analyzer {
     }
 
 }</code></pre>
-        
+		<p>Running our <code>Analyzer</code> is simple, just construct a new <code>DiscoverMainMethods</code> <code>Analyzer</code> object and call the <code>getEnvelope</code> method.  The first time you call <code>getEnvelope</code>, the result is cached in the object so calling <code>getEnvelope()</code> again is cheap.  Note that the <code>DiscoverMainMethods</code> <code>Analyzer</code> above is designed to return an empty <code>Q</code> object if no valid Java main methods are discovered.</p>
+        <pre><code>Analyzer analyzer = new DiscoverMainMethods(); // lazily instantiate Analyzer
+Q envelope = analyzer.getEnvelope(); // performs analysis
+if(envelope.eval().nodes().size() == 0){
+    DisplayUtils.showMessage("No valid Java main methods detected!");
+} else {
+    // valid main methods found, show the Atlas graph with the results!
+    Highlighter h = null; // no highlighting
+    boolean extend = true; // perform a reverse DECLARES walk to show the node context
+    DisplayUtils.show(envelope, h, extend, "Detected valid Java main methods");
+}</code></pre>
+		
         <h3><a name="FormattedSourceCorrespondence" class="anchor" href="#FormattedSourceCorrespondence"><span class="octicon octicon-link"></span></a>2. Formatted SourceCorrespondence</h3>
         <p>Atlas conveniently provides <code>SourceCorrespondence</code> objects for <code>GraphElement</code> objects in the program graph, but the corresponding source file information is represented in terms of Eclipse resources and character offsets.  For non-interactive human readable output this isn't enough.  This utility converts Eclipse resources to standard File objects and relative file path strings, as well as converting resource character offsets to a line number or range of line numbers.</p>
         <h4><a name="PrettyPrintingQAndGraphElementSourceLocations" class="anchor" href="#PrettyPrintingQAndGraphElementSourceLocations"><span class="octicon octicon-link"></span></a>Pretty Printing Q and GraphElement Source Locations</h4>
-        <p>TODO</p>
+        <pre><code>Analyzer analyzer = new DiscoverMainMethods(); // lazily instantiate Analyzer
+Q envelope = analyzer.getEnvelope(); // performs analysis
+FileWriter fw = new FileWriter(new File("output.txt"));
+if(envelope.eval().nodes().size() == 0){
+    fw.write("No valid Java main methods detected!");
+} else {
+    // valid main methods found, write the source file names 
+    // and line numbers of the results to the output file
+    FormattedSourceCorrespondence fsc = FormattedSourceCorrespondence.getSourceCorrespondents(envelope);
+    fw.write(fsc.toString());
+}
+fw.close();</code></pre>
+		<p>Assuming the project you analyzed had one or more valid Java main methods, the output.txt file would contain something similar to the following.</p>
+		<pre><code>[Filename: ExampleProject\src\com\example\ExampleClass.java (line 5)]</code></pre>
+		<p>A <code>Q</code> with multiple file and line number correspondents might look similar to the following.</p>
+		<pre><code>[Filename: ExampleProject\src\com\example\ExampleClass.java (lines 5-12, 15),
+ Filename: ExampleProject\src\com\example\AnotherExampleClass.java (line 3)]</code></pre>
+		<p>To get a <code>FormattedSourceCorrespondence</code> for a single <code>GraphElement</code> use the <code>FormattedSourceCorrespondence.getSourceCorrespondent(GraphElement ge)</code> method.</p>
         
         <h3><a name="DisplayUtils" class="anchor" href="#DisplayUtils"><span class="octicon octicon-link"></span></a>3. Display Utils</h3>
         <p>TODO</p>
