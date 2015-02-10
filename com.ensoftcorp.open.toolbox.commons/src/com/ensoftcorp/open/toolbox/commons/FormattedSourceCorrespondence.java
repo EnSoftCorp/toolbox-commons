@@ -1,6 +1,7 @@
 package com.ensoftcorp.open.toolbox.commons;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,7 +12,8 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
@@ -23,21 +25,20 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.toolbox.commons.utils.OSUtils;
 
 /**
- * A wrapper for some hacks to get file names, lines numbers, and other
- * properties out of Q and GraphElement objects.
- * 
+ * A convenience utility wrapper for pretty printing SourceCorrespondence line numbers and other properties 
  * @author Ben Holland
  */
 public class FormattedSourceCorrespondence implements Comparable<FormattedSourceCorrespondence> {
+	
+	// on demand cache of relative file paths -> character ranges for each line number
+	// a line number is represented by the index of the linked list
+	private static HashMap<String, LinkedList<Long>> cache = new HashMap<String, LinkedList<Long>>();
+	
 	private SourceCorrespondence sc;
-	private String lineNumbers;
-	private String relativeFile;
-	private String project;
-	private File file;
-	private int startLine = -1;
-	private int endLine = -1;
 	private String name;
-
+	private String relativeFilePath;
+	private LineNumberRange lineNumberRange = null;
+	
 	/**
 	 * Constructs a FormattedSourceCorrespondence from an Atlas SourceCorrespondence
 	 * @param sc
@@ -55,7 +56,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		this.sc = sc;
 		this.name = name;
 	}
-
+	
 	/**
 	 * Returns true if this formatted source correspondence was given a name
 	 * @return
@@ -67,7 +68,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		}
 		return result;
 	}
-
+	
 	/**
 	 * Returns this formatted source correspondence name if one was set or null otherwise
 	 * @return
@@ -75,75 +76,87 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	public String getName() {
 		return name;
 	}
-
-	/**
-	 * Returns the condensed line numbers as a string of ranges for the correspondent(s)
-	 * @return
-	 */
-	public String getLineNumbers() {
-		if (lineNumbers == null) {
-			int start = getStartLineNumber();
-			int end = getEndLineNumber();
-			if (start == end) {
-				lineNumbers = "" + start;
-			} else {
-				lineNumbers = start + "-" + end;
-			}
-		}
-		return lineNumbers;
-	}
-
-	/**
-	 * Returns a relative file path string starting at the Eclipse project to the 
-	 * source file that contains this correspondent
-	 * @return
-	 */
-	public String getRelativeFile() {
-		if (relativeFile == null) {
-			File baseDirectory = ResourcesPlugin.getWorkspace().getRoot()
-					.getProject(getProject()).getLocation().toFile();
-			relativeFile = OSUtils.ResourceUtils.getRelativePath(getFile()
-					.getAbsolutePath(), baseDirectory.getParent(), ""
-					+ File.separatorChar);
-		}
-		return relativeFile;
-	}
-
+	
 	/**
 	 * Returns the String of the Eclipse project name containing this correspondent
 	 * @return
 	 */
 	public String getProject() {
-		if (project == null) {
-			String filename = sc.toString().replace("[", "").replace("]", "");
-			String relativePath = filename
-					.substring(filename.indexOf("+/") + 1);
-			String project = relativePath.substring(1);
-			this.project = project.substring(0, project.indexOf("/"));
-		}
-		return project;
+		return sc.sourceFile.getProject().getName();
 	}
-
+	
 	/**
 	 * Returns a File object representing the source file location of this correspondent
 	 * @return
 	 */
 	public File getFile() {
-		if (file == null) {
-			file = sc.sourceFile.getLocation().toFile();
+		return sc.sourceFile.getLocation().toFile();
+	}
+	
+	/**
+	 * Returns a relative file path string starting at the Eclipse project to
+	 * the source file that contains this correspondent
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	public String getRelativeFile() throws IOException {
+		if (relativeFilePath == null) {
+			File baseDirectory = sc.sourceFile.getProject().getLocation().toFile();
+			relativeFilePath = OSUtils.ResourceUtils.getRelativePath(
+					sc.sourceFile.getLocation().toFile().getCanonicalPath(),
+					baseDirectory.getParent(), File.separator);
 		}
-		return file;
+		return relativeFilePath;
 	}
 
+	/**
+	 * Returns the source file starting line number (the number of new lines 
+	 * to reach the offset of the source correspondent)
+	 * @return
+	 */
+	public long getStartLineNumber() {
+		return lineNumberRange.startLine;
+	}
+	
+	/**
+	 * Returns the source file ending line number (the number of new lines 
+	 * to reach the offset plus the length of the source correspondent)
+	 * @return
+	 * @throws IOException 
+	 */
+	public long getEndLineNumber() throws IOException {
+		if(lineNumberRange == null){
+			lineNumberRange = getLineNumberRange(sc);
+		}
+		return lineNumberRange.endLine;
+	}
+	
+	/**
+	 * Returns the condensed line numbers as a string of ranges for the correspondent(s)
+	 * @return
+	 * @throws IOException 
+	 */
+	public String getLineNumbers() throws IOException {
+		if(lineNumberRange == null){
+			lineNumberRange = getLineNumberRange(sc);
+		}
+		return lineNumberRange.toString();
+	}
+	
 	/**
 	 * Returns a pretty print string of the format:
 	 * "Filename: <filename> + (line(s) <line number(s)>)"
 	 */
 	@Override
 	public String toString() {
-		String lines = getLineNumbers();
-		return "Filename: " + getRelativeFile() + " ("
-				+ (lines.contains("-") ? "lines " : "line ") + lines + ")";
+		try {
+			String lines = getLineNumbers();
+			return "Filename: " + getRelativeFile() + " ("
+					+ (lines.contains("-") ? "lines " : "line ") + lines + ")";
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -163,53 +176,69 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	public int getLength() {
 		return sc.length;
 	}
-
+	
 	/**
-	 * Returns the source file starting line number (the number of new lines 
-	 * to reach the offset of the source correspondent)
-	 * @return
+	 * The the internal cache for all source files
+	 * You should do this if the source file content or location changes
 	 */
-	public int getStartLineNumber() {
-		if (startLine == -1) {
-			try {
-				RandomAccessFile raf = new RandomAccessFile(getFile(), "r");
-				int newLines = 0;
-				while (raf.getFilePointer() < getOffset() && raf.getFilePointer() < raf.length()) {
-					raf.readLine();
-					newLines++;
-				}
-				raf.close();
-				startLine = newLines;
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+	public static void clearCache(){
+		cache = new HashMap<String, LinkedList<Long>>();
+	}
+	
+	/**
+	 * Builds a private static cache of of the new line boundaries for a given source file
+	 * @param sourceFile
+	 * @return
+	 * @throws IOException
+	 */
+	public static LinkedList<Long> cacheFile(IFile sourceFile) throws IOException {
+		IProject project = sourceFile.getProject();
+		File baseDirectory = project.getLocation().toFile();
+		File file = sourceFile.getLocation().toFile();
+		String relativeFilePath = OSUtils.ResourceUtils.getRelativePath(file.getCanonicalPath(), baseDirectory.getParent(), File.separator);
+		LinkedList<Long> fileCache;
+		if(cache.containsKey(relativeFilePath)){
+			fileCache = cache.get(relativeFilePath);
+		} else {
+			fileCache = new LinkedList<Long>();
+			RandomAccessFile raf = new RandomAccessFile(file, "r");
+			while (raf.getFilePointer() < raf.length()) {
+				raf.readLine();
+				fileCache.add(new Long(raf.getFilePointer()));
+			}
+			raf.close();
+		}
+		return fileCache;
+	}
+	
+	/**
+	 * Gets a line number range for a given source correspondent
+	 * @param sc
+	 * @return
+	 * @throws IOException
+	 */
+	public static LineNumberRange getLineNumberRange(SourceCorrespondence sc) throws IOException {
+		LinkedList<Long> newLineBoundaries = cacheFile(sc.sourceFile);
+		long startChar = sc.offset;
+		long endChar = (sc.offset + sc.length);
+		int startLine = 1;
+		int endLine = 1;
+		for(long newLineCharBoundary : newLineBoundaries){
+			if(startChar >= newLineCharBoundary){
+				startLine++;
+			}
+			if(newLineCharBoundary <= endChar){
+				endLine++;
 			}
 		}
-		return startLine;
+		return new LineNumberRange(startLine, endLine);
 	}
 
-	/**
-	 * Returns the soruce file ending line number (the number of new lines 
-	 * to reach the offset plus the length of the source correspondent)
-	 * @return
-	 */
-	public int getEndLineNumber() {
-		if (endLine == -1) {
-			try {
-				RandomAccessFile raf = new RandomAccessFile(getFile(), "r");
-				int newLines = 0;
-				while (raf.getFilePointer() < (getOffset() + getLength()) && raf.getFilePointer() < raf.length()) {
-					raf.readLine();
-					newLines++;
-				}
-				raf.close();
-				endLine = newLines;
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-		return endLine;
+	@Override
+	public int compareTo(FormattedSourceCorrespondence fsc) {
+		return Long.compare(this.getStartLineNumber(), fsc.getStartLineNumber());
 	}
-
+	
 	/**
 	 * Returns a collection of source correspondents given a Q
 	 * 
@@ -220,15 +249,15 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		LinkedList<FormattedSourceCorrespondence> sourceCorrespondents = new LinkedList<FormattedSourceCorrespondence>();
 		Graph graph = q.eval();
 		for (GraphElement node : graph.nodes()) {
-			FormattedSourceCorrespondence sc = getSourceCorrespondent(node);
-			if(sc != null){
-				sourceCorrespondents.add(sc);
+			FormattedSourceCorrespondence fsc = getSourceCorrespondent(node);
+			if(fsc != null){
+				sourceCorrespondents.add(fsc);
 			}
 		}
 		for (GraphElement edge : graph.edges()){
-			FormattedSourceCorrespondence sc = getSourceCorrespondent(edge);
-			if(sc != null){
-				sourceCorrespondents.add(sc);
+			FormattedSourceCorrespondence fsc = getSourceCorrespondent(edge);
+			if(fsc != null){
+				sourceCorrespondents.add(fsc);
 			}
 		}
 		return sourceCorrespondents;
@@ -244,13 +273,13 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	public static FormattedSourceCorrespondence getSourceCorrespondent(GraphElement ge) {
 		FormattedSourceCorrespondence sourceCorrespondent = null;
 		Object name = ge.attr().get(Node.NAME);
-		Object sc = ge.attr().get(Node.SC);
+		Object fsc = ge.attr().get(Node.SC);
 		
-		if(sc != null && sc instanceof SourceCorrespondence){
+		if(fsc != null && fsc instanceof SourceCorrespondence){
 			if(name != null) {
-				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) sc, name.toString());
+				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) fsc, name.toString());
 			} else {
-				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) sc);
+				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) fsc);
 			}
 		}
 		
@@ -266,34 +295,35 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		}
 		return sourceCorrespondent;
 	}
-
+	
 	/**
 	 * Given a Q, creates a pretty print summary the source graph element locations, line number ranges,
 	 * and names of graph elements that were methods (if enabled)
 	 * of 
 	 * @param q
 	 * @return
+	 * @throws IOException 
 	 */
-	public static String summarize(Q q, boolean includeMethodNames) {
+	public static String summarize(Q q, boolean includeMethodNames) throws IOException {
 		return summarize(getSourceCorrespondents(q),
 				getSourceCorrespondents(includeMethodNames ? q.nodesTaggedWithAny(Node.METHOD) : Common.empty()));
 	}
 
-	private static String summarize(
-			Collection<FormattedSourceCorrespondence> allSources,
-			Collection<FormattedSourceCorrespondence> methods) {
+	// helper method for summarizing source correspondents
+	private static String summarize(Collection<FormattedSourceCorrespondence> allSources,
+									Collection<FormattedSourceCorrespondence> methods) throws IOException {
 		StringBuilder result = new StringBuilder();
 
 		// get the files and the line numbers in the source correspondents
-		Map<String, SortedSet<LineNumber>> filesToLineNumbers = new HashMap<String, SortedSet<LineNumber>>();
-		for (FormattedSourceCorrespondence sc : allSources) {
-			if (filesToLineNumbers.containsKey(sc.getRelativeFile())) {
-				LineNumber line = new LineNumber(sc.getLineNumbers());
-				filesToLineNumbers.get(sc.getRelativeFile()).add(line);
+		Map<String, SortedSet<LineNumberRange>> filesToLineNumbers = new HashMap<String, SortedSet<LineNumberRange>>();
+		for (FormattedSourceCorrespondence fsc : allSources) {
+			if (filesToLineNumbers.containsKey(fsc.getRelativeFile())) {
+				LineNumberRange line = new LineNumberRange(fsc.getLineNumbers());
+				filesToLineNumbers.get(fsc.getRelativeFile()).add(line);
 			} else {
-				SortedSet<LineNumber> lineNumbersSet = new TreeSet<LineNumber>();
-				lineNumbersSet.add(new LineNumber(sc.getLineNumbers()));
-				filesToLineNumbers.put(sc.getRelativeFile(), lineNumbersSet);
+				SortedSet<LineNumberRange> lineNumbersSet = new TreeSet<LineNumberRange>();
+				lineNumbersSet.add(new LineNumberRange(fsc.getLineNumbers()));
+				filesToLineNumbers.put(fsc.getRelativeFile(), lineNumbersSet);
 			}
 		}
 
@@ -321,9 +351,8 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		} else {
 			result.append("Files:\n");
 		}
-		for (Entry<String, SortedSet<LineNumber>> entry : filesToLineNumbers
-				.entrySet()) {
-			SortedSet<LineNumber> condensedLineNumbers = condenseLineNumbers(entry
+		for (Entry<String, SortedSet<LineNumberRange>> entry : filesToLineNumbers.entrySet()) {
+			SortedSet<LineNumberRange> condensedLineNumbers = condenseLineNumbers(entry
 					.getValue());
 			String plurality = "s";
 			if (condensedLineNumbers.size() == 1) {
@@ -371,15 +400,15 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	 * @param lines
 	 * @return
 	 */
-	private static SortedSet<LineNumber> condenseLineNumbers(SortedSet<LineNumber> lines) {
-		SortedSet<LineNumber> condensed = new TreeSet<LineNumber>();
-		SortedSet<LineNumber> ranges = getLineNumberRanges(lines);
-		SortedSet<LineNumber> singleLines = getSingleLineNumbers(lines);
+	private static SortedSet<LineNumberRange> condenseLineNumbers(SortedSet<LineNumberRange> lines) {
+		SortedSet<LineNumberRange> condensed = new TreeSet<LineNumberRange>();
+		SortedSet<LineNumberRange> ranges = getLineNumberRanges(lines);
+		SortedSet<LineNumberRange> singleLines = getSingleLineNumbers(lines);
 
 		// condense overlapping ranges
-		Collection<LineNumber> rangesToRemove = new LinkedList<LineNumber>();
-		for (LineNumber rangeOutside : ranges) {
-			for (LineNumber rangeInside : ranges) {
+		Collection<LineNumberRange> rangesToRemove = new LinkedList<LineNumberRange>();
+		for (LineNumberRange rangeOutside : ranges) {
+			for (LineNumberRange rangeInside : ranges) {
 				if (rangeOutside.equals(rangeInside)) {
 					// skip, this is the same range
 					continue;
@@ -403,9 +432,9 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		condensed.addAll(ranges);
 
 		// condense single lines into ranges
-		Collection<LineNumber> singlesToRemove = new LinkedList<LineNumber>();
-		for (LineNumber range : ranges) {
-			for (LineNumber singleLine : singleLines) {
+		Collection<LineNumberRange> singlesToRemove = new LinkedList<LineNumberRange>();
+		for (LineNumberRange range : ranges) {
+			for (LineNumberRange singleLine : singleLines) {
 				String[] startEndLines = range.toString().split("-");
 				int start = Integer.parseInt(startEndLines[0]);
 				int end = Integer.parseInt(startEndLines[1]);
@@ -421,9 +450,9 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return joinConsecutiveLines(condensed);
 	}
 
-	private static SortedSet<LineNumber> getLineNumberRanges(SortedSet<LineNumber> allLineNumbers) {
-		SortedSet<LineNumber> ranges = new TreeSet<LineNumber>();
-		for (LineNumber lineNumber : allLineNumbers) {
+	private static SortedSet<LineNumberRange> getLineNumberRanges(SortedSet<LineNumberRange> allLineNumbers) {
+		SortedSet<LineNumberRange> ranges = new TreeSet<LineNumberRange>();
+		for (LineNumberRange lineNumber : allLineNumbers) {
 			if (lineNumber.toString().contains("-")) {
 				ranges.add(lineNumber);
 			}
@@ -431,9 +460,9 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return ranges;
 	}
 
-	private static SortedSet<LineNumber> getSingleLineNumbers(SortedSet<LineNumber> allLineNumbers) {
-		SortedSet<LineNumber> ranges = new TreeSet<LineNumber>();
-		for (LineNumber lineNumber : allLineNumbers) {
+	private static SortedSet<LineNumberRange> getSingleLineNumbers(SortedSet<LineNumberRange> allLineNumbers) {
+		SortedSet<LineNumberRange> ranges = new TreeSet<LineNumberRange>();
+		for (LineNumberRange lineNumber : allLineNumbers) {
 			if (!lineNumber.toString().contains("-")) {
 				ranges.add(lineNumber);
 			}
@@ -441,10 +470,10 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return ranges;
 	}
 
-	private static SortedSet<LineNumber> joinConsecutiveLines(SortedSet<LineNumber> condensedLines) {
-		LineNumber toRemove = null;
-		found: for (LineNumber base : condensedLines) {
-			for (LineNumber reference : condensedLines) {
+	private static SortedSet<LineNumberRange> joinConsecutiveLines(SortedSet<LineNumberRange> condensedLines) {
+		LineNumberRange toRemove = null;
+		found: for (LineNumberRange base : condensedLines) {
+			for (LineNumberRange reference : condensedLines) {
 				if (!base.lines.equals(reference.lines)) {
 					// if its a single test it against each incrementing single (except itself) or 
 					// range until either the single or range start is one less than the single or 
@@ -475,14 +504,9 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		return condensedLines;
 	}
 
-	@Override
-	public int compareTo(FormattedSourceCorrespondence sc) {
-		return this.getStartLineNumber() - sc.getStartLineNumber();
-	}
-
 	// Just a little helper class for sorting line number strings (based on the
 	// start line number)
-	public static class LineNumber implements Comparable<LineNumber> {
+	public static class LineNumberRange implements Comparable<LineNumberRange> {
 
 		@Override
 		public int hashCode() {
@@ -500,7 +524,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 				return false;
 			if (getClass() != obj.getClass())
 				return false;
-			LineNumber other = (LineNumber) obj;
+			LineNumberRange other = (LineNumberRange) obj;
 			if (lines == null) {
 				if (other.lines != null)
 					return false;
@@ -514,7 +538,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		private String lines;
 		private boolean single = false;
 
-		private LineNumber(String lines) {
+		private LineNumberRange(String lines) {
 			this.lines = lines;
 			if (lines.contains("-")) {
 				startLine = Integer.parseInt(lines.split("-")[0]);
@@ -522,6 +546,18 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 			} else {
 				single = true;
 				startLine = Integer.parseInt(lines);
+			}
+		}
+
+		private LineNumberRange(int startLine, int endLine) {
+			this.startLine = startLine;
+			this.endLine = endLine;
+			if(startLine == endLine){
+				this.single = true;
+				this.lines = "" + startLine;
+			} else {
+				this.single = false;
+				this.lines = startLine + "-" + endLine;
 			}
 		}
 
@@ -567,7 +603,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 		}
 
 		@Override
-		public int compareTo(LineNumber other) {
+		public int compareTo(LineNumberRange other) {
 			if (this.isSingle() && other.isSingle()) {
 				return this.startLine - other.startLine;
 			} else if (this.isSingle() && !other.isSingle()) {
@@ -589,3 +625,4 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	}
 
 }
+	
