@@ -3,7 +3,7 @@
    <feature url="features/com.ensoftcorp.open.toolbox.commons_2.0.5.201501201547.jar" id="com.ensoftcorp.open.toolbox.commons" version="2.0.5.201501201547">
       <category name="com.ensoftcorp.open.toolbox.commons"/>
    </feature>
-   <feature url="features/com.ensoftcorp.open.toolbox.commons_2.0.6.201502230956.jar" id="com.ensoftcorp.open.toolbox.commons" version="2.0.6.201502230956">
+   <feature url="features/com.ensoftcorp.open.toolbox.commons_2.0.6.201502231043.jar" id="com.ensoftcorp.open.toolbox.commons" version="2.0.6.201502231043">
       <category name="com.ensoftcorp.open.toolbox.commons"/>
    </feature>
    <category-def name="com.ensoftcorp.open.toolbox.commons" label="Toolbox Commons">
