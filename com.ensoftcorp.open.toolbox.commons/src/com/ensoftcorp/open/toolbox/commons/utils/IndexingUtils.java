@@ -37,6 +37,9 @@ public class IndexingUtils {
 
 		@Override
 		public void indexOperationComplete(IndexOperation io) {}
+
+		@Override
+		public void indexOperationScheduled(IndexOperation io) {}
 	};
 
 	/**
