@@ -2,7 +2,7 @@
 <feature
       id="com.ensoftcorp.open.toolbox.commons"
       label="Toolbox Commons"
-      version="2.1.2.qualifier"
+      version="2.2.6.qualifier"
       provider-name="EnSoft Corp.">
 
    <description url="https://ensoftcorp.github.io/toolbox-commons">
