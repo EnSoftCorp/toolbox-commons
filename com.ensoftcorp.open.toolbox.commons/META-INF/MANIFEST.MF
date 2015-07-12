@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Toolbox Commons
 Bundle-SymbolicName: com.ensoftcorp.open.toolbox.commons;singleton:=true
-Bundle-Version: 2.1.2.qualifier
+Bundle-Version: 2.2.6.qualifier
 Bundle-Vendor: EnSoft Corp.
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: 
