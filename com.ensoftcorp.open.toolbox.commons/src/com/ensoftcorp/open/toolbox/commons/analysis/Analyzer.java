@@ -2,13 +2,13 @@ package com.ensoftcorp.open.toolbox.commons.analysis;
 
 import com.ensoftcorp.atlas.core.query.Attr.Edge;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.java.core.script.Common;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.toolbox.commons.SetDefinitions;
 
 /**
  * A class containing common functionality needed for an analysis task.
  * 
- * This class is immutable. It should be instantiated with the script's
+ * This class is immutable. It should be instantiated with the analyzer's
  * parameterized arguments, and the getter methods will do lazy evaluation as
  * necessary.
  * 
@@ -24,7 +24,7 @@ public abstract class Analyzer {
 	}
 
 	/**
-	 * Gets the name of this Script
+	 * Gets the name of this analyzer
 	 * 
 	 * @return
 	 */
@@ -33,7 +33,7 @@ public abstract class Analyzer {
 	}
 
 	/**
-	 * Returns the script simple name
+	 * Returns the analyzer simple name
 	 */
 	@Override
 	public String toString() {
@@ -41,21 +41,21 @@ public abstract class Analyzer {
 	}
 
 	/**
-	 * Gets the description of this Script
+	 * Gets the deanalyzerion of this analyzer
 	 * 
 	 * @return
 	 */
 	public abstract String getDescription();
 
 	/**
-	 * Gets a human-readable description of the assumptions made by this script.
+	 * Gets a human-readable deanalyzerion of the assumptions made by this analyzer.
 	 * 
 	 * @return
 	 */
 	public abstract String[] getAssumptions();
 
 	/**
-	 * Constructs a new script without options
+	 * Constructs a new analyzer without options
 	 */
 	public Analyzer() {}
 
@@ -92,13 +92,13 @@ public abstract class Analyzer {
 	}
 
 	/**
-	 * A cache of the script context
+	 * A cache of the analyzer context
 	 */
 	protected Q context = Common.universe();
 	protected Q appContext = SetDefinitions.app();
 
 	/**
-	 * A valid script option that many scripts choose to utilize is returning
+	 * A valid analyzer option that many analyzers choose to utilize is returning
 	 * results calculated in a given context. Setting the context also clears
 	 * the cached envelope result.
 	 * 
@@ -111,7 +111,7 @@ public abstract class Analyzer {
 	}
 
 	/**
-	 * A helper method for returning the current script context
+	 * A helper method for returning the current analyzer context
 	 * 
 	 * @return
 	 */
@@ -120,7 +120,7 @@ public abstract class Analyzer {
 	}
 
 	/**
-	 * A helper method for returning the current script app context
+	 * A helper method for returning the current analyzer app context
 	 * 
 	 * @return
 	 */

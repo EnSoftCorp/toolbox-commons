@@ -31,6 +31,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
 import com.ensoftcorp.atlas.core.highlight.Highlighter;
+import com.ensoftcorp.atlas.core.markup.IMarkup;
+import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.query.Attr.Edge;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
@@ -170,18 +172,18 @@ public class DisplayUtils {
 	 * @param title
 	 * @throws InterruptedException
 	 */
-	public static void save(Q q, Highlighter h, boolean extend, String title, File directory) throws InterruptedException {
+	public static void save(Q q, IMarkup markup, boolean extend, String title, File directory) throws InterruptedException {
 		if (!directory.isDirectory()) {
 			throw new IllegalArgumentException("File must be a directory");
 		}
-		if (h == null){
-			h = new Highlighter();
+		if (markup == null){
+			markup = new Markup();
 		}
 		File outputFile = new File(directory.getAbsolutePath() + File.separatorChar + title.toLowerCase().replaceAll("\\s+", " ").replaceAll(" ", "_") + ".png");
 		if (extend){
 			q = Common.extend(q, Edge.DECLARES); // FIXME: [jdm] context should be from toolbox, not ##index
 		}
-		org.eclipse.core.runtime.jobs.Job job = SaveUtil.saveGraph(outputFile, q.eval(), h);
+		org.eclipse.core.runtime.jobs.Job job = SaveUtil.saveGraph(outputFile, q.eval(), markup);
 		job.join(); // block until save is complete
 	}
 

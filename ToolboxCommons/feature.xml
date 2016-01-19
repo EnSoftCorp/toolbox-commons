@@ -2,7 +2,7 @@
 <feature
       id="com.ensoftcorp.open.toolbox.commons"
       label="Toolbox Commons"
-      version="2.5.2.qualifier"
+      version="2.7.0.qualifier"
       provider-name="EnSoft Corp.">
 
    <description url="https://ensoftcorp.github.io/toolbox-commons">
@@ -64,7 +64,7 @@ SOFTWARE.
          id="com.ensoftcorp.open.toolbox.commons"
          download-size="0"
          install-size="0"
-         version="2.5.2.qualifier"
+         version="0.0.0"
          unpack="false"/>
 
 </feature>
