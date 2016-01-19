@@ -22,19 +22,7 @@ Require-Bundle:
  com.ensoftcorp.atlas.c.ui;bundle-version="2.7.0";visibility:=reexport
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
-Export-Package: com.ensoftcorp.open.toolbox.commons;
-  uses:="com.ensoftcorp.atlas.core.query,
-   com.ensoftcorp.atlas.core.db.graph,
-   org.eclipse.core.resources,
-   com.ensoftcorp.atlas.core.index.common",
+Export-Package: com.ensoftcorp.open.toolbox.commons;uses:="com.ensoftcorp.atlas.core.query,com.ensoftcorp.atlas.core.db.graph",
  com.ensoftcorp.open.toolbox.commons.analysis;uses:="com.ensoftcorp.atlas.core.query",
  com.ensoftcorp.open.toolbox.commons.analysis.utils;uses:="com.ensoftcorp.atlas.core.query",
- com.ensoftcorp.open.toolbox.commons.utils;
-  uses:="org.w3c.dom,
-   com.ensoftcorp.atlas.core.query,
-   com.ensoftcorp.atlas.core.highlight,
-   org.eclipse.swt.graphics,
-   com.ensoftcorp.atlas.core.markup,
-   org.eclipse.swt.widgets,
-   org.eclipse.core.resources,
-   com.ensoftcorp.atlas.core.index.common"
+ com.ensoftcorp.open.toolbox.commons.utils;uses:="org.w3c.dom,com.ensoftcorp.atlas.core.query,org.eclipse.swt.graphics"
