@@ -115,7 +115,10 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	 * to reach the offset of the source correspondent)
 	 * @return
 	 */
-	public long getStartLineNumber() {
+	public long getStartLineNumber() throws IOException {
+		if(lineNumberRange == null){
+			lineNumberRange = getLineNumberRange(sc);
+		}
 		return lineNumberRange.startLine;
 	}
 	
@@ -236,7 +239,11 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 
 	@Override
 	public int compareTo(FormattedSourceCorrespondence fsc) {
-		return Long.compare(this.getStartLineNumber(), fsc.getStartLineNumber());
+		try {
+			return Long.compare(this.getStartLineNumber(), fsc.getStartLineNumber());
+		} catch (IOException e) {
+			throw new RuntimeException("Unknown line numbers!");
+		}
 	}
 	
 	/**
