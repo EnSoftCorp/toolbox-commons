@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.commons.analysis.utils;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
@@ -277,17 +278,6 @@ public final class StandardQueries {
 		return readersOf(context, origin);
 	}
 
-	
-	/**
-	 * Returns the containing method of a given graph element or null if one is not found
-	 * @param ge
-	 * @return
-	 */
-	public static GraphElement getContainingMethod(GraphElement ge) {
-		// NOTE: the enclosing method may be two steps or more above
-		return getContainingNode(ge, XCSG.Method);
-	}
-
 	/**
 	 * Returns the containing method of a given Q or empty if one is not found
 	 * @param nodes
@@ -295,9 +285,9 @@ public final class StandardQueries {
 	 */
 	public static Q getContainingMethods(Q nodes) {
 		AtlasSet<Node> nodeSet = nodes.eval().nodes();
-		AtlasSet<GraphElement> containingMethods = new AtlasHashSet<GraphElement>();
-		for (GraphElement currentNode : nodeSet) {
-			GraphElement method = getContainingMethod(currentNode);
+		AtlasSet<Node> containingMethods = new AtlasHashSet<Node>();
+		for (Node currentNode : nodeSet) {
+			Node method = getContainingMethod(currentNode);
 			if (method != null){
 				containingMethods.add(method);
 			}
@@ -305,29 +295,38 @@ public final class StandardQueries {
 		return Common.toQ(Common.toGraph(containingMethods));
 	}
 	
-	public static GraphElement getContainingControlFlow(GraphElement ge) {
+	public static Node getContainingControlFlow(Node node) {
 		// NOTE: the enclosing control flow node may be two steps or more above
-		return getContainingNode(ge, XCSG.ControlFlow_Node);
+		return getContainingNode(node, XCSG.ControlFlow_Node);
 	}
 
 	/**
+	 * Returns the containing method of a given graph element or null if one is not found
+	 * @param node
+	 * @return
+	 */
+	public static Node getContainingMethod(Node node) {
+		// NOTE: the enclosing method may be two steps or more above
+		return getContainingNode(node, XCSG.Method);
+	}
+	
+	/**
 	 * Find the next immediate containing node with the given tag.
 	 * 
-	 * @param node
+	 * @param node 
 	 * @param containingTag
-	 * @return the next immediate containing node, or null if none exists; never
-	 *         returns the given node
+	 * @return the next immediate containing node, or null if none exists; never returns the given node
 	 */
-	public static GraphElement getContainingNode(GraphElement node, String containingTag) {
+	public static Node getContainingNode(Node node, String containingTag) {
 		if(node == null){
 			return null;
 		}
-		while(true){
+		while(true) {
 			GraphElement containsEdge = Graph.U.edges(node, NodeDirection.IN).taggedWithAll(XCSG.Contains).getFirst();
 			if(containsEdge == null){
 				return null;
 			}
-			GraphElement parent = containsEdge.getNode(EdgeDirection.FROM);
+			Node parent = containsEdge.getNode(EdgeDirection.FROM);
 			if(parent.taggedWith(containingTag)){
 				return parent;
 			}
@@ -384,16 +383,14 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q nodesWithSelfEdges(Q context) {
-		AtlasSet<GraphElement> res = new AtlasHashSet<GraphElement>();
-
-		for (GraphElement edge : context.eval().edges()) {
-			GraphElement to = edge.getNode(EdgeDirection.TO);
-			GraphElement from = edge.getNode(EdgeDirection.FROM);
+		AtlasSet<GraphElement> result = new AtlasHashSet<GraphElement>();
+		for (Edge edge : context.eval().edges()) {
+			Node to = edge.getNode(EdgeDirection.TO);
+			Node from = edge.getNode(EdgeDirection.FROM);
 			if (to == from)
-				res.add(to);
+				result.add(to);
 		}
-
-		return Common.toQ(new NodeGraph(res));
+		return Common.toQ(new NodeGraph(result));
 	}
 
 	/**
