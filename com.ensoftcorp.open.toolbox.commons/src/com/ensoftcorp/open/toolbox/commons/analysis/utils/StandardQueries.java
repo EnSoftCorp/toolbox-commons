@@ -1,10 +1,5 @@
 package com.ensoftcorp.open.toolbox.commons.analysis.utils;
 
-import static com.ensoftcorp.atlas.core.script.Common.index;
-import static com.ensoftcorp.atlas.core.script.Common.toQ;
-import static com.ensoftcorp.atlas.core.script.CommonQueries.callStep;
-import static com.ensoftcorp.atlas.core.script.CommonQueries.declarations;
-
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
@@ -15,6 +10,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.script.CommonQueries;
 import com.ensoftcorp.atlas.core.script.CommonQueries.TraversalDirection;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 
@@ -38,7 +34,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q localDeclarations(Q origin) {
-		return localDeclarations(index(), origin);
+		return localDeclarations(Common.universe(), origin);
 	}
 
 	/**
@@ -66,7 +62,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q callers(Q origin) {
-		return callers(index(), origin);
+		return callers(Common.universe(), origin);
 	}
 
 	/**
@@ -79,7 +75,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q callers(Q context, Q origin) {
-		return callStep(context, origin, TraversalDirection.REVERSE).retainEdges().roots();
+		return CommonQueries.callStep(context, origin, TraversalDirection.REVERSE).retainEdges().roots();
 	}
 
 	/**
@@ -91,7 +87,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q called(Q origin) {
-		return called(index(), origin);
+		return called(Common.universe(), origin);
 	}
 
 	/**
@@ -104,7 +100,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q called(Q context, Q origin) {
-		return callStep(context, origin, TraversalDirection.REVERSE).retainEdges().leaves();
+		return CommonQueries.callStep(context, origin, TraversalDirection.REVERSE).retainEdges().leaves();
 	}
 
 	/**
@@ -117,7 +113,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q calledBy(Q callers, Q called) {
-		return calledBy(index(), callers, called);
+		return calledBy(Common.universe(), callers, called);
 	}
 
 	/**
@@ -145,7 +141,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q firstDeclarator(Q declared, String... declaratorTypes) {
-		return firstDeclarator(index(), declared, declaratorTypes);
+		return firstDeclarator(Common.universe(), declared, declaratorTypes);
 	}
 
 	/**
@@ -160,7 +156,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q firstDeclarator(Q context, Q declared, String... declaratorTypes) {
-		Q subContext = declarations(context, declared, TraversalDirection.REVERSE);
+		Q subContext = CommonQueries.declarations(context, declared, TraversalDirection.REVERSE);
 		subContext = subContext.differenceEdges(subContext.reverseStep(subContext.nodesTaggedWithAny(declaratorTypes)));
 		return subContext.reverse(declared).nodesTaggedWithAny(declaratorTypes);
 	}
@@ -190,7 +186,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q readersOf(Q origin) {
-		return readersOf(index(), origin);
+		return readersOf(Common.universe(), origin);
 	}
 
 	/**
@@ -215,7 +211,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q writersOf(Q origin) {
-		return writersOf(index(), origin);
+		return writersOf(Common.universe(), origin);
 	}
 
 	/**
@@ -240,7 +236,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q readBy(Q origin) {
-		return readBy(index(), origin);
+		return readBy(Common.universe(), origin);
 	}
 
 	/**
@@ -265,7 +261,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q writtenBy(Q origin) {
-		return writtenBy(index(), origin);
+		return writtenBy(Common.universe(), origin);
 	}
 
 	/**
@@ -349,7 +345,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q conditionsAbove(Q origin) {
-		return conditionsAbove(index(), origin);
+		return conditionsAbove(Common.universe(), origin);
 	}
 
 	/**
@@ -378,7 +374,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q mutators(Q origin) {
-		return mutators(index(), origin);
+		return mutators(Common.universe(), origin);
 	}
 
 	/**
@@ -397,7 +393,7 @@ public final class StandardQueries {
 				res.add(to);
 		}
 
-		return toQ(new NodeGraph(res));
+		return Common.toQ(new NodeGraph(res));
 	}
 
 	/**
@@ -425,7 +421,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q mutatedBy(Q mutators, Q origin) {
-		return mutatedBy(index(), mutators, origin);
+		return mutatedBy(Common.universe(), mutators, origin);
 	}
 
 	/**
@@ -443,14 +439,4 @@ public final class StandardQueries {
 		return writtenBy(context, origin).union(calledBy(context, origin, mutators)).intersection(origin);
 	}
 	
-	/**
-	 * Alias for universe().nodesTaggedWithAny(String ...)
-	 * 
-	 * @param tag
-	 * @return
-	 */
-	public static Q nodes(String ... tag) {
-		Q nodes = Common.universe().nodesTaggedWithAny(tag);
-		return nodes;
-	}
 }
