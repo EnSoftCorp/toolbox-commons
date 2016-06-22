@@ -1,6 +1,5 @@
 package com.ensoftcorp.open.toolbox.commons;
 
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
 import com.ensoftcorp.atlas.core.query.Attr.Node;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.CommonQueries.TraversalDirection;
@@ -15,7 +14,11 @@ import com.ensoftcorp.atlas.java.core.script.CommonQueries;
  */
 public final class SetDefinitions {
 
-	private SetDefinitions() {}
+private SetDefinitions() {}
+	
+	private static Q index() {
+		return Common.codemap();
+	}
 
 	/**
 	 * Types which represent arrays of other types
@@ -24,7 +27,7 @@ public final class SetDefinitions {
 	 * project.
 	 */
 	public static Q arrayTypes() {
-		return Common.universe().nodesTaggedWithAny(XCSG.ArrayType).retainNodes();
+		return index().nodesTaggedWithAny(XCSG.ArrayType);
 	}
 
 	/**
@@ -34,7 +37,7 @@ public final class SetDefinitions {
 	 * project.
 	 */
 	public static Q primitiveTypes() {
-		return Common.universe().nodesTaggedWithAny(XCSG.Primitive).retainNodes();
+		return index().nodesTaggedWithAny(XCSG.Primitive);
 	}
 
 	/**
@@ -44,7 +47,7 @@ public final class SetDefinitions {
 	 * project.
 	 */
 	public static Q invokeNodes() {
-		return Common.universe().nodesTaggedWithAny(Node.INVOKE).retainNodes();
+		return index().nodesTaggedWithAny(Node.INVOKE);
 	}
 
 	/**
@@ -52,7 +55,7 @@ public final class SetDefinitions {
 	 * the index.
 	 */
 	public static Q apis() {
-		return CommonQueries.declarations(Common.universe().nodesTaggedWithAny(Node.LIBRARY), TraversalDirection.FORWARD).difference(arrayTypes(),
+		return CommonQueries.declarations(index().nodesTaggedWithAny(XCSG.Library), TraversalDirection.FORWARD).difference(arrayTypes(),
 				primitiveTypes(), invokeNodes());
 	}
 
@@ -60,7 +63,7 @@ public final class SetDefinitions {
 	 * Methods defined in java.lang.Object, and all methods which override them
 	 */
 	public static Q objectMethodOverrides() {
-		return Common.edges(Edge.OVERRIDES).reverse(
+		return Common.edges(XCSG.Overrides).reverse(
 				CommonQueries.declarations(Common.typeSelect("java.lang", "Object"), TraversalDirection.FORWARD).nodesTaggedWithAny(XCSG.Method));
 	}
 
@@ -69,7 +72,7 @@ public final class SetDefinitions {
 	 * apis, or any "floating" nodes).
 	 */
 	public static Q app() {
-		return Common.universe().difference(apis(), invokeNodes(), arrayTypes(), primitiveTypes());
+		return index().difference(apis(), invokeNodes(), arrayTypes(), primitiveTypes());
 	}
 
 	/**
@@ -97,6 +100,6 @@ public final class SetDefinitions {
 	 * All edges for which both endpoints lay within the APIs.
 	 */
 	public static Q apiEdges() {
-		return apis().induce(Common.universe());
+		return apis().induce(index());
 	}
 }

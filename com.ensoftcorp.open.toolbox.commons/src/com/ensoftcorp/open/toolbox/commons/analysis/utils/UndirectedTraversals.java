@@ -1,9 +1,10 @@
 package com.ensoftcorp.open.toolbox.commons.analysis.utils;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -14,7 +15,7 @@ import com.ensoftcorp.atlas.java.core.script.Common;
 /**
  * A set of traversals for performing undirected graph traversals
  * 
- * @author Tom Deering
+ * @author Tom Deering, Ben Holland
  */
 public class UndirectedTraversals {
 	
@@ -71,9 +72,9 @@ public class UndirectedTraversals {
 	}
 	
 	private static Q nodeWalk(Q context, Q origin, int steps){
-		AtlasSet<GraphElement> fromNodes = origin.eval().nodes();
-		AtlasSet<GraphElement> reachedNodes = new AtlasHashSet<GraphElement>(fromNodes);
-		AtlasSet<GraphElement> reachedEdges = new AtlasHashSet<GraphElement>(origin.eval().edges());
+		AtlasSet<Node> fromNodes = origin.eval().nodes();
+		AtlasSet<Node> reachedNodes = new AtlasHashSet<Node>(fromNodes);
+		AtlasSet<Edge> reachedEdges = new AtlasHashSet<Edge>(origin.eval().edges());
 		
 		nodeWalk(context.eval(), fromNodes, reachedNodes, reachedEdges, steps);
 		
@@ -81,30 +82,35 @@ public class UndirectedTraversals {
 	}
 
 	private static void nodeWalk(Graph context,
-			AtlasSet<GraphElement> fromNodes,
-			AtlasSet<GraphElement> reachedNodes,
-			AtlasSet<GraphElement> reachedEdges,
+			AtlasSet<Node> fromNodes,
+			AtlasSet<Node> reachedNodes,
+			AtlasSet<Edge> reachedEdges,
 			int steps) {
-		for (GraphElement fromNode : fromNodes) nodeWalk(context, fromNode, reachedNodes, reachedEdges, steps);
+		for (Node fromNode : fromNodes) {
+			nodeWalk(context, fromNode, reachedNodes, reachedEdges, steps);
+		}
 	}
 
-	private static void nodeWalk(Graph context, GraphElement fromNode, AtlasSet<GraphElement> reachedNodes,
-			AtlasSet<GraphElement> reachedEdges, int steps) {
+	private static void nodeWalk(Graph context, Node fromNode, AtlasSet<Node> reachedNodes,
+			AtlasSet<Edge> reachedEdges, int steps) {
 		reachedNodes.add(fromNode);
 		
 		if(steps == 0) return;
 
-		AtlasSet<GraphElement> nextEdges = new UnionSet<GraphElement>(
+		AtlasSet<Edge> nextEdges = new UnionSet<Edge>(
 				context.edges(fromNode, NodeDirection.IN),
 				context.edges(fromNode, NodeDirection.OUT));
 		
-		for (GraphElement edge : nextEdges) {
+		for (Edge edge : nextEdges) {
 			reachedEdges.add(edge);
-			
-			GraphElement n = edge.getNode(EdgeDirection.FROM);
-			if (!reachedNodes.contains(n)) nodeWalk(context, n, reachedNodes, reachedEdges, steps-1);
+			Node n = edge.getNode(EdgeDirection.FROM);
+			if (!reachedNodes.contains(n)) {
+				nodeWalk(context, n, reachedNodes, reachedEdges, steps-1);
+			}
 			n = edge.getNode(EdgeDirection.TO);
-			if (!reachedNodes.contains(n)) nodeWalk(context, n, reachedNodes, reachedEdges, steps-1);
+			if (!reachedNodes.contains(n)) {
+				nodeWalk(context, n, reachedNodes, reachedEdges, steps-1);
+			}
 		}
 	}
 }

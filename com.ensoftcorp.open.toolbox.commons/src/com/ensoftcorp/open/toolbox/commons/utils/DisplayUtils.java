@@ -33,9 +33,9 @@ import org.eclipse.ui.ide.IDE;
 import com.ensoftcorp.atlas.core.highlight.Highlighter;
 import com.ensoftcorp.atlas.core.markup.IMarkup;
 import com.ensoftcorp.atlas.core.markup.Markup;
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.java.core.script.CommonQueries;
 import com.ensoftcorp.atlas.ui.viewer.graph.DisplayUtil;
 import com.ensoftcorp.atlas.ui.viewer.graph.SaveUtil;
@@ -156,7 +156,7 @@ public class DisplayUtils {
 				}
 
 				if (showGraph) {
-					Q displayExpr = extend ? Common.extend(q, Edge.DECLARES) : q;
+					Q displayExpr = extend ? Common.extend(q, XCSG.Contains) : q; // FIXME: [jdm] context should be from toolbox, not ##index
 					DisplayUtil.displayGraph(displayExpr.eval(), (h != null ? h : new Highlighter()), title);
 				}
 			}
@@ -181,7 +181,7 @@ public class DisplayUtils {
 		}
 		File outputFile = new File(directory.getAbsolutePath() + File.separatorChar + title.toLowerCase().replaceAll("\\s+", " ").replaceAll(" ", "_") + ".png");
 		if (extend){
-			q = Common.extend(q, Edge.DECLARES); // FIXME: [jdm] context should be from toolbox, not ##index
+			q = Common.extend(q, XCSG.Contains); // FIXME: [jdm] context should be from toolbox, not ##index
 		}
 		org.eclipse.core.runtime.jobs.Job job = SaveUtil.saveGraph(outputFile, q.eval(), markup);
 		job.join(); // block until save is complete

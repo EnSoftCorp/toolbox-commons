@@ -18,10 +18,9 @@ import org.eclipse.core.resources.IProject;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.index.common.SourceCorrespondence;
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
-import com.ensoftcorp.atlas.core.query.Attr.Node;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.toolbox.commons.utils.OSUtils;
 
 /**
@@ -279,8 +278,8 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	@SuppressWarnings("unchecked")
 	public static FormattedSourceCorrespondence getSourceCorrespondent(GraphElement ge) {
 		FormattedSourceCorrespondence sourceCorrespondent = null;
-		Object name = ge.attr().get(Node.NAME);
-		Object fsc = ge.attr().get(Node.SC);
+		Object name = ge.attr().get(XCSG.name);
+		Object fsc = ge.attr().get(XCSG.sourceCorrespondence);
 		
 		if(fsc != null && fsc instanceof SourceCorrespondence){
 			if(name != null) {
@@ -289,8 +288,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) fsc);
 			}
 		}
-		
-		Object scList = ge.attr().get(Edge.SC_LIST);
+		Object scList = ge.attr().get(XCSG.sourceCorrespondence);
 		if (scList != null && scList instanceof List) {
 			for (SourceCorrespondence scListItem : (List<SourceCorrespondence>) scList) {
 				if (name != null) {
@@ -313,7 +311,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	 */
 	public static String summarize(Q q, boolean includeMethodNames) throws IOException {
 		return summarize(getSourceCorrespondents(q),
-				getSourceCorrespondents(includeMethodNames ? q.nodesTaggedWithAny(Node.METHOD) : Common.empty()));
+				getSourceCorrespondents(includeMethodNames ? q.nodesTaggedWithAny(XCSG.Method) : Common.empty()));
 	}
 
 	// helper method for summarizing source correspondents

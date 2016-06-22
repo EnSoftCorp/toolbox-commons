@@ -4,21 +4,15 @@ import static com.ensoftcorp.atlas.core.script.Common.index;
 import static com.ensoftcorp.atlas.core.script.Common.toQ;
 import static com.ensoftcorp.atlas.core.script.CommonQueries.callStep;
 import static com.ensoftcorp.atlas.core.script.CommonQueries.declarations;
-import static com.ensoftcorp.atlas.java.core.script.Common.stepFrom;
-import static com.ensoftcorp.atlas.java.core.script.Common.stepTo;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
-import com.ensoftcorp.atlas.core.db.graph.operation.BetweenGraph;
-import com.ensoftcorp.atlas.core.db.graph.operation.InducedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.db.set.SingletonAtlasSet;
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
-import com.ensoftcorp.atlas.core.query.Attr.Node;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.CommonQueries.TraversalDirection;
@@ -28,7 +22,7 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
  * Common queries which are useful for writing larger analysis programs, 
  * and for using on the shell.
  * 
- * @author Tom Deering, Ben Holland
+ * @author Tom Deering, Ben Holland, Jon Mathews
  */
 public final class StandardQueries {
 	
@@ -58,8 +52,8 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q localDeclarations(Q context, Q origin) {
-		Q dec = context.edgesTaggedWithAny(Edge.DECLARES);
-		dec = dec.differenceEdges(dec.reverseStep(dec.nodesTaggedWithAny(Node.TYPE)));
+		Q dec = context.edgesTaggedWithAny(XCSG.Contains);
+		dec = dec.differenceEdges(dec.reverseStep(dec.nodesTaggedWithAny(XCSG.Type)));
 		return dec.forward(origin);
 	}
 
@@ -86,31 +80,6 @@ public final class StandardQueries {
 	 */
 	public static Q callers(Q context, Q origin) {
 		return callStep(context, origin, TraversalDirection.REVERSE).retainEdges().roots();
-	}
-
-	/**
-	 * Returns those control flow blocks which directly call the given methods.
-	 * 
-	 * Operates in the index context.
-	 * 
-	 * @param origin
-	 * @return
-	 */
-	public static Q callsites(Q origin) {
-		return callsites(index(), origin).nodesTaggedWithAny(Node.CONTROL_FLOW);
-	}
-
-	/**
-	 * Returns those control flow blocks which directly call the given methods.
-	 * 
-	 * Operates in the given context.
-	 * 
-	 * @param context
-	 * @param origin
-	 * @return
-	 */
-	public static Q callsites(Q context, Q origin) {
-		return callers(context, origin).nodesTaggedWithAny(Node.CONTROL_FLOW);
 	}
 
 	/**
@@ -162,7 +131,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q calledBy(Q context, Q callers, Q called) {
-		return context.edgesTaggedWithAny(Edge.CALL).betweenStep(callers, called).retainEdges().leaves();
+		return context.edgesTaggedWithAny(XCSG.Call).betweenStep(callers, called).retainEdges().leaves();
 	}
 
 	/**
@@ -234,7 +203,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q readersOf(Q context, Q origin) {
-		return stepTo(context.edgesTaggedWithAny(Edge.DF_LOCAL, Edge.DF_INTERPROCEDURAL), origin);
+		return context.edgesTaggedWithAny(XCSG.DataFlow_Edge).successors(origin);
 	}
 
 	/**
@@ -259,7 +228,7 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q writersOf(Q context, Q origin) {
-		return stepFrom(context.edgesTaggedWithAny(Edge.DF_LOCAL, Edge.DF_INTERPROCEDURAL), origin);
+		return context.edgesTaggedWithAny(XCSG.DataFlow_Edge).predecessors(origin);
 	}
 
 	/**
@@ -312,39 +281,62 @@ public final class StandardQueries {
 		return readersOf(context, origin);
 	}
 
+	
 	/**
-	 * Returns that part of the control flow graph which is part of a loop body.
-	 * 
-	 * Operates within the index context.
-	 * 
+	 * Returns the containing method of a given graph element or null if one is not found
+	 * @param ge
 	 * @return
 	 */
-	public static Q loops() {
-		return loops(index());
+	public static GraphElement getContainingMethod(GraphElement ge) {
+		// NOTE: the enclosing method may be two steps or more above
+		return getContainingNode(ge, XCSG.Method);
 	}
 
 	/**
-	 * Returns that part of the control flow graph which is part of a loop body.
-	 * 
-	 * Operates within the given context.
-	 * 
-	 * @param context
+	 * Returns the containing method of a given Q or empty if one is not found
+	 * @param nodes
 	 * @return
 	 */
-	public static Q loops(Q context) {
-		Graph cfContext = context.edgesTaggedWithAny(Edge.CONTROL_FLOW).eval();
-
-		AtlasSet<GraphElement> loopNodes = new AtlasHashSet<GraphElement>();
-		AtlasSet<GraphElement> loopEdges = new AtlasHashSet<GraphElement>();
-
-		for (GraphElement loop : context.nodesTaggedWithAny(Node.IS_MASTER_LOOP_NODE).eval().nodes()) {
-			AtlasSet<GraphElement> loopSet = new SingletonAtlasSet<GraphElement>(loop);
-			Graph loopGraph = new BetweenGraph(cfContext, loopSet, loopSet);
-			loopNodes.addAll(loopGraph.nodes());
-			loopEdges.addAll(loopGraph.edges());
+	public static Q getContainingMethods(Q nodes) {
+		AtlasSet<Node> nodeSet = nodes.eval().nodes();
+		AtlasSet<GraphElement> containingMethods = new AtlasHashSet<GraphElement>();
+		for (GraphElement currentNode : nodeSet) {
+			GraphElement method = getContainingMethod(currentNode);
+			if (method != null){
+				containingMethods.add(method);
+			}
 		}
+		return Common.toQ(Common.toGraph(containingMethods));
+	}
+	
+	public static GraphElement getContainingControlFlow(GraphElement ge) {
+		// NOTE: the enclosing control flow node may be two steps or more above
+		return getContainingNode(ge, XCSG.ControlFlow_Node);
+	}
 
-		return toQ(new InducedGraph(loopNodes, loopEdges));
+	/**
+	 * Find the next immediate containing node with the given tag.
+	 * 
+	 * @param node
+	 * @param containingTag
+	 * @return the next immediate containing node, or null if none exists; never
+	 *         returns the given node
+	 */
+	public static GraphElement getContainingNode(GraphElement node, String containingTag) {
+		if(node == null){
+			return null;
+		}
+		while(true){
+			GraphElement containsEdge = Graph.U.edges(node, NodeDirection.IN).taggedWithAll(XCSG.Contains).getFirst();
+			if(containsEdge == null){
+				return null;
+			}
+			GraphElement parent = containsEdge.getNode(EdgeDirection.FROM);
+			if(parent.taggedWith(containingTag)){
+				return parent;
+			}
+			node = parent;
+		}
 	}
 
 	/**
@@ -371,9 +363,9 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static Q conditionsAbove(Q context, Q origin) {
-		Q conditionNodes = context.nodesTaggedWithAny(Node.IS_CONDITION);
+		Q conditionNodes = context.nodesTaggedWithAny(XCSG.ControlFlowCondition);
 
-		return context.edgesTaggedWithAny(Edge.CONTROL_FLOW).between(conditionNodes, origin);
+		return context.edgesTaggedWithAny(XCSG.ControlFlow_Edge).between(conditionNodes, origin);
 	}
 
 	/**
@@ -452,54 +444,13 @@ public final class StandardQueries {
 	}
 	
 	/**
-	 * Returns the containing method of a given Q or empty if one is not found
-	 * @param nodes
-	 * @return
-	 */
-	public static Q getContainingMethods(Q nodes) {
-		AtlasSet<GraphElement> nodeSet = nodes.eval().nodes();
-		AtlasSet<GraphElement> containingMethods = new AtlasHashSet<GraphElement>();
-		for (GraphElement currentNode : nodeSet) {
-			GraphElement method = getContainingMethod(currentNode);
-			if (method != null)
-				containingMethods.add(method);
-		}
-		return Common.toQ(Common.toGraph(containingMethods));
-	}
-	
-	/**
-	 * Returns the containing method of a given graph element or null if one is not found
-	 * NOTE: the enclosing method may be two steps or more above
-	 * @param ge
-	 * @return
-	 */
-	public static GraphElement getContainingMethod(GraphElement ge) {
-		return getContainingNode(ge, XCSG.Method);
-	}
-	
-	/**
-	 * Find the next immediate containing node with the given tag.
+	 * Alias for universe().nodesTaggedWithAny(String ...)
 	 * 
-	 * @param node
-	 * @param containingTag
-	 * @return the next immediate containing node, or null if none exists; never
-	 *         returns the given node
+	 * @param tag
+	 * @return
 	 */
-	private static GraphElement getContainingNode(GraphElement node, String containingTag) {
-		if(node == null) {
-			return null;
-		}
-
-		while(true) {
-			GraphElement containsEdge = Graph.U.edges(node, NodeDirection.IN).taggedWithAll(XCSG.Contains).getFirst();
-			if (containsEdge == null) {
-				return null;
-			}
-			GraphElement parent = containsEdge.getNode(EdgeDirection.FROM);
-			if (parent.taggedWith(containingTag)) {
-				return parent;
-			}
-			node = parent;
-		}
+	public static Q nodes(String ... tag) {
+		Q nodes = Common.universe().nodesTaggedWithAny(tag);
+		return nodes;
 	}
 }
