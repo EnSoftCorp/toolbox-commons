@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.toolbox.commons;
+package com.ensoftcorp.open.commons;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +21,7 @@ import com.ensoftcorp.atlas.core.index.common.SourceCorrespondence;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.toolbox.commons.utils.OSUtils;
+import com.ensoftcorp.open.commons.utils.OSUtils;
 
 /**
  * A convenience utility wrapper for pretty printing SourceCorrespondence line numbers and other properties 

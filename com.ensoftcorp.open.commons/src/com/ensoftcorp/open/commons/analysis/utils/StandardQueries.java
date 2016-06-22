@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.toolbox.commons.analysis.utils;
+package com.ensoftcorp.open.commons.analysis.utils;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;

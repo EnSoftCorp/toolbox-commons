@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.toolbox.commons.analysis;
+package com.ensoftcorp.open.commons.analysis;
 
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;

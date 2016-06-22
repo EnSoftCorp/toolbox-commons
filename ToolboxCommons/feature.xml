@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="com.ensoftcorp.open.toolbox.commons"
+      id="com.ensoftcorp.open.commons"
       label="Toolbox Commons"
       version="3.0.6.qualifier"
       provider-name="EnSoft Corp.">
@@ -62,7 +62,7 @@ SOFTWARE.
    </requires>
 
    <plugin
-         id="com.ensoftcorp.open.toolbox.commons"
+         id="com.ensoftcorp.open.commons"
          download-size="0"
          install-size="0"
          version="0.0.0"

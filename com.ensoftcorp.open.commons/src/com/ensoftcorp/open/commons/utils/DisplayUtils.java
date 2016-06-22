@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.toolbox.commons.utils;
+package com.ensoftcorp.open.commons.utils;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
