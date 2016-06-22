@@ -21,6 +21,8 @@ Follow the steps below to install the Toolbox Commons plugin from the Eclipse up
 6. Read and accept the license agreements, then click `Finish`. If you get a security warning saying that the authenticity or validity of the software can't be established, click `OK`.
 7. When the installation completes, restart Eclipse.
 
+**Note:** For legacy Atlas 2.x updates use the &quot;[https://ensoftcorp.github.io/toolbox-commons/atlas2-updates/](https://ensoftcorp.github.io/toolbox-commons/atlas2-updates/)&quot; update site.
+
 ## Installing from Source
 If you want to install from source for bleeding edge changes, first grab a copy of the [source](https://github.com/EnSoftCorp/toolbox-commons) repository. In the Eclipse workspace, import the `com.ensoftcorp.open.commons` Eclipse project located in the source repository.  Right click on the project and select `Export`.  Select `Plug-in Development` &gt; `Deployable plug-ins and fragments`.  Select the `Install into host. Repository:` radio box and click `Finish`.  Press `OK` for the notice about unsigned software.  Once Eclipse restarts the plugin will be installed and it is advisable to close or remove the `com.ensoftcorp.open.commons` project from the workspace.
 
