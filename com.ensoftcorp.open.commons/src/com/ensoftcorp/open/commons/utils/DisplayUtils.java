@@ -126,6 +126,37 @@ public class DisplayUtils {
 	}
 
 	/**
+	 * A show method for a single graph element
+	 * Defaults to extending and no highlighting
+	 * @param ge The GraphElement to show
+	 * @param title A title to indicate the graph content
+	 */
+	public static void show(final GraphElement ge, final String title) {
+		show(Common.toQ(ge), title);
+	}
+	
+	/**
+	 * A show method for a single graph element
+	 * @param ge The GraphElement to show
+	 * @param h An optional highlighter, set to null otherwise
+	 * @param extend A boolean to define if the graph should be extended (typical use is true)
+	 * @param title A title to indicate the graph content
+	 */
+	public static void show(final GraphElement ge, final Highlighter h, final boolean extend, final String title) {
+		show(Common.toQ(ge), h, extend, title);
+	}
+	
+	/**
+	 * Shows a graph inside Atlas
+	 * Defaults to extending and no highlighting
+	 * @param ge The GraphElement to show
+	 * @param title A title to indicate the graph content
+	 */
+	public static void show(final Q q, final String title) {
+		show(q, null, true, title);
+	}
+	
+	/**
 	 * Shows a graph inside Atlas
 	 * 
 	 * @param q The query to show
@@ -156,7 +187,7 @@ public class DisplayUtils {
 				}
 
 				if (showGraph) {
-					Q displayExpr = extend ? Common.extend(q, XCSG.Contains) : q; // FIXME: [jdm] context should be from toolbox, not ##index
+					Q displayExpr = extend ? Common.extend(q, Edge.DECLARES) : q;
 					DisplayUtil.displayGraph(displayExpr.eval(), (h != null ? h : new Highlighter()), title);
 				}
 			}
