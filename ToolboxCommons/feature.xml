@@ -39,7 +39,7 @@ SOFTWARE.
 
    <url>
       <update label="ensoftcorp.github.io" url="https://ensoftcorp.github.io/toolbox-commons/updates/"/>
-      <discovery label="ensoftcorp.github.io" url="https://ensoftcorp.github.io/toolbox-commons/updates/"/>
+      <discovery label="Toolbox Commons" url="https://ensoftcorp.github.io/toolbox-commons/updates/"/>
       <discovery label="eclipse.org/orbit" url="http://download.eclipse.org/tools/orbit/downloads/drops/R20140525021250/repository/"/>
       <discovery label="Atlas" url="http://download.ensoftcorp.com/atlas/eclipse"/>
    </url>
