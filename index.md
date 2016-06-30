@@ -17,7 +17,7 @@ The aim of this project is to make common program analysis tasks simpler. The mo
 ## Getting Started
 Ready to get started?
 
-1. First [install](/toolbox-commons/install) the Slicing Toolbox plugin
+1. First [install](/toolbox-commons/install) the Toolbox Commons plugin
 2. Then check out the provided [tutorials](/toolbox-commons/tutorials) to jump start your analysis
 
 ## Source Code
