@@ -3,7 +3,6 @@ package com.ensoftcorp.open.commons.analysis;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.commons.SetDefinitions;
 
 /**
  * A class containing common functionality needed for an analysis task.

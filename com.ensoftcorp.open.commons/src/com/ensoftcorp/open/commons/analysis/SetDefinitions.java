@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons;
+package com.ensoftcorp.open.commons.analysis;
 
 import com.ensoftcorp.atlas.core.query.Attr.Node;
 import com.ensoftcorp.atlas.core.query.Q;
