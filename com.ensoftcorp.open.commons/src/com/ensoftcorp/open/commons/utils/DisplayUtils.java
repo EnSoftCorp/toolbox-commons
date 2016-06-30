@@ -188,7 +188,9 @@ public class DisplayUtils {
 				}
 
 				if (showGraph) {
-					Q displayExpr = extend ? Common.extend(q, XCSG.Contains) : q;
+//					Q extended = Common.extend(q, XCSG.Contains); // extends only in ##index
+					Q extended = Common.universe().edgesTaggedWithAny(XCSG.Contains).reverse(q).union(q);
+					Q displayExpr = extend ? extended : q;
 					DisplayUtil.displayGraph(displayExpr.eval(), (h != null ? h : new Highlighter()), title);
 				}
 			}
@@ -213,7 +215,8 @@ public class DisplayUtils {
 		}
 		File outputFile = new File(directory.getAbsolutePath() + File.separatorChar + title.toLowerCase().replaceAll("\\s+", " ").replaceAll(" ", "_") + ".png");
 		if (extend){
-			q = Common.extend(q, XCSG.Contains); // FIXME: [jdm] context should be from toolbox, not ##index
+//			q = Common.extend(q, XCSG.Contains); // extends only in ##index
+			q = Common.universe().edgesTaggedWithAny(XCSG.Contains).reverse(q).union(q);
 		}
 		org.eclipse.core.runtime.jobs.Job job = SaveUtil.saveGraph(outputFile, q.eval(), markup);
 		job.join(); // block until save is complete

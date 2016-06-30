@@ -24,11 +24,21 @@ public class WorkspaceUtils {
 	 * @param file
 	 * @return
 	 */
-	public static IFile fileToIFile(File file) {
+	public static IFile getFile(File file) {
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IPath location = Path.fromOSString(file.getAbsolutePath());
 		IFile iFile = workspace.getRoot().getFileForLocation(location);
 		return iFile;
+	}
+	
+	/**
+	 * Converts an IFile to an Java File Source:
+	 * 
+	 * @param file
+	 * @return
+	 */
+	public static File getFile(IFile iFile) {
+		return iFile.getLocation().toFile();
 	}
 
 }

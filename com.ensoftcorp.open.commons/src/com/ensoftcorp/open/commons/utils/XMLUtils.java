@@ -68,7 +68,7 @@ public class XMLUtils {
 	 */
 	public static SourceCorrespondence xmlElementToSourceCorrespondence(File file, Element element) {
 		try {
-			IFile iFile = WorkspaceUtils.fileToIFile(file);
+			IFile iFile = WorkspaceUtils.getFile(file);
 			int startOffset = Integer.parseInt(element.getUserData(XMLUtils.START_CHARACTER_OFFSET_USER_DATA).toString());
 			int endOffset = Integer.parseInt(element.getUserData(XMLUtils.END_CHARACTER_OFFSET_USER_DATA).toString());
 			SourceCorrespondence sc = SourceCorrespondence.fromString(String.valueOf(startOffset), String.valueOf(endOffset - startOffset), iFile);
@@ -88,7 +88,7 @@ public class XMLUtils {
 	 */
 	public static SourceCorrespondence xmlFileToSourceCorrespondence(File file) {
 		try {
-			IFile iFile = WorkspaceUtils.fileToIFile(file);
+			IFile iFile = WorkspaceUtils.getFile(file);
 			int startOffset = 0;
 			int endOffset = 0;
 			SourceCorrespondence sc = SourceCorrespondence.fromString(String.valueOf(startOffset), String.valueOf(endOffset), iFile);

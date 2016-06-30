@@ -1,8 +1,8 @@
 package com.ensoftcorp.open.commons.analysis;
 
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.SetDefinitions;
 
 /**
@@ -41,14 +41,14 @@ public abstract class Analyzer {
 	}
 
 	/**
-	 * Gets the deanalyzerion of this analyzer
+	 * Gets the description of this analyzer
 	 * 
 	 * @return
 	 */
 	public abstract String getDescription();
 
 	/**
-	 * Gets a human-readable deanalyzerion of the assumptions made by this analyzer.
+	 * Gets a human-readable description of the assumptions made by this analyzer.
 	 * 
 	 * @return
 	 */
@@ -67,6 +67,12 @@ public abstract class Analyzer {
 		if (envelope == null) {
 			envelope = evaluateEnvelope();
 		}
+		return envelope;
+	}
+	
+	public final Q revaluateEnvelope(){
+		clearEnvelopeCache();
+		envelope = evaluateEnvelope();
 		return envelope;
 	}
 
@@ -88,7 +94,7 @@ public abstract class Analyzer {
 	 * @return
 	 */
 	public Q extendInContext(Q q, Q context) {
-		return context.edgesTaggedWithAny(Edge.DECLARES).reverse(q).union(q);
+		return context.edgesTaggedWithAny(XCSG.Contains).reverse(q).union(q);
 	}
 
 	/**
