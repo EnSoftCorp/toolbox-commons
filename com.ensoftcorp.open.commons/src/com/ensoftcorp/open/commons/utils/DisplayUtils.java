@@ -30,6 +30,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
+import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.highlight.Highlighter;
 import com.ensoftcorp.atlas.core.markup.IMarkup;
 import com.ensoftcorp.atlas.core.markup.Markup;
@@ -187,7 +188,7 @@ public class DisplayUtils {
 				}
 
 				if (showGraph) {
-					Q displayExpr = extend ? Common.extend(q, Edge.DECLARES) : q;
+					Q displayExpr = extend ? Common.extend(q, XCSG.Contains) : q;
 					DisplayUtil.displayGraph(displayExpr.eval(), (h != null ? h : new Highlighter()), title);
 				}
 			}
