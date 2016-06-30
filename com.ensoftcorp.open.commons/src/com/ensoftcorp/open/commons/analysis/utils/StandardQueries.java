@@ -436,4 +436,21 @@ public final class StandardQueries {
 		return writtenBy(context, origin).union(calledBy(context, origin, mutators)).intersection(origin);
 	}
 	
+	/**
+	 * Helper method to get the qualified name of the method
+	 * @param method
+	 * @return
+	 */
+	public static String getQualifiedMethodName(Node method) {
+		String result = method.attr().get(XCSG.name).toString();
+		Q declaresEdges = Common.universe().edgesTaggedWithAny(XCSG.Contains).retainEdges();
+		Q parent = declaresEdges.predecessors(Common.toQ(Common.toGraph(method)));
+		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Package))) {
+			result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
+			parent = declaresEdges.predecessors(parent);
+		}
+		result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
+		return result;
+	}
+	
 }

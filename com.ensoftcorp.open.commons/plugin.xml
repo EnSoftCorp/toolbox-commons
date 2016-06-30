@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+	
+	<extension
+	      point="org.eclipse.ui.menus">
+	   <menuContribution
+	         locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+	      <menu
+	            label="Atlas Toolbox"
+	            id="com.ensoftcorp.open.commons.menus.toolbox">
+	      </menu>
+	   </menuContribution>
+	</extension>
+	
+	<extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Atlas Toolbox"
+            id="com.ensoftcorp.open.commons.views.categories.toolbox">
+      </category>
+   </extension>
+
+</plugin>
