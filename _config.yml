@@ -80,6 +80,8 @@ exclude:
     - CNAME
     - .git/
     - .gitignore
+    - .DS_Store
+    - Thumbs.db
 
 # Include the following files and directories
 include:
