@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+	<!-- extension for Dashboard view -->
+	<extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.dashboard.ui.DashboardView"
+            icon="icons/toolbox.gif"
+            id="com.ensoftcorp.open.dashboard.ui.dashboard"
+            name="Dashboard">
+      </view>
+   </extension>
+   
+</plugin>
