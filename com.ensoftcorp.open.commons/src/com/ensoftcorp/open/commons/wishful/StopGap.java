@@ -20,6 +20,8 @@ import com.ensoftcorp.open.commons.log.Log;
  */
 public class StopGap {
 
+	public static final String SIGNATURE = "##signature";
+	
 	public static final String CLASS_VARIABLE_ASSIGNMENT = "CLASS_VARIABLE_ASSIGNMENT";
 	public static final String CLASS_VARIABLE_VALUE = "CLASS_VARIABLE_VALUE";
 	public static final String CLASS_VARIABLE_ACCESS = "CLASS_VARIABLE_ACCESS";

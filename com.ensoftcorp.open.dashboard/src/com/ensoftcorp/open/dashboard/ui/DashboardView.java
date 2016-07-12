@@ -1,5 +1,7 @@
 package com.ensoftcorp.open.dashboard.ui;
 
+import java.util.ArrayList;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -14,6 +16,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.SWTResourceManager;
+
+import com.ensoftcorp.open.dashboard.work.WorkItem;
 
 public class DashboardView extends ViewPart {
 	
@@ -54,6 +58,9 @@ public class DashboardView extends ViewPart {
 		
 		Composite workQueueComposite = new Composite(workComposite, SWT.BORDER | SWT.V_SCROLL);
 		workQueueComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		ArrayList<WorkItem> workItems = new ArrayList<WorkItem>();
+		
 		
 		Label workItemFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
 		workItemFiltersLabel.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));

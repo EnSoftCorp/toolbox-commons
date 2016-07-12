@@ -437,17 +437,32 @@ public final class StandardQueries {
 	}
 	
 	/**
+	 * Helper method to get the qualified name of the class
+	 * @param method
+	 * @return
+	 */
+	public static String getQualifiedClassName(Node method) {
+		String result = method.attr().get(XCSG.name).toString();
+		Q parent = Common.toQ(Common.toGraph(method)).parent();
+		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Package))) {
+			result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
+			parent = parent.parent();
+		}
+		result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
+		return result;
+	}
+	
+	/**
 	 * Helper method to get the qualified name of the method
 	 * @param method
 	 * @return
 	 */
 	public static String getQualifiedMethodName(Node method) {
 		String result = method.attr().get(XCSG.name).toString();
-		Q declaresEdges = Common.universe().edgesTaggedWithAny(XCSG.Contains).retainEdges();
-		Q parent = declaresEdges.predecessors(Common.toQ(Common.toGraph(method)));
+		Q parent = Common.toQ(Common.toGraph(method)).parent();
 		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Package))) {
 			result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
-			parent = declaresEdges.predecessors(parent);
+			parent = parent.parent();
 		}
 		result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
 		return result;
