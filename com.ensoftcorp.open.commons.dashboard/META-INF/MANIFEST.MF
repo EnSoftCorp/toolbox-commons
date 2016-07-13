@@ -1,12 +1,12 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Dashboard
-Bundle-SymbolicName: com.ensoftcorp.open.dashboard;singleton:=true
-Bundle-Version: 3.0.7.qualifier
+Bundle-SymbolicName: com.ensoftcorp.open.commons.dashboard;singleton:=true
+Bundle-Version: 3.0.8.qualifier
 Bundle-Activator: com.ensoftcorp.open.dashboard.Activator
 Bundle-Vendor: EnSoft Corp.
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- com.ensoftcorp.open.commons;bundle-version="3.0.7"
+ com.ensoftcorp.open.commons;bundle-version="3.0.8"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy

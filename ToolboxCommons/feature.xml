@@ -2,7 +2,7 @@
 <feature
       id="com.ensoftcorp.open.commons"
       label="Toolbox Commons"
-      version="3.0.7.qualifier"
+      version="3.0.8.qualifier"
       provider-name="EnSoft Corp.">
 
    <description url="https://ensoftcorp.github.io/toolbox-commons">
@@ -51,18 +51,25 @@ SOFTWARE.
       <import plugin="org.eclipse.core.filesystem"/>
       <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="com.ensoftcorp.atlas.core" version="3.0.7" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.ui" version="3.0.7" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.java.core" version="3.0.7" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.java.ui" version="3.0.7" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.c.core" version="3.0.7" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.c.ui" version="3.0.7" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.core" version="3.0.8" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.ui" version="3.0.8" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.java.core" version="3.0.8" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.java.ui" version="3.0.8" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.c.core" version="3.0.8" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.c.ui" version="3.0.8" match="greaterOrEqual"/>
       <import plugin="org.apache.commons.io" version="2.2.0" match="greaterOrEqual"/>
       <import plugin="org.apache.commons.lang3" version="3.1.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
          id="com.ensoftcorp.open.commons"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.ensoftcorp.open.commons.dashboard"
          download-size="0"
          install-size="0"
          version="0.0.0"
