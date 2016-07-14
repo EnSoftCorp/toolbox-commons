@@ -34,7 +34,7 @@
       <view
             category="com.ensoftcorp.open.commons.views.categories.toolbox"
             class="com.ensoftcorp.open.commons.dashboard.ui.DashboardView"
-            icon="icons/toolbox.gif"
+            icon="icons/dashboard.gif"
             id="com.ensoftcorp.open.commons.dashboard.ui.DashboardView"
             name="Dashboard">
       </view>
