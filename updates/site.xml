@@ -6,6 +6,9 @@
    <feature url="features/com.ensoftcorp.open.commons_3.0.7.201606301418.jar" id="com.ensoftcorp.open.commons" version="3.0.7.201606301418">
       <category name="Toolbox Commons"/>
    </feature>
+   <feature url="features/com.ensoftcorp.open.commons_3.0.8.201607131925.jar" id="com.ensoftcorp.open.commons" version="3.0.8.201607131925">
+      <category name="Toolbox Commons"/>
+   </feature>
    <category-def name="Toolbox Commons" label="Toolbox Commons">
       <description>
          A set of common utilities for program analysis using Atlas.
