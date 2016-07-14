@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.dashboard.work;
+package com.ensoftcorp.open.commons.dashboard.work;
 
 import com.ensoftcorp.open.commons.analysis.Analyzer;
 

@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.dashboard;
+package com.ensoftcorp.open.commons.dashboard;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;

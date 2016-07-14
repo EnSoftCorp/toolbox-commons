@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.dashboard.ui;
+package com.ensoftcorp.open.commons.dashboard.ui;
 
 import java.util.ArrayList;
 
@@ -17,14 +17,14 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import com.ensoftcorp.open.dashboard.work.WorkItem;
+import com.ensoftcorp.open.commons.dashboard.work.WorkItem;
 
 public class DashboardView extends ViewPart {
 	
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
-	public static final String ID = "com.ensoftcorp.open.dashboard.ui.DashboardView";
+	public static final String ID = "com.ensoftcorp.open.commons.dashboard.ui.DashboardView";
 	
 	public DashboardView() {}
 
