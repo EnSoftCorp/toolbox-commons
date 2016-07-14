@@ -22,7 +22,7 @@ The Toolbox Commons project contains several program analysis utilities that may
 A program Analyzer is a modularized analysis program to analyze a certain aspect of the program graph. The result of an analysis is an "envelope", which is a Q object containing the necessary elements from the program graph to convey the result of the analysis. Typically an envelope is empty if the analysis property is not satisfied (undetected in the program graph), and not empty if the analysis property is satisfied (detected in the program graph).
 
 #### Extending the Analyzer Framework
-To create a new `Analyzer` simply extend the `com.ensoftcorp.open.toolbox.commons.analysis.Analyzer` class and implement the required methods. An example `Analyzer` to detect valid Java main methods is provided in the `Starter-Toolbox` called `DiscoverMainMethods`.
+To create a new `Analyzer` simply extend the `com.ensoftcorp.open.commons.analysis.Analyzer` class and implement the required methods. An example `Analyzer` to detect valid Java main methods is provided in the `Starter-Toolbox` called `DiscoverMainMethods`.
 
 Running your `Analyzer` is simple, just construct a new `DiscoverMainMethods` `Analyzer` object and call the `getEnvelope` method. The first time you call `getEnvelope`, the result is cached in the object so calling `getEnvelope()` again is cheap. Note that the `DiscoverMainMethods` `Analyzer` above is designed to return an empty `Q` object if no valid Java main methods are discovered.
 
