@@ -29,6 +29,9 @@ If you want to install from source for bleeding edge changes, first grab a copy 
 ## Changelog
 Note that version numbers are based off [Atlas](http://www.ensoftcorp.com/atlas/download/) version numbers.
 
+### 3.0.8
+- Minor refinements to helper utilities, added signature attribute key to wishful package
+
 ### 3.0.7
 - Centralized logging, refactored packages, added common menu/category extension points, added wishful and stop gap utilities, general bug fixes
 

@@ -1,6 +1,11 @@
 com.ensoftcorp.open.commons
 com.ensoftcorp.open.commons.analysis
 com.ensoftcorp.open.commons.analysis.utils
+com.ensoftcorp.open.commons.dashboard
+com.ensoftcorp.open.commons.dashboard.handlers
+com.ensoftcorp.open.commons.dashboard.ui
+com.ensoftcorp.open.commons.dashboard.work
 com.ensoftcorp.open.commons.log
 com.ensoftcorp.open.commons.utils
 com.ensoftcorp.open.commons.wishful
+org.eclipse.wb.swt
