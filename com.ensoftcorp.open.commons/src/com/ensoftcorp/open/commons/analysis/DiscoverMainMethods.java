@@ -1,9 +1,14 @@
 package com.ensoftcorp.open.commons.analysis;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.analysis.utils.StandardQueries;
 
 public class DiscoverMainMethods extends Analyzer {
 	
@@ -69,8 +74,12 @@ public class DiscoverMainMethods extends Analyzer {
 	}
 
 	@Override
-	protected Q evaluateEnvelope() {
-		return findMainMethods();
+	public Map<String, Result> getResults(Q context) {
+		HashMap<String,Result> results = new HashMap<String,Result>();
+		for(Node method : findMainMethods().intersection(context).eval().nodes()){
+			results.put(Analyzer.getUUID(), new Result((StandardQueries.getQualifiedMethodName(method)), Common.toQ(method)));
+		}
+		return results;
 	}
 	
 }

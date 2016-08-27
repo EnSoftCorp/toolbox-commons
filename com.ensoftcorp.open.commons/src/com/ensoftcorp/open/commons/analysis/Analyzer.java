@@ -1,135 +1,131 @@
 package com.ensoftcorp.open.commons.analysis;
 
+import java.awt.Color;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+
+import com.ensoftcorp.atlas.core.db.graph.Edge;
+import com.ensoftcorp.atlas.core.db.graph.Graph;
+import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
+import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.atlas.core.xcsg.XCSG;
 
 /**
- * A class containing common functionality needed for an analysis task.
+ * A base class for implementing program analyzers
  * 
- * This class is immutable. It should be instantiated with the analyzer's
- * parameterized arguments, and the getter methods will do lazy evaluation as
- * necessary.
- * 
- * @author Tom Deering, Ben Holland
- * 
+ * @author Ben Holland
  */
 public abstract class Analyzer {
 
-	private Q envelope = null;
-
-	protected void clearEnvelopeCache() {
-		envelope = null;
-	}
-
 	/**
-	 * Gets the name of this analyzer
-	 * 
+	 * Returns a unique string
+	 * Can be used for generating result keys
 	 * @return
 	 */
-	public String getName() {
+	public static String getUUID() {
+		UUID uuid = UUID.randomUUID();
+		return uuid.toString();
+	}
+	
+	/**
+	 * Just a pair class to hold a display name and the result
+	 * Note: display name does not need to be unique
+	 */
+	public static class Result {
+		private String displayLabel;
+		private Q q;
+		
+		public Result(String displayLabel, Q q){
+			this.displayLabel = displayLabel;
+			this.q = q;
+		}
+		
+		public String getDisplayLabel(){
+			return displayLabel;
+		}
+		
+		public Q getQ(){
+			return q;
+		}
+	}
+	
+	/**
+	 * Returns a name of the analyzer
+	 * @return
+	 */
+	public String getName(){
 		return this.getClass().getSimpleName();
 	}
-
+	
 	/**
-	 * Returns the analyzer simple name
-	 */
-	@Override
-	public String toString() {
-		return getName();
-	}
-
-	/**
-	 * Gets the description of this analyzer
-	 * 
+	 * Returns a short description of the analyzer
 	 * @return
 	 */
 	public abstract String getDescription();
-
+	
 	/**
-	 * Gets a human-readable description of the assumptions made by this analyzer.
-	 * 
+	 * Returns an array of assumptions made when writing the analyzer
 	 * @return
 	 */
-	public abstract String[] getAssumptions();
-
-	/**
-	 * Constructs a new analyzer without options
-	 */
-	public Analyzer() {}
-
-	/**
-	 * Evaluate and cache the analysis result
-	 * @return
-	 */
-	public final Q getEnvelope() {
-		if (envelope == null) {
-			envelope = evaluateEnvelope();
-		}
-		return envelope;
+	public String[] getAssumptions(){
+		return new String[]{};
 	}
 	
-	public final Q revaluateEnvelope(){
-		clearEnvelopeCache();
-		envelope = evaluateEnvelope();
-		return envelope;
-	}
-
 	/**
-	 * Subclasses must implement the actual logic to compute an envelope.
-	 * 
+	 * Return analyzer's labeled results
+	 * Results are for results within a given context
 	 * @return
 	 */
-	protected abstract Q evaluateEnvelope();
-
+	public abstract Map<String,Result> getResults(Q context);
+	
 	/**
-	 * Can be used to preemptively extend in the given context which Atlas may
-	 * not know about it. Not all toolbox inserted edges are tagged with special
-	 * ENUMs Case and point resource indexer declares edges for the element
-	 * structures.
-	 * 
-	 * @param q
-	 * @param context
+	 * Defines the sorted ordering for the results (by label)
 	 * @return
 	 */
-	public Q extendInContext(Q q, Q context) {
-		return context.edgesTaggedWithAny(XCSG.Contains).reverse(q).union(q);
+	public Comparator<String> getResultOrder(){
+		return new Comparator<String>(){
+			@Override
+			public int compare(String o1, String o2) {
+				return o1.compareToIgnoreCase(o2);
+			}
+		};
 	}
-
+	
 	/**
-	 * A cache of the analyzer context
-	 */
-	protected Q context = Common.universe();
-	protected Q appContext = SetDefinitions.app();
-
-	/**
-	 * A valid analyzer option that many analyzers choose to utilize is returning
-	 * results calculated in a given context. Setting the context also clears
-	 * the cached envelope result.
-	 * 
-	 * @param context
-	 */
-	public void setContext(Q context) {
-		this.context = context;
-		appContext = context.intersection(SetDefinitions.app()).retainNodes().induce(context);
-		clearEnvelopeCache();
-	}
-
-	/**
-	 * A helper method for returning the current analyzer context
-	 * 
+	 * Returns a union of all results
 	 * @return
 	 */
-	public Q getContext() {
-		return context;
+	public Q getAllResults(Q context){
+		AtlasSet<Node> nodes = new AtlasHashSet<Node>();
+		AtlasSet<Edge> edges = new AtlasHashSet<Edge>();
+		for(Entry<String,Result> entry : getResults(context).entrySet()){
+			Graph result = entry.getValue().getQ().eval();
+			nodes.addAll(result.nodes());
+			edges.addAll(result.edges());
+		}
+		return Common.toQ(edges).union(Common.toQ(nodes));
 	}
-
+	
 	/**
-	 * A helper method for returning the current analyzer app context
-	 * 
+	 * Returns markup for the analyzer result
 	 * @return
 	 */
-	public Q getAppContext() {
-		return appContext;
+	public Markup getMarkup(){
+		return new Markup();
 	}
+	
+	/**
+	 * Returns a color key legend to interpret the markup results
+	 * @return
+	 */
+	public Map<Color,String> getMarkupKey(){
+		return new HashMap<Color,String>();
+	}
+	
 }
