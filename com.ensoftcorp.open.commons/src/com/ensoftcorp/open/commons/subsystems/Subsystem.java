@@ -8,7 +8,7 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.log.Log;
 
 public abstract class Subsystem {
-
+	
 	public static String ROOT_SUBSYSTEM_TAG = "SUBSYSTEM";
 
 	/**
@@ -33,13 +33,13 @@ public abstract class Subsystem {
 	public abstract String getTag();
 
 	/**
-	 * Defines the parent tags in the subsystem tag hierarchy
-	 * Subsystems may have multiple parents and multiple children
+	 * Defines the parent tags in the subsystem tag hierarchy Subsystems may
+	 * have multiple parents and multiple children
 	 * 
 	 * @return
 	 */
 	public String[] getParentTags() {
-		return new String[]{ROOT_SUBSYSTEM_TAG};
+		return new String[] { ROOT_SUBSYSTEM_TAG };
 	}
 
 	/**
@@ -50,7 +50,7 @@ public abstract class Subsystem {
 	public String[] getNamespaces() {
 		return new String[] {};
 	}
-	
+
 	/**
 	 * The set of types that should be tagged in the subsystem
 	 * 
@@ -68,7 +68,7 @@ public abstract class Subsystem {
 	 * Adds the subystem tag if it does not exist
 	 */
 	public void tagSubsystem() {
-		Log.info("Tagging " + getName() + " subsystem");
+		Log.info("Tagging " + getName() + " subsystem...");
 		String[] pkgs = getNamespaces();
 		if (pkgs != null) {
 			for (String pkg : pkgs) {
@@ -83,7 +83,7 @@ public abstract class Subsystem {
 	 * Removes the subystem tag if it exists
 	 */
 	public void untagSubsystem() {
-		Log.info("Removing " + getName() + " subsystem tags");
+		Log.info("Removing " + getName() + " subsystem tags...");
 		String[] pkgs = getNamespaces();
 		if (pkgs != null) {
 			for (String pkg : pkgs) {
@@ -92,6 +92,11 @@ public abstract class Subsystem {
 				}
 			}
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "Subsystem [name=" + getName() + ", tag=" + getTag() + ", parents=" + Arrays.toString(getParentTags()) + "]";
 	}
 
 	/**
@@ -102,16 +107,18 @@ public abstract class Subsystem {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+
 		String tag = getTag();
 		String[] namespaces = getNamespaces();
-		result = prime * result + ((tag == null) ? 0 : tag.hashCode());
+
 		result = prime * result + Arrays.hashCode(namespaces);
+		result = prime * result + ((tag == null) ? 0 : tag.hashCode());
 		return result;
 	}
 
 	/**
 	 * Two subsystems are equivalent if they have the same tag and set of
-	 * namespaces
+	 * namespaces/folders
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -121,24 +128,18 @@ public abstract class Subsystem {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Subsystem other = (Subsystem) obj;
 
 		String tag = getTag();
 		String[] namespaces = getNamespaces();
 
-		String otherTag = other.getTag();
-		String[] otherNamespaces = other.getNamespaces();
-
-		if (!Arrays.equals(namespaces, otherNamespaces)) {
+		Subsystem other = (Subsystem) obj;
+		if (!Arrays.equals(namespaces, other.getNamespaces()))
 			return false;
-		}
 		if (tag == null) {
-			if (otherTag != null) {
+			if (other.getTag() != null)
 				return false;
-			}
-		} else if (!tag.equals(otherTag)) {
+		} else if (!tag.equals(other.getTag()))
 			return false;
-		}
 		return true;
 	}
 
