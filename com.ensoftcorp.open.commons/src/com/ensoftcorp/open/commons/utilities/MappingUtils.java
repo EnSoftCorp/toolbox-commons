@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.utils;
+package com.ensoftcorp.open.commons.utilities;
 
 import java.util.Collections;
 import java.util.List;

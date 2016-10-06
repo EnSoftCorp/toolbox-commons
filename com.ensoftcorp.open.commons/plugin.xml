@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-	
+
+	<!-- defines an Atlas Toolbox menu category -->
 	<extension
 	      point="org.eclipse.ui.menus">
 	   <menuContribution
@@ -13,12 +14,28 @@
 	   </menuContribution>
 	</extension>
 	
+	<!-- defines an Atlas Toolbox view category -->
 	<extension
          point="org.eclipse.ui.views">
       <category
             name="Atlas Toolbox"
             id="com.ensoftcorp.open.commons.views.categories.toolbox">
       </category>
+   </extension>
+   
+   <!-- defines and extension point schema for contributing subsystem definitons -->
+   <extension-point 
+   		id="com.ensoftcorp.open.commons.subsystem" 
+   		name="Subsystem" 
+   		schema="schema/com.ensoftcorp.open.commons.subsystem.exsd"/>
+	
+   
+    <!-- adds a post code map hook for running subsystem tagging -->
+   <extension
+         point="com.ensoftcorp.atlas.core.ToolboxExtensionPoint">
+      <indexer
+            class="com.ensoftcorp.open.commons.subsystems.Subsystems">
+      </indexer>
    </extension>
 
 </plugin>

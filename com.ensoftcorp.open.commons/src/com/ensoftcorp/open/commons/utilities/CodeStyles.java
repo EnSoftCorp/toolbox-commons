@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.analysis.utils;
+package com.ensoftcorp.open.commons.utilities;
 
 /**
  * Useful regular expressions for matching different naming styles.

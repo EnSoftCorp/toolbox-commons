@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.analysis.utils;
+package com.ensoftcorp.open.commons.analysis;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
@@ -10,7 +10,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.db.set.UnionSet;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.java.core.script.Common;
+import com.ensoftcorp.atlas.core.script.Common;
 
 /**
  * A set of traversals for performing undirected graph traversals
