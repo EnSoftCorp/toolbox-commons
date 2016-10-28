@@ -100,7 +100,16 @@ public class Subsystems implements ToolboxIndexingStage {
 		loadSubsystemContributions();
 
 		Set<Subsystem> subsystems = getRegisteredSubsystems();
-		buildSubsystemTagHierarchy(subsystems);
+		
+		try {
+			buildSubsystemTagHierarchy(subsystems);
+		} catch (IllegalStateException e){
+			if(e.getMessage().contains("Tag is already registered!")){
+				Log.info("The subystem hierarchy already exists.", e);
+			} else {
+				throw e;
+			}
+		}
 
 		for (Subsystem subsystem : subsystems) {
 			if (monitor.isCanceled()) {
