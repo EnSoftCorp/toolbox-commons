@@ -21,6 +21,7 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.Activator;
+import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
 public class Subsystems implements ToolboxIndexingStage {
 
@@ -97,25 +98,27 @@ public class Subsystems implements ToolboxIndexingStage {
 
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
-		loadSubsystemContributions();
+		if(CommonsPreferences.isSubsystemTaggingEnabled()){
+			loadSubsystemContributions();
 
-		Set<Subsystem> subsystems = getRegisteredSubsystems();
-		
-		try {
-			buildSubsystemTagHierarchy(subsystems);
-		} catch (IllegalStateException e){
-			if(e.getMessage().contains("Tag is already registered!")){
-				Log.info("The subystem hierarchy already exists.", e);
-			} else {
-				throw e;
+			Set<Subsystem> subsystems = getRegisteredSubsystems();
+			
+			try {
+				buildSubsystemTagHierarchy(subsystems);
+			} catch (IllegalStateException e){
+				if(e.getMessage().contains("Tag is already registered!")){
+					Log.info("The subystem hierarchy already exists.", e);
+				} else {
+					throw e;
+				}
 			}
-		}
 
-		for (Subsystem subsystem : subsystems) {
-			if (monitor.isCanceled()) {
-				break;
-			} else {
-				subsystem.tagSubsystem();
+			for (Subsystem subsystem : subsystems) {
+				if (monitor.isCanceled()) {
+					break;
+				} else {
+					subsystem.tagSubsystem();
+				}
 			}
 		}
 	}
