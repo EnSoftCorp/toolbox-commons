@@ -174,7 +174,6 @@ public final class StandardQueries {
 	 */
 	public static Q advancedIntersection(Q first, Q second, String[] nodeTags, String[] edgeTags) {
 		Q plainIntersection = first.intersection(second);
-
 		return plainIntersection.nodesTaggedWithAny(nodeTags).induce(plainIntersection.edgesTaggedWithAny(edgeTags));
 	}
 
@@ -283,11 +282,11 @@ public final class StandardQueries {
 	 * @param nodes
 	 * @return
 	 */
-	public static Q getContainingMethods(Q nodes) {
+	public static Q getContainingFunction(Q nodes) {
 		AtlasSet<Node> nodeSet = nodes.eval().nodes();
 		AtlasSet<Node> containingMethods = new AtlasHashSet<Node>();
 		for (Node currentNode : nodeSet) {
-			Node method = getContainingMethod(currentNode);
+			Node method = getContainingFunction(currentNode);
 			if (method != null){
 				containingMethods.add(method);
 			}
@@ -305,9 +304,9 @@ public final class StandardQueries {
 	 * @param node
 	 * @return
 	 */
-	public static Node getContainingMethod(Node node) {
-		// NOTE: the enclosing method may be two steps or more above
-		return getContainingNode(node, XCSG.Method);
+	public static Node getContainingFunction(Node node) {
+		// NOTE: the enclosing function may be two steps or more above
+		return getContainingNode(node, XCSG.Function);
 	}
 	
 	/**
@@ -387,8 +386,9 @@ public final class StandardQueries {
 		for (Edge edge : context.eval().edges()) {
 			Node to = edge.getNode(EdgeDirection.TO);
 			Node from = edge.getNode(EdgeDirection.FROM);
-			if (to == from)
+			if (to == from){
 				result.add(to);
+			}
 		}
 		return Common.toQ(new NodeGraph(result));
 	}
@@ -437,14 +437,14 @@ public final class StandardQueries {
 	}
 	
 	/**
-	 * Helper method to get the qualified name of the class
+	 * Helper method to get the stringified qualified name of the class
 	 * @param method
 	 * @return
 	 */
-	public static String getQualifiedClassName(Node method) {
-		String result = method.attr().get(XCSG.name).toString();
-		Q parent = Common.toQ(Common.toGraph(method)).parent();
-		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Package))) {
+	public static String getQualifiedTypeName(Node type) {
+		String result = type.attr().get(XCSG.name).toString();
+		Q parent = Common.toQ(Common.toGraph(type)).parent();
+		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Namespace))) {
 			result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
 			parent = parent.parent();
 		}
@@ -453,14 +453,14 @@ public final class StandardQueries {
 	}
 	
 	/**
-	 * Helper method to get the qualified name of the method
+	 * Helper method to get the stringified qualified name of the method
 	 * @param method
 	 * @return
 	 */
-	public static String getQualifiedMethodName(Node method) {
-		String result = method.attr().get(XCSG.name).toString();
-		Q parent = Common.toQ(Common.toGraph(method)).parent();
-		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Package))) {
+	public static String getQualifiedFunctionName(Node function) {
+		String result = function.attr().get(XCSG.name).toString();
+		Q parent = Common.toQ(Common.toGraph(function)).parent();
+		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Namespace))) {
 			result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
 			parent = parent.parent();
 		}
