@@ -21,6 +21,5 @@ Bundle-ClassPath: .
 Export-Package: com.ensoftcorp.open.commons,
  com.ensoftcorp.open.commons.analysis,
  com.ensoftcorp.open.commons.subsystems,
- com.ensoftcorp.open.commons.utilities,
- com.ensoftcorp.open.commons.wishful
+ com.ensoftcorp.open.commons.utilities
 Bundle-Activator: com.ensoftcorp.open.commons.Activator
