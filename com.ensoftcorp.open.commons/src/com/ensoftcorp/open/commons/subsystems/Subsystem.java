@@ -24,7 +24,25 @@ public abstract class Subsystem {
 	 * @return
 	 */
 	public abstract String getDescription();
-
+	
+	/**
+	 * A unique category used for enabling/disabling groups of tagging instructions
+	 * 
+	 * This is a identifier key to assert that tagging instructions with 
+	 * interdependencies are enabled/disabled together to maintain the consistency 
+	 * of the subsystem hierarchy.
+	 * 
+	 * @return
+	 */
+	public abstract String getCategory();
+	
+	/**
+	 * This is a human readable description of the category of subsystem tagging instructions
+	 * 
+	 * @return
+	 */
+	public abstract String getCategoryDescription();
+	
 	/**
 	 * Defines the subystem tag
 	 * 

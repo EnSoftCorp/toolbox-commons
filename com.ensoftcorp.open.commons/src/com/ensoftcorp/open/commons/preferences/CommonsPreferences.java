@@ -1,35 +1,43 @@
 package com.ensoftcorp.open.commons.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.log.Log;
+import com.ensoftcorp.open.commons.subsystems.Subsystem;
+import com.ensoftcorp.open.commons.subsystems.Subsystems;
 
 public class CommonsPreferences extends AbstractPreferenceInitializer {
 
 	private static boolean initialized = false;
 	
-	/**
-	 * Enable/disable subystem tagging
-	 * If enabled all registered subystem tagging instructions will be applied during indexing
-	 * If disabled no subsystem tagging instructions will be applied during indexing
-	 */
-	public static final String SUBSYSTEM_TAGGING = "SUBSYSTEM_TAGGING";
-	public static final Boolean SUBSYSTEM_TAGGING_DEFAULT = false;
-	private static boolean subsystemTaggingValue = SUBSYSTEM_TAGGING_DEFAULT;
-	
-	public static boolean isSubsystemTaggingEnabled(){
-		if(!initialized){
-			loadPreferences();
-		}
-		return subsystemTaggingValue;
-	}
-	
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		preferences.setDefault(SUBSYSTEM_TAGGING, SUBSYSTEM_TAGGING_DEFAULT);
+		// let each registered subystem tagging instruction be enabled by default
+		Subsystems.loadSubsystemContributions();
+		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
+			preferences.setDefault(subsystem.getTag(), true);
+		}
+		Log.info("Loaded " + Subsystems.getRegisteredSubsystems().size() + " unique subsystem definitions.");
+	}
+	
+	/**
+	 * Returns true if the subsystem category is enabled for tagging
+	 * 
+	 * @param subsystemCategory
+	 * @return
+	 */
+	public static boolean isSubsystemCategoryEnabled(String subsystemCategory){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		Boolean result = preferences.getBoolean(subsystemCategory);
+		if(result == null){
+			return false;
+		} else {
+			return result.booleanValue();
+		}
 	}
 	
 	/**
@@ -38,7 +46,6 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	public static void loadPreferences() {
 		try {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-			subsystemTaggingValue = preferences.getBoolean(SUBSYSTEM_TAGGING);
 		} catch (Exception e){
 			Log.warning("Error accessing commons preferences, using defaults...", e);
 		}

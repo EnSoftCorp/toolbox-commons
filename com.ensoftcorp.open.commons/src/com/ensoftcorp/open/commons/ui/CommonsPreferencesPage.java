@@ -1,5 +1,9 @@
 package com.ensoftcorp.open.commons.ui;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map.Entry;
+
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -9,6 +13,8 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
+import com.ensoftcorp.open.commons.subsystems.Subsystem;
+import com.ensoftcorp.open.commons.subsystems.Subsystems;
 
 /**
  * UI for setting toolbox commons analysis preferences
@@ -20,7 +26,7 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 	private static final String SUBSYSTEM_TAGGING_DESCRIPTION = "Tag Subsystems";
 	
 	private static boolean changeListenerAdded = false;
-	
+
 	public CommonsPreferencesPage() {
 		super(GRID);
 	}
@@ -29,13 +35,13 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 	public void init(IWorkbench workbench) {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		setPreferenceStore(preferences);
-		setDescription("Configure preferences for the Toolbox Commons plugin.");
-		
+		setDescription("Configure preferences for the Toolbox Commons plugins.");
 		// use to update cached values if user edits a preference
 		if(!changeListenerAdded){
 			getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 				@Override
 				public void propertyChange(org.eclipse.jface.util.PropertyChangeEvent event) {
+					// reload the preference variable cache
 					CommonsPreferences.loadPreferences();
 				}
 			});
@@ -45,7 +51,15 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 
 	@Override
 	protected void createFieldEditors() {
-		addField(new BooleanFieldEditor(CommonsPreferences.SUBSYSTEM_TAGGING, "&" + SUBSYSTEM_TAGGING_DESCRIPTION, getFieldEditorParent()));
+		// add option to enable/disable each category of subystem
+		Subsystems.loadSubsystemContributions();
+		HashMap<String,String> taggingCategories = new HashMap<String,String>();
+		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
+			taggingCategories.put(subsystem.getCategory(), subsystem.getCategoryDescription());
+		}
+		for(Entry<String,String> taggingCategory : taggingCategories.entrySet()){
+			addField(new BooleanFieldEditor(taggingCategory.getKey(), "&" + ("Tag: " + taggingCategory.getValue()), getFieldEditorParent()));
+		}
 	}
 
 }

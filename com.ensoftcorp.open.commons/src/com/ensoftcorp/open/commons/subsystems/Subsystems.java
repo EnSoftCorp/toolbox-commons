@@ -57,7 +57,6 @@ public class Subsystems implements ToolboxIndexingStage {
 		} catch (CoreException e) {
 			Log.error("Error loading work items.", e);
 		}
-		Log.info("Loaded " + SUBSYSTEMS.size() + " unique subsystem definitions.");
 	}
 
 	/**
@@ -98,25 +97,25 @@ public class Subsystems implements ToolboxIndexingStage {
 
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
-		if(CommonsPreferences.isSubsystemTaggingEnabled()){
-			loadSubsystemContributions();
+		loadSubsystemContributions();
 
-			Set<Subsystem> subsystems = getRegisteredSubsystems();
-			
-			try {
-				buildSubsystemTagHierarchy(subsystems);
-			} catch (IllegalStateException e){
-				if(e.getMessage().contains("Tag is already registered!")){
-					Log.info("The subystem hierarchy already exists.", e);
-				} else {
-					throw e;
-				}
+		Set<Subsystem> subsystems = getRegisteredSubsystems();
+		
+		try {
+			buildSubsystemTagHierarchy(subsystems);
+		} catch (IllegalStateException e){
+			if(e.getMessage().contains("Tag is already registered!")){
+				Log.info("The subystem hierarchy already exists.", e);
+			} else {
+				throw e;
 			}
+		}
 
-			for (Subsystem subsystem : subsystems) {
-				if (monitor.isCanceled()) {
-					break;
-				} else {
+		for (Subsystem subsystem : subsystems) {
+			if (monitor.isCanceled()) {
+				break;
+			} else {
+				if(CommonsPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
 					subsystem.tagSubsystem();
 				}
 			}
