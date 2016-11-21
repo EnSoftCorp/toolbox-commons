@@ -22,5 +22,6 @@ Export-Package: com.ensoftcorp.open.commons.analysis,
  com.ensoftcorp.open.commons.codemap,
  com.ensoftcorp.open.commons.preferences,
  com.ensoftcorp.open.commons.subsystems,
+ com.ensoftcorp.open.commons.ui.components,
  com.ensoftcorp.open.commons.utilities
 Bundle-Activator: com.ensoftcorp.open.commons.Activator
