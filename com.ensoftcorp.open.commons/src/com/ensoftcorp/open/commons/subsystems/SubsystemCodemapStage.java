@@ -21,7 +21,7 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 	/**
 	 * The unique identifier for the Subsystem codemap stage
 	 */
-	public static final String IDENTIFIER = "SUBSYSTEM_TAGGING";
+	public static final String IDENTIFIER = "com.ensoftcorp.open.commons.subsystems";
 	
 	@Override
 	public String getDisplayName() {
