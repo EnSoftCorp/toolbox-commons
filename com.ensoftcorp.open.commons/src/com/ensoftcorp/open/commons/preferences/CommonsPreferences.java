@@ -21,7 +21,6 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
 			preferences.setDefault(subsystem.getTag(), true);
 		}
-		Log.info("Loaded " + Subsystems.getRegisteredSubsystems().size() + " unique subsystem definitions.");
 	}
 	
 	/**
