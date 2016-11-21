@@ -10,13 +10,24 @@
 	   </initializer>
 	</extension>
    
+   <!-- create an Atlas Toolbox parent preferences menu item -->
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.ensoftcorp.open.commons.ui.AtlasToolboxPreferencesPage"
+            id="com.ensoftcorp.open.commons.ui.toolbox"
+            name="Atlas Toolbox">
+      </page>
+   </extension>
+   
    <!-- create a preferences menu item for toolbox commons -->
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
             class="com.ensoftcorp.open.commons.ui.CommonsPreferencesPage"
             id="com.ensoftcorp.open.commons.ui.preferences"
-            name="Toolbox Commons">
+            name="Toolbox Commons"
+            category="com.ensoftcorp.open.commons.ui.toolbox">
       </page>
    </extension>
    
