@@ -23,7 +23,7 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
-public class Subsystems implements ToolboxIndexingStage {
+public class Subsystems {
 
 	private static Set<Subsystem> SUBSYSTEMS = Collections.synchronizedSet(new HashSet<Subsystem>());
 
@@ -55,7 +55,7 @@ public class Subsystems implements ToolboxIndexingStage {
 				}
 			}
 		} catch (CoreException e) {
-			Log.error("Error loading work items.", e);
+			Log.error("Error loading subsystems.", e);
 		}
 	}
 
@@ -64,7 +64,7 @@ public class Subsystems implements ToolboxIndexingStage {
 	 * 
 	 * @param subsystem
 	 */
-	public static synchronized void registerSubsystem(Subsystem subsystem) {
+	private static synchronized void registerSubsystem(Subsystem subsystem) {
 		SUBSYSTEMS.add(subsystem);
 	}
 
@@ -73,14 +73,14 @@ public class Subsystems implements ToolboxIndexingStage {
 	 * 
 	 * @param subsystem
 	 */
-	public static synchronized void unregisterSubsystem(Subsystem subsystem) {
+	private static synchronized void unregisterSubsystem(Subsystem subsystem) {
 		SUBSYSTEMS.remove(subsystem);
 	}
 
 	/**
 	 * Removes all registered subsystem tags
 	 */
-	public static synchronized void clearSubsystemTags() {
+	private static synchronized void clearSubsystemTags() {
 		Set<Subsystem> subsystems = getRegisteredSubsystems();
 		for (Subsystem subsystem : subsystems) {
 			subsystem.untagSubsystem();
@@ -88,84 +88,6 @@ public class Subsystems implements ToolboxIndexingStage {
 
 		// TODO: how to destroy the tag hierarchy? 
 		// is this done automatically if there are no tags of a kind?
-	}
-
-	@Override
-	public String displayName() {
-		return "Subsystem Tagging";
-	}
-
-	@Override
-	public void performIndexing(IProgressMonitor monitor) {
-		loadSubsystemContributions();
-
-		Set<Subsystem> subsystems = getRegisteredSubsystems();
-		
-		try {
-			buildSubsystemTagHierarchy(subsystems);
-		} catch (IllegalStateException e){
-			if(e.getMessage().contains("Tag is already registered!")){
-				Log.info("The subystem hierarchy already exists.", e);
-			} else {
-				throw e;
-			}
-		}
-
-		for (Subsystem subsystem : subsystems) {
-			if (monitor.isCanceled()) {
-				break;
-			} else {
-				if(CommonsPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
-					subsystem.tagSubsystem();
-				}
-			}
-		}
-	}
-
-	private void buildSubsystemTagHierarchy(Set<Subsystem> subsystems) {
-		// register root tag
-		XCSG.HIERARCHY.registerTag(Subsystem.ROOT_SUBSYSTEM_TAG, new String[] {});
-
-		// create a worklist of subsystems to register
-		LinkedList<Subsystem> registrationWorklist = new LinkedList<Subsystem>();
-		registrationWorklist.addAll(subsystems);
-
-		// get the registered tags
-		HashSet<String> registeredTags = new HashSet<String>();
-		for (String registeredTag : XCSG.HIERARCHY.registeredTags()) {
-			registeredTags.add(registeredTag);
-		}
-		
-		// register each tag adding the parents
-		// parents tags must be registered first
-		while (!registrationWorklist.isEmpty()) {
-			// for each subsystem to register
-			LinkedList<Subsystem> completedRegistrations = new LinkedList<Subsystem>();
-			for (Subsystem subsystem : registrationWorklist) {
-				// get the subsystems parent tags
-				HashSet<String> parents = new HashSet<String>();
-				for (String parent : subsystem.getParentTags()) {
-					parents.add(parent);
-				}
-				// check if all of the parent tags in the subsystem have been
-				// registered
-				if (registeredTags.containsAll(parents)) {
-					// register the subsystem
-					XCSG.HIERARCHY.registerTag(subsystem.getTag(), subsystem.getParentTags());
-					registeredTags.add(subsystem.getTag());
-					completedRegistrations.add(subsystem);
-				}
-			}
-			// if we couldn't register any subsystems and the worklist is not empty,
-			// then we must have a cycle in the hierarchy :(
-			if (!registrationWorklist.removeAll(completedRegistrations)) {
-				Log.warning("An issue was detected in the subsystem hierarchy.\n"
-						+ "There may be a dependency cycle or required parent subsystems may not have been contributed properly and are missing."
-						+ "The following subsystems were not registered successfully.\n"
-						+ registrationWorklist.toString());
-				break;
-			}
-		}
 	}
 
 	/**
