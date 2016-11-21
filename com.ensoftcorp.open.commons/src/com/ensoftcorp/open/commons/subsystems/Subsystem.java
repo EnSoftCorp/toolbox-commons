@@ -86,7 +86,7 @@ public abstract class Subsystem {
 	 * Adds the subystem tag if it does not exist
 	 */
 	public void tagSubsystem() {
-		Log.info("Tagging " + getName() + " subsystem...");
+//		Log.info("Tagging " + getName() + " subsystem...");
 		String[] pkgs = getNamespaces();
 		if (pkgs != null) {
 			for (String pkg : pkgs) {
@@ -101,7 +101,7 @@ public abstract class Subsystem {
 	 * Removes the subystem tag if it exists
 	 */
 	public void untagSubsystem() {
-		Log.info("Removing " + getName() + " subsystem tags...");
+//		Log.info("Removing " + getName() + " subsystem tags...");
 		String[] pkgs = getNamespaces();
 		if (pkgs != null) {
 			for (String pkg : pkgs) {

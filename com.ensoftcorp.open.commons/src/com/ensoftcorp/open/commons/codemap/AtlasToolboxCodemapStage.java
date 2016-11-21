@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.commons.codemap;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
@@ -26,6 +27,16 @@ public class AtlasToolboxCodemapStage implements ToolboxIndexingStage {
 		try {
 			HashSet<String> completedCodemapStages = new HashSet<String>();
 			Set<PrioritizedCodemapStage> codemapStages = loadCodemapContributions();
+			
+			String message = "Loaded " + codemapStages.size() + " Prioritized Codemap Stages";
+			for(PrioritizedCodemapStage codemapStage : codemapStages){
+				String[] dependencies = codemapStage.getCodemapStageDependencies();
+				message += ("\n" + codemapStage.getDisplayName() 
+						+ ", dependencies: " 
+						+ (dependencies.length==0 ? "none" : Arrays.toString(dependencies)));
+			}
+			Log.info(message);
+					
 			while(!codemapStages.isEmpty()){
 				PrioritizedCodemapStage codemapStage = getDependencySatisfiedCodemapStage(codemapStages, completedCodemapStages);
 				monitor.setTaskName(codemapStage.getDisplayName());

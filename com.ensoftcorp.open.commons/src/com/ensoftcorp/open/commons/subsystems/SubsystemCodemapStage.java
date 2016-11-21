@@ -11,6 +11,11 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
+/**
+ * Runs the subsystem tagging as a post indexing process
+ * 
+ * @author Ben Holland
+ */
 public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 
 	/**
@@ -35,6 +40,7 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
+		Log.info("Tagging subsystems...");
 		Subsystems.loadSubsystemContributions();
 
 		Set<Subsystem> subsystems = Subsystems.getRegisteredSubsystems();
@@ -127,6 +133,5 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 			}
 		}
 	}
-
 
 }
