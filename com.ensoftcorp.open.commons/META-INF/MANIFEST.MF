@@ -18,8 +18,8 @@ Require-Bundle:
  org.apache.commons.lang3;bundle-version="3.1.0";visibility:=reexport
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
-Export-Package: com.ensoftcorp.open.commons,
- com.ensoftcorp.open.commons.analysis,
+Export-Package: com.ensoftcorp.open.commons.analysis,
+ com.ensoftcorp.open.commons.preferences,
  com.ensoftcorp.open.commons.subsystems,
  com.ensoftcorp.open.commons.utilities
 Bundle-Activator: com.ensoftcorp.open.commons.Activator
