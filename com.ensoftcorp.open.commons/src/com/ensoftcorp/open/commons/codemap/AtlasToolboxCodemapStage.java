@@ -40,7 +40,11 @@ public class AtlasToolboxCodemapStage implements ToolboxIndexingStage {
 			while(!codemapStages.isEmpty()){
 				PrioritizedCodemapStage codemapStage = getDependencySatisfiedCodemapStage(codemapStages, completedCodemapStages);
 				monitor.setTaskName(codemapStage.getDisplayName());
-				codemapStage.performIndexing(monitor);
+				try {
+					codemapStage.performIndexing(monitor);
+				} catch (Throwable t){
+					Log.error(codemapStage.getDisplayName() + " failed.", t);
+				}
 				codemapStages.remove(codemapStage);
 				completedCodemapStages.add(codemapStage.getIdentifier());
 			}
