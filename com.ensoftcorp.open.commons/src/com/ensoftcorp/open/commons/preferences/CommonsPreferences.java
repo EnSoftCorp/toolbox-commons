@@ -1,7 +1,6 @@
 package com.ensoftcorp.open.commons.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
-import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.ensoftcorp.open.commons.Activator;
@@ -11,6 +10,7 @@ import com.ensoftcorp.open.commons.subsystems.Subsystems;
 
 public class CommonsPreferences extends AbstractPreferenceInitializer {
 
+	@SuppressWarnings("unused")
 	private static boolean initialized = false;
 	
 	@Override
@@ -32,11 +32,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	public static boolean isSubsystemCategoryEnabled(String subsystemCategory){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		Boolean result = preferences.getBoolean(subsystemCategory);
-		if(result == null){
-			return false;
-		} else {
-			return result.booleanValue();
-		}
+		return result.booleanValue();
 	}
 	
 	/**
@@ -44,6 +40,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	 */
 	public static void loadPreferences() {
 		try {
+			@SuppressWarnings("unused")
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		} catch (Exception e){
 			Log.warning("Error accessing commons preferences, using defaults...", e);

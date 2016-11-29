@@ -2,7 +2,6 @@ package com.ensoftcorp.open.commons.codemap;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;

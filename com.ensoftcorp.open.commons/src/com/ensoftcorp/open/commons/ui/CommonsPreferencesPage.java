@@ -1,7 +1,6 @@
 package com.ensoftcorp.open.commons.ui;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map.Entry;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
@@ -15,6 +14,7 @@ import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 import com.ensoftcorp.open.commons.subsystems.Subsystem;
 import com.ensoftcorp.open.commons.subsystems.Subsystems;
+import com.ensoftcorp.open.commons.ui.components.LabelFieldEditor;
 
 /**
  * UI for setting toolbox commons analysis preferences
@@ -22,8 +22,6 @@ import com.ensoftcorp.open.commons.subsystems.Subsystems;
  * @author Ben Holland
  */
 public class CommonsPreferencesPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
-
-	private static final String SUBSYSTEM_TAGGING_DESCRIPTION = "Tag Subsystems";
 	
 	private static boolean changeListenerAdded = false;
 
@@ -52,6 +50,7 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 	@Override
 	protected void createFieldEditors() {
 		// add option to enable/disable each category of subystem
+		addField(new LabelFieldEditor("Subsystem Tagging", getFieldEditorParent()));
 		Subsystems.loadSubsystemContributions();
 		HashMap<String,String> taggingCategories = new HashMap<String,String>();
 		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){

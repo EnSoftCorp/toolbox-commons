@@ -13,8 +13,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.ensoftcorp.open.commons.log.Log;
-
 /**
  * A menu handler for configuring the toolbox commons analysis preferences
  * 

@@ -1,7 +1,5 @@
 package com.ensoftcorp.open.commons.codemap;
 
-import java.util.Set;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 public abstract class PrioritizedCodemapStage {

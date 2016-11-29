@@ -5,7 +5,6 @@ import java.util.Arrays;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.open.commons.log.Log;
 
 public abstract class Subsystem {
 	

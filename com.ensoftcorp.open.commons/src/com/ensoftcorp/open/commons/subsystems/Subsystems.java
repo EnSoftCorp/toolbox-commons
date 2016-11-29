@@ -2,26 +2,22 @@ package com.ensoftcorp.open.commons.subsystems;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionRegistry;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.indexing.providers.ToolboxIndexingStage;
 import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.Activator;
-import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
 public class Subsystems {
 
@@ -73,6 +69,7 @@ public class Subsystems {
 	 * 
 	 * @param subsystem
 	 */
+	@SuppressWarnings("unused")
 	private static synchronized void unregisterSubsystem(Subsystem subsystem) {
 		SUBSYSTEMS.remove(subsystem);
 	}
@@ -80,6 +77,7 @@ public class Subsystems {
 	/**
 	 * Removes all registered subsystem tags
 	 */
+	@SuppressWarnings("unused")
 	private static synchronized void clearSubsystemTags() {
 		Set<Subsystem> subsystems = getRegisteredSubsystems();
 		for (Subsystem subsystem : subsystems) {
