@@ -24,6 +24,7 @@ import com.ensoftcorp.atlas.core.script.CommonQueries;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.ui.viewer.graph.DisplayUtil;
 import com.ensoftcorp.atlas.ui.viewer.graph.SaveUtil;
+import com.ensoftcorp.open.commons.ui.components.InputDialog;
 
 /**
  * A set of helper utilities for some common display related methods
@@ -34,6 +35,35 @@ public class DisplayUtils {
 
 	private final static long LARGE_GRAPH_WARNING = 100;
 
+	/**
+	 * Returns a string entered by the user, returns null if the user canceled the prompt
+	 * @param title
+	 * @param message
+	 * @return
+	 */
+	public static String promptString(String title, String message) {
+	    InputDialog prompt = new InputDialog(Display.getDefault().getActiveShell(), title, message);
+	    return prompt.open();
+	}
+
+	/**
+	 * Opens a display prompt alerting the user of the error 
+	 * 
+	 * @param message the message to display
+	 */
+	public static void showError(final String message) {
+		final Display display = Display.getDefault();
+		display.syncExec(new Runnable() {
+			@Override
+			public void run() {
+				MessageBox mb = new MessageBox(Display.getDefault().getActiveShell(), SWT.ICON_ERROR | SWT.OK);
+				mb.setText("Alert");
+				mb.setMessage(message);
+				mb.open();
+			}
+		});
+	}
+	
 	/**
 	 * Opens a display prompt alerting the user of the error and offers the
 	 * ability to copy a stack trace to the clipboard
@@ -142,29 +172,30 @@ public class DisplayUtils {
 		final Display display = Display.getDefault();
 		display.syncExec(new Runnable() {
 			public void run() {
-				long graphSize = CommonQueries.nodeSize(q);
-				boolean showGraph = false;
-
-				if (graphSize > LARGE_GRAPH_WARNING) {
-					MessageBox mb = new MessageBox(new Shell(display), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-					mb.setText("Warning");
-					mb.setMessage("The graph you are about to display has " + graphSize + " nodes.  " 
-							+ "Displaying large graphs may cause Eclipse to become unresponsive." 
-							+ "\n\nDo you want to continue?");
-					int response = mb.open();
-					if (response == SWT.YES) {
-						showGraph = true; // user says let's do it!!
+				try {
+					long graphSize = CommonQueries.nodeSize(q);
+					boolean showGraph = false;
+					if (graphSize > LARGE_GRAPH_WARNING) {
+						MessageBox mb = new MessageBox(new Shell(display), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+						mb.setText("Warning");
+						mb.setMessage("The graph you are about to display has " + graphSize + " nodes.  " 
+								+ "Displaying large graphs may cause Eclipse to become unresponsive." 
+								+ "\n\nDo you want to continue?");
+						int response = mb.open();
+						if (response == SWT.YES) {
+							showGraph = true; // user says let's do it!!
+						}
+					} else {
+						// graph is small enough to display
+						showGraph = true;
 					}
-				} else {
-					// graph is small enough to display
-					showGraph = true;
-				}
-
-				if (showGraph) {
-//					Q extended = Common.extend(q, XCSG.Contains); // extends only in ##index
-					Q extended = Common.universe().edgesTaggedWithAny(XCSG.Contains).reverse(q).union(q);
-					Q displayExpr = extend ? extended : q;
-					DisplayUtil.displayGraph(displayExpr.eval(), (h != null ? h : new Highlighter()), title);
+					if (showGraph) {
+						Q extended = Common.universe().edgesTaggedWithAny(XCSG.Contains).reverse(q).union(q);
+						Q displayExpr = extend ? extended : q;
+						DisplayUtil.displayGraph(displayExpr.eval(), (h != null ? h : new Highlighter()), title);
+					}
+				} catch (Exception e){
+					DisplayUtils.showError(e, "Could not display graph.");
 				}
 			}
 		});

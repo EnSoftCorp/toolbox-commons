@@ -20,6 +20,14 @@
 	         class="com.ensoftcorp.open.commons.handlers.ToolboxPreferencesHandler">
 	   </handler>
 	</extension>
+	
+	<extension
+	      point="org.eclipse.ui.handlers">
+	   <handler
+	         commandId="com.ensoftcorp.open.commons.menus.showGraphElementCommand"
+	         class="com.ensoftcorp.open.commons.handlers.ShowGraphElementHandler">
+	   </handler>
+	</extension>
 
 	<!-- defines an Atlas Toolbox menu category -->
 	<extension
@@ -39,7 +47,6 @@
 	</extension>
 	
 	<!-- extend the Atlas Toolbox menu with a new submenu for commons analysis -->
-	<!-- disabling toolbox commons specific menu
 	<extension
 	      point="org.eclipse.ui.menus">
 	   <menuContribution
@@ -48,14 +55,13 @@
 	            label="Toolbox Commons"
 	            id="com.ensoftcorp.open.immutability.menus.commonsMenu">
 	         <command
-	               commandId="com.ensoftcorp.open.commons.menus.editCommonsPreferencesCommand"
-	               label="Edit Preferences"
-	               id="com.ensoftcorp.open.commons.menus.editCommonsPreferencesCommandMenuItem">
+	               commandId="com.ensoftcorp.open.commons.menus.showGraphElementCommand"
+	               label="Show GraphElement for Address"
+	               id="com.ensoftcorp.open.commons.menus.showGraphElementCommandCommandMenuItem">
 	         </command>
 	      </menu>
 	   </menuContribution>
 	</extension>
-	-->
 	
 	<!-- defines an Atlas Toolbox view category -->
 	<extension
