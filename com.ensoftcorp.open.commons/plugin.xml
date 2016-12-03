@@ -12,6 +12,14 @@
       </page>
    </extension>
 
+	<!-- add toolbox commons smart views -->
+    <extension
+         point="com.ensoftcorp.atlas.ui.smartViewScript">
+      <script
+            class="com.ensoftcorp.open.commons.ui.smart.UniversalGraphExplorerSmartView">
+      </script>
+   </extension>
+
    <!-- defines the tooblox commons handler actions -->
    <extension
 	      point="org.eclipse.ui.handlers">
