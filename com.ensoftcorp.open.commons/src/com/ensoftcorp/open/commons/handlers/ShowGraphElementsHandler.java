@@ -23,31 +23,35 @@ public class ShowGraphElementsHandler extends AbstractHandler {
 	 * Opens a prompt to enter a graph element address to show
 	 */
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		String addresses = DisplayUtils.promptString("Search GraphElement", "Enter GraphElement Addresses (comma seperated):", false);
+		String addresses = DisplayUtils.promptString("Search Graph Elements", "Enter graph element addresses (comma seperated):", false);
 		if(addresses != null){
 			// remove all whitespace and convert to lowercase
 			addresses = addresses.replaceAll("\\s","").toLowerCase();
 			if(addresses.equals("")){
-				DisplayUtils.showError("No GraphElement addresses were entered.");
+				DisplayUtils.showError("No graph element addresses were entered.");
 			} else {
+				boolean showGraph = true;
 				AtlasSet<GraphElement> graphElements = new AtlasHashSet<GraphElement>();
 				for(String address : addresses.split(",")){
 					try {
-						int hexAddress = Integer.parseInt(address,16);
+						int hexAddress = Integer.parseInt(address, 16);
 						GraphElement ge = Graph.U.getAt(hexAddress);
 						if(ge != null){
 							graphElements.add(ge);
 						} else {
-							DisplayUtils.showError("GraphElement " + address + " does not exist.");
+							DisplayUtils.showError("Graph element [" + address + "] does not exist.");
+							showGraph = false;
 							break;
 						}
-						
 					} catch (NumberFormatException e){
-						DisplayUtils.showError("GraphElement address (" + address + ") is not a hexadecimal address.");
+						DisplayUtils.showError("Graph element address [" + address + "] must be hexadecimal.");
+						showGraph = false;
 						break;
 					}
 				}
-				DisplayUtils.show(Common.toQ(graphElements), "GraphElements " + addresses);
+				if(showGraph){
+					DisplayUtils.show(Common.toQ(graphElements), "Graph Elements [" + addresses + "]");
+				}
 			}
 		}
 		// returns the result of the execution (reserved for future use, must be null)

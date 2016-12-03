@@ -64,7 +64,7 @@
 	            id="com.ensoftcorp.open.immutability.menus.commonsMenu">
 	         <command
 	               commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
-	               label="Show GraphElements by Address"
+	               label="Show Graph Elements by Address"
 	               id="com.ensoftcorp.open.commons.menus.showGraphElementsCommandCommandMenuItem">
 	         </command>
 	      </menu>
