@@ -24,8 +24,8 @@
 	<extension
 	      point="org.eclipse.ui.handlers">
 	   <handler
-	         commandId="com.ensoftcorp.open.commons.menus.showGraphElementCommand"
-	         class="com.ensoftcorp.open.commons.handlers.ShowGraphElementHandler">
+	         commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
+	         class="com.ensoftcorp.open.commons.handlers.ShowGraphElementsHandler">
 	   </handler>
 	</extension>
 
@@ -55,9 +55,9 @@
 	            label="Toolbox Commons"
 	            id="com.ensoftcorp.open.immutability.menus.commonsMenu">
 	         <command
-	               commandId="com.ensoftcorp.open.commons.menus.showGraphElementCommand"
-	               label="Show GraphElement for Address"
-	               id="com.ensoftcorp.open.commons.menus.showGraphElementCommandCommandMenuItem">
+	               commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
+	               label="Show GraphElements by Address"
+	               id="com.ensoftcorp.open.commons.menus.showGraphElementsCommandCommandMenuItem">
 	         </command>
 	      </menu>
 	   </menuContribution>
