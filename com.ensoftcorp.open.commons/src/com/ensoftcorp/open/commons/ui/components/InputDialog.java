@@ -45,9 +45,9 @@ public class InputDialog extends Dialog {
 		
 		// center dialog
 		Rectangle parentSize = getParent().getBounds();
-		Rectangle mySize = shell.getBounds();
-		int locationX = (parentSize.width - mySize.width)/2+parentSize.x;
-		int locationY = (parentSize.height - mySize.height)/2+parentSize.y;
+		Rectangle shellSize = shell.getBounds();
+		int locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
+		int locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
 		shell.setLocation(new Point(locationX, locationY));
 		
 		// prompt user
