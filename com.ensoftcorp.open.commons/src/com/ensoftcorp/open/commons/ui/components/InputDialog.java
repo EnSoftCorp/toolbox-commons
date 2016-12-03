@@ -18,8 +18,27 @@ public class InputDialog extends Dialog {
 	private String message;
 	private String input;
 
+	/**
+	 * A blocking dialog prompt
+	 * @param parent
+	 * @param title
+	 * @param message
+	 */
 	public InputDialog(Shell parent, String title, String message) {
 		super(parent,  SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.ICON_QUESTION | SWT.RESIZE | SWT.NO_SCROLL);
+		this.message = message;
+		this.setText(title);
+	}
+	
+	/**
+	 * A dialog prompt
+	 * @param parent
+	 * @param blocking Set to false if the dialog block should non-blocking
+	 * @param title
+	 * @param message
+	 */
+	public InputDialog(Shell parent, boolean blocking, String title, String message) {
+		super(parent,  SWT.DIALOG_TRIM | (blocking ? SWT.APPLICATION_MODAL : SWT.MODELESS) | SWT.ICON_QUESTION | SWT.RESIZE | SWT.NO_SCROLL);
 		this.message = message;
 		this.setText(title);
 	}

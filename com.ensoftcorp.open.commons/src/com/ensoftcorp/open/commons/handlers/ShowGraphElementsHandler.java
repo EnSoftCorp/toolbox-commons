@@ -23,28 +23,32 @@ public class ShowGraphElementsHandler extends AbstractHandler {
 	 * Opens a prompt to enter a graph element address to show
 	 */
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		String addresses = DisplayUtils.promptString("Search GraphElement", "Enter GraphElement Addresses (comma seperated):");
+		String addresses = DisplayUtils.promptString("Search GraphElement", "Enter GraphElement Addresses (comma seperated):", false);
 		if(addresses != null){
 			// remove all whitespace and convert to lowercase
 			addresses = addresses.replaceAll("\\s","").toLowerCase();
-			AtlasSet<GraphElement> graphElements = new AtlasHashSet<GraphElement>();
-			for(String address : addresses.split(",")){
-				try {
-					int hexAddress = Integer.parseInt(address,16);
-					GraphElement ge = Graph.U.getAt(hexAddress);
-					if(ge != null){
-						graphElements.add(ge);
-					} else {
-						DisplayUtils.showMessage("GraphElement " + address + " does not exist.");
+			if(addresses.equals("")){
+				DisplayUtils.showError("No GraphElement addresses were entered.");
+			} else {
+				AtlasSet<GraphElement> graphElements = new AtlasHashSet<GraphElement>();
+				for(String address : addresses.split(",")){
+					try {
+						int hexAddress = Integer.parseInt(address,16);
+						GraphElement ge = Graph.U.getAt(hexAddress);
+						if(ge != null){
+							graphElements.add(ge);
+						} else {
+							DisplayUtils.showError("GraphElement " + address + " does not exist.");
+							break;
+						}
+						
+					} catch (NumberFormatException e){
+						DisplayUtils.showError("GraphElement address (" + address + ") is not a hexadecimal address.");
 						break;
 					}
-					
-				} catch (NumberFormatException e){
-					DisplayUtils.showError("GraphElement address (" + address + ") is not a hexadecimal address.");
-					break;
 				}
+				DisplayUtils.show(Common.toQ(graphElements), "GraphElements " + addresses);
 			}
-			DisplayUtils.show(Common.toQ(graphElements), "GraphElements " + addresses);
 		}
 		// returns the result of the execution (reserved for future use, must be null)
 		return null;

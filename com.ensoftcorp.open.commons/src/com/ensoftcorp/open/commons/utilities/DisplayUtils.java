@@ -42,7 +42,18 @@ public class DisplayUtils {
 	 * @return
 	 */
 	public static String promptString(String title, String message) {
-	    InputDialog prompt = new InputDialog(Display.getDefault().getActiveShell(), title, message);
+		return promptString(title, message, true);
+	}
+	
+	/**
+	 * Returns a string entered by the user, returns null if the user canceled the prompt
+	 * @param title
+	 * @param message
+	 * @param blocking set to false if the dialog should be non-blocking
+	 * @return
+	 */
+	public static String promptString(String title, String message, boolean blocking) {
+	    InputDialog prompt = new InputDialog(Display.getDefault().getActiveShell(), blocking, title, message);
 	    return prompt.open();
 	}
 
