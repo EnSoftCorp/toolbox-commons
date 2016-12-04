@@ -36,6 +36,14 @@
 	         class="com.ensoftcorp.open.commons.handlers.ShowGraphElementsHandler">
 	   </handler>
 	</extension>
+	
+	<extension
+	      point="org.eclipse.ui.handlers">
+	   <handler
+	         commandId="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommand"
+	         class="com.ensoftcorp.open.commons.handlers.ShowSubsystemTagHierarchyHandler">
+	   </handler>
+	</extension>
 
 	<!-- defines an Atlas Toolbox menu category -->
 	<extension
@@ -65,7 +73,12 @@
 	         <command
 	               commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
 	               label="Show Graph Elements by Address"
-	               id="com.ensoftcorp.open.commons.menus.showGraphElementsCommandCommandMenuItem">
+	               id="com.ensoftcorp.open.commons.menus.showGraphElementsCommandMenuItem">
+	         </command>
+	         <command
+	               commandId="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommand"
+	               label="Show Subsystem Tag Hiearchy"
+	               id="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommandMenuItem">
 	         </command>
 	      </menu>
 	   </menuContribution>

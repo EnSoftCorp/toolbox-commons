@@ -4,7 +4,6 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -12,7 +11,6 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
 
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.highlight.Highlighter;
@@ -53,7 +51,7 @@ public class DisplayUtils {
 	 * @return
 	 */
 	public static String promptString(String title, String message, boolean blocking) {
-	    InputDialog prompt = new InputDialog(Display.getDefault().getActiveShell(), blocking, title, message);
+	    InputDialog prompt = new InputDialog(Display.getCurrent().getActiveShell(), blocking, title, message);
 	    return prompt.open();
 	}
 
@@ -63,11 +61,11 @@ public class DisplayUtils {
 	 * @param message the message to display
 	 */
 	public static void showError(final String message) {
-		final Display display = Display.getDefault();
+		final Display display = Display.getCurrent();
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
-				MessageBox mb = new MessageBox(Display.getDefault().getActiveShell(), SWT.ICON_ERROR | SWT.OK);
+				MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_ERROR | SWT.OK);
 				mb.setText("Alert");
 				mb.setMessage(message);
 				mb.open();
@@ -83,11 +81,11 @@ public class DisplayUtils {
 	 * @param message the message to display
 	 */
 	public static void showError(final Throwable t, final String message) {
-		final Display display = Display.getDefault();
+		final Display display = Display.getCurrent();
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
-				MessageBox mb = new MessageBox(Display.getDefault().getActiveShell(), SWT.ICON_ERROR | SWT.NO | SWT.YES);
+				MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_ERROR | SWT.NO | SWT.YES);
 				mb.setText("Alert");
 				StringWriter errors = new StringWriter();
 				t.printStackTrace(new PrintWriter(errors));
@@ -104,35 +102,15 @@ public class DisplayUtils {
 	}
 	
 	/**
-	 * Helper method for logging stack traces to a file
-	 * @param t
-	 * @param log
-	 */
-	public static void logErrorToFile(Throwable t, File log, boolean append){
-		try {
-			FileWriter fw = new FileWriter(log, append);
-			StringWriter errors = new StringWriter();
-			t.printStackTrace(new PrintWriter(errors));
-			String stackTrace = errors.toString();
-			fw.write("" + System.currentTimeMillis() + "\n");
-			fw.write(stackTrace + "\n\n");
-			fw.close();
-		} catch (Exception e){
-			// what do you do when the back up to the back up fails?
-			e.printStackTrace();
-		}
-	}
-	
-	/**
 	 * Opens a display prompt showing a message
 	 * @param message
 	 */
 	public static void showMessage(final String message){
-		final Display display = Display.getDefault();
+		final Display display = Display.getCurrent();
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
-				MessageBox mb = new MessageBox(Display.getDefault().getActiveShell(), SWT.ICON_INFORMATION | SWT.OK);
+				MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_INFORMATION | SWT.OK);
 				mb.setText("Message");
 				mb.setMessage(message);
 				mb.open();
@@ -180,14 +158,14 @@ public class DisplayUtils {
 	 * @param title A title to indicate the graph content
 	 */
 	public static void show(final Q q, final Highlighter h, final boolean extend, final String title) {
-		final Display display = Display.getDefault();
+		final Display display = Display.getCurrent();
 		display.syncExec(new Runnable() {
 			public void run() {
 				try {
 					long graphSize = CommonQueries.nodeSize(q);
 					boolean showGraph = false;
 					if (graphSize > LARGE_GRAPH_WARNING) {
-						MessageBox mb = new MessageBox(new Shell(display), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+						MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 						mb.setText("Warning");
 						mb.setMessage("The graph you are about to display has " + graphSize + " nodes.  " 
 								+ "Displaying large graphs may cause Eclipse to become unresponsive." 
