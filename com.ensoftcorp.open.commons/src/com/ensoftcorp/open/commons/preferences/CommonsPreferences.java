@@ -19,7 +19,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		// let each registered subystem tagging instruction be enabled by default
 		Subsystems.loadSubsystemContributions();
 		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
-			preferences.setDefault(subsystem.getTag(), true);
+			preferences.setDefault(subsystem.getTag(), false);
 		}
 	}
 	
