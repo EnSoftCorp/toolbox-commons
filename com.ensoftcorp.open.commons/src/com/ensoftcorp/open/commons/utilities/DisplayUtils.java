@@ -51,7 +51,13 @@ public class DisplayUtils {
 	 * @return
 	 */
 	public static String promptString(String title, String message, boolean blocking) {
-	    InputDialog prompt = new InputDialog(Display.getCurrent().getActiveShell(), blocking, title, message);
+		final Display display;
+		if(Display.getCurrent() != null){
+			display = Display.getCurrent();
+		} else {
+			display = Display.getDefault();
+		}
+	    InputDialog prompt = new InputDialog(display.getActiveShell(), blocking, title, message);
 	    return prompt.open();
 	}
 
@@ -61,7 +67,12 @@ public class DisplayUtils {
 	 * @param message the message to display
 	 */
 	public static void showError(final String message) {
-		final Display display = Display.getCurrent();
+		final Display display;
+		if(Display.getCurrent() != null){
+			display = Display.getCurrent();
+		} else {
+			display = Display.getDefault();
+		}
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -81,7 +92,12 @@ public class DisplayUtils {
 	 * @param message the message to display
 	 */
 	public static void showError(final Throwable t, final String message) {
-		final Display display = Display.getCurrent();
+		final Display display;
+		if(Display.getCurrent() != null){
+			display = Display.getCurrent();
+		} else {
+			display = Display.getDefault();
+		}
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -106,7 +122,12 @@ public class DisplayUtils {
 	 * @param message
 	 */
 	public static void showMessage(final String message){
-		final Display display = Display.getCurrent();
+		final Display display;
+		if(Display.getCurrent() != null){
+			display = Display.getCurrent();
+		} else {
+			display = Display.getDefault();
+		}
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -158,7 +179,12 @@ public class DisplayUtils {
 	 * @param title A title to indicate the graph content
 	 */
 	public static void show(final Q q, final Highlighter h, final boolean extend, final String title) {
-		final Display display = Display.getCurrent();
+		final Display display;
+		if(Display.getCurrent() != null){
+			display = Display.getCurrent();
+		} else {
+			display = Display.getDefault();
+		}
 		display.syncExec(new Runnable() {
 			public void run() {
 				try {
