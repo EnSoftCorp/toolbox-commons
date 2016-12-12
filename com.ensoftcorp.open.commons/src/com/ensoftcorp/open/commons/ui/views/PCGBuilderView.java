@@ -34,6 +34,7 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -319,6 +320,12 @@ public class PCGBuilderView extends ViewPart {
 					DisplayUtils.showError("Nothing is selected.");
 				} else {
 					AtlasSet<Node> functions = getFilteredSelections(XCSG.Function);
+					
+					// expand search to directly selected callsites
+					// note Atlas actually gives us the resolved function targets through the selection
+					// so we will just use it to get the containing methods
+					AtlasSet<Node> callsites = getFilteredSelections(XCSG.CallSite);
+
 					if(functions.isEmpty()){
 						DisplayUtils.showError("Selections must be functions or function callsites.");
 					} else {
@@ -329,6 +336,14 @@ public class PCGBuilderView extends ViewPart {
 						} else {
 							if(pcg.addDifferentiatingCallsitesSetA(functions)){
 								refreshDifferentiatingCallsitesSetAElements(functionSetAEventsScrolledComposite, pcg);
+							}
+							// refresh and call graph context methods that may have changed
+							AtlasSet<Node> containingFunctions = new AtlasHashSet<Node>();
+							for(Node callsite : callsites){
+								containingFunctions.add(StandardQueries.getContainingFunction(callsite));
+							}
+							if(pcg.addCallGraphFunctions(containingFunctions)){
+								refreshCallGraphElements(callGraphContextGroup, callGraphContextScrolledComposite, controlFlowEventsScrolledComposite, pcg);
 							}
 						}
 					}
@@ -343,6 +358,12 @@ public class PCGBuilderView extends ViewPart {
 					DisplayUtils.showError("Nothing is selected.");
 				} else {
 					AtlasSet<Node> functions = getFilteredSelections(XCSG.Function);
+					
+					// expand search to directly selected callsites
+					// note Atlas actually gives us the resolved function targets through the selection
+					// so we will just use it to get the containing methods
+					AtlasSet<Node> callsites = getFilteredSelections(XCSG.CallSite);
+					
 					if(functions.isEmpty()){
 						DisplayUtils.showError("Selections must be functions.");
 					} else {
@@ -353,6 +374,14 @@ public class PCGBuilderView extends ViewPart {
 						} else {
 							if(pcg.addDifferentiatingCallsitesSetB(functions)){
 								refreshDifferentiatingCallsitesSetBElements(functionSetBEventsScrolledComposite, pcg);
+							}
+							// refresh and call graph context methods that may have changed
+							AtlasSet<Node> containingFunctions = new AtlasHashSet<Node>();
+							for(Node callsite : callsites){
+								containingFunctions.add(StandardQueries.getContainingFunction(callsite));
+							}
+							if(pcg.addCallGraphFunctions(containingFunctions)){
+								refreshCallGraphElements(callGraphContextGroup, callGraphContextScrolledComposite, controlFlowEventsScrolledComposite, pcg);
 							}
 						}
 					}
@@ -395,7 +424,7 @@ public class PCGBuilderView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				boolean noControlFlowEvents = pcg.getControlFlowEvents().isEmpty();
-				boolean noDifferentiatingCallsiteEvents = pcg.getDifferentiatingCallsitesSetA().isEmpty() || pcg.getDifferentiatingCallsitesSetB().isEmpty();
+				boolean noDifferentiatingCallsiteEvents = pcg.getDifferentiatingCallsitesSetA().isEmpty() && pcg.getDifferentiatingCallsitesSetB().isEmpty();
 				if(noControlFlowEvents && noDifferentiatingCallsiteEvents){
 					DisplayUtils.showError("No control flow events or differentiating callsite events are defined.");
 				} else if(pcg.getCallGraphFunctions().isEmpty()){
@@ -408,6 +437,19 @@ public class PCGBuilderView extends ViewPart {
 		
 		// set the tab selection to this newly created tab
 		pcgFolder.setSelection(pcgFolder.getItemCount()-1);
+	}
+	
+	/**
+	 * Given a callsite this method returns the invoked method signature
+	 * @param callsite
+	 * @return
+	 */
+	public static Node getInvokedMethodSignature(GraphElement callsite) {
+		// XCSG.InvokedSignature connects a dynamic dispatch to its signature method
+		// XCSG.InvokedFunction connects a static dispatch to it actual target method
+		Q invokedEdges = Common.universe().edgesTaggedWithAny(XCSG.InvokedSignature, XCSG.InvokedFunction);
+		Node method = invokedEdges.successors(Common.toQ(callsite)).eval().nodes().getFirst();
+		return method;
 	}
 	
 	private void refreshCallGraphElements(final Group callGraphContextGroup, final ScrolledComposite callGraphContextScrolledComposite, final ScrolledComposite controlFlowEventsScrolledComposite, final PCGComponents pcg) {
