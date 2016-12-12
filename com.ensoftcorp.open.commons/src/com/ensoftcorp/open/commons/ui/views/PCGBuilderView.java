@@ -1,5 +1,10 @@
 package com.ensoftcorp.open.commons.ui.views;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.debug.internal.ui.DebugPluginImages;
 import org.eclipse.debug.internal.ui.IInternalDebugUIConstants;
 import org.eclipse.jface.action.Action;
@@ -28,16 +33,22 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
 import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.analysis.StandardQueries;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
+import org.eclipse.wb.swt.SWTResourceManager;
 
+@SuppressWarnings("restriction")
 public class PCGBuilderView extends ViewPart {
 
 	/**
@@ -49,7 +60,10 @@ public class PCGBuilderView extends ViewPart {
 	private AtlasSet<Node> selection =  new AtlasHashSet<Node>();
 	
 	private AtlasSet<Node> callGraphFunctions = new AtlasHashSet<Node>();
+
+	private static Map<String,PCGComponents> pcgs = new HashMap<String,PCGComponents>();
 	
+	private static boolean initialized = false;
 	private static int pcgCounter = 1;
 	
 	/**
@@ -82,12 +96,32 @@ public class PCGBuilderView extends ViewPart {
 		});
 		
 		pcgFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		addPCG(pcgFolder);
+		
+		// create a new PCG if this is the first launch
+		if(!initialized){
+			int PCG_NUMBER = (pcgCounter++);
+			String PCG_NAME = "PCG" + PCG_NUMBER;
+			PCGComponents pcg = new PCGComponents(PCG_NAME);
+			pcgs.put(PCG_NAME, pcg);
+			addPCG(pcgFolder, pcg);
+			initialized = true;
+		} else {
+			// otherwise load what is already in memory
+			ArrayList<PCGComponents> sortedPCGs = new ArrayList<PCGComponents>(pcgs.values());
+			Collections.sort(sortedPCGs); // sorted by creation time
+			for(PCGComponents pcg : sortedPCGs){
+				addPCG(pcgFolder, pcg);
+			}
+		}
 		
 		// add an add PCG tab button to the action bar
 		final Action addPCGAction = new Action() {
 			public void run() {
-				addPCG(pcgFolder);
+				int PCG_NUMBER = (pcgCounter++);
+				String PCG_NAME = "PCG" + PCG_NUMBER;
+				PCGComponents pcg = new PCGComponents(PCG_NAME);
+				pcgs.put(PCG_NAME, pcg);
+				addPCG(pcgFolder, pcg);
 			}
 		};
 		addPCGAction.setText("New PCG");
@@ -102,7 +136,6 @@ public class PCGBuilderView extends ViewPart {
 			@Override
 			public void selectionChanged(IAtlasSelectionEvent atlasSelection) {
 				try {
-					// grab the first package node out of the set if there are multiple selections
 					selection = atlasSelection.getSelection().eval().nodes();
 				} catch (Exception e){
 					selection = new AtlasHashSet<Node>();
@@ -114,11 +147,9 @@ public class PCGBuilderView extends ViewPart {
 		SelectionUtil.addSelectionListener(selectionListener);
 	}
 
-	private void addPCG(CTabFolder pcgFolder) {
-		final int PCG_NUMBER = (pcgCounter++);
-		final String PCG_NAME = "PCG" + PCG_NUMBER;
+	private void addPCG(final CTabFolder pcgFolder, final PCGComponents pcg) {
 		final CTabItem pcgTab = new CTabItem(pcgFolder, SWT.NONE);
-		pcgTab.setText(PCG_NAME);
+		pcgTab.setText(pcg.getName());
 		
 		Composite pcgComposite = new Composite(pcgFolder, SWT.NONE);
 		pcgTab.setControl(pcgComposite);
@@ -135,13 +166,15 @@ public class PCGBuilderView extends ViewPart {
 		Text pcgLabelText = new Text(pcgControlPanelComposite, SWT.BORDER);
 		pcgLabelText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		pcgLabelText.setSize(473, 19);
-		pcgLabelText.setText(PCG_NAME);
+		pcgLabelText.setText(pcg.getName());
 		
 		pcgLabelText.addTraverseListener(new TraverseListener(){
 			@Override
 			public void keyTraversed(TraverseEvent event) {
 				if(event.detail == SWT.TRAVERSE_RETURN){
-					pcgTab.setText(pcgLabelText.getText());
+					String newName = pcgLabelText.getText();
+					pcgTab.setText(newName);
+					pcg.setName(newName);
 				}
 			}
 		});
@@ -175,6 +208,7 @@ public class PCGBuilderView extends ViewPart {
 		addCallGraphElementButton.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/add_button.png"));
 		
 		final ScrolledComposite callGraphContextScrolledComposite = new ScrolledComposite(callGraphContextGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		callGraphContextScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		callGraphContextScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		callGraphContextScrolledComposite.setExpandHorizontal(true);
 		callGraphContextScrolledComposite.setExpandVertical(true);
@@ -208,6 +242,7 @@ public class PCGBuilderView extends ViewPart {
 		addDifferentiatingFunctionSetAElementButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		
 		ScrolledComposite functionSetAEventsScrolledComposite = new ScrolledComposite(functionSetAGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		functionSetAEventsScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		functionSetAEventsScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		functionSetAEventsScrolledComposite.setExpandHorizontal(true);
 		functionSetAEventsScrolledComposite.setExpandVertical(true);
@@ -230,6 +265,7 @@ public class PCGBuilderView extends ViewPart {
 		addDifferentiatingFunctionSetBElementButton.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/add_button.png"));
 		
 		ScrolledComposite functionSetBEventsScrolledComposite = new ScrolledComposite(functionSetBGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		functionSetBEventsScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		functionSetBEventsScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		functionSetBEventsScrolledComposite.setExpandHorizontal(true);
 		functionSetBEventsScrolledComposite.setExpandVertical(true);
@@ -251,6 +287,7 @@ public class PCGBuilderView extends ViewPart {
 		addControlFlowEventsElementButton.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/add_button.png"));
 		
 		ScrolledComposite controlFlowEventsScrolledComposite = new ScrolledComposite(controlFlowEventsGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		controlFlowEventsScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		controlFlowEventsScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		controlFlowEventsScrolledComposite.setExpandHorizontal(true);
 		controlFlowEventsScrolledComposite.setExpandVertical(true);
@@ -262,7 +299,11 @@ public class PCGBuilderView extends ViewPart {
 			public void mouseUp(MouseEvent e) {
 				AtlasSet<Node> functions = getFilteredSelections(XCSG.Function);
 				if(functions.isEmpty()){
-					DisplayUtils.showError("Selections must be functions.");
+					if(selection.isEmpty()){
+						DisplayUtils.showError("Nothing is selected.");
+					} else {
+						DisplayUtils.showError("Selections must be functions.");
+					}
 				} else {
 					callGraphFunctions.addAll(functions); // TODO: if addAll behaved properly we could use an if here...
 					refreshCallGraphElements(callGraphContextScrolledComposite);
@@ -332,5 +373,142 @@ public class PCGBuilderView extends ViewPart {
 	@Override
 	public void setFocus() {
 		// intentionally left blank
+	}
+	
+	private class PCGComponents implements Comparable<PCGComponents> {
+		private String name;
+		private long createdAt;
+		private AtlasSet<Node> callGraphNodes;
+		private AtlasSet<Edge> callGraphEdges;
+		private AtlasSet<Node> differentiatingCallsitesSetA;
+		private AtlasSet<Node> differentiatingCallsitesSetB;
+		private AtlasSet<Node> controlFlowEvents;
+
+		public PCGComponents(String name) {
+			this.name = name;
+			this.createdAt = System.currentTimeMillis();
+			this.callGraphNodes = new AtlasHashSet<Node>();
+			this.callGraphEdges = new AtlasHashSet<Edge>();
+			this.differentiatingCallsitesSetA = new AtlasHashSet<Node>();
+			this.differentiatingCallsitesSetB = new AtlasHashSet<Node>();
+			this.controlFlowEvents = new AtlasHashSet<Node>();
+		}
+		
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public void setCallGraph(Q callGraph){
+			Graph cg = callGraph.eval();
+			this.callGraphNodes = cg.nodes();
+			this.callGraphEdges = cg.edges();
+		}
+		
+		public AtlasSet<Node> getCallGraphNodes() {
+			return callGraphNodes;
+		}
+
+		/**
+		 * Sets nodes and induces call edges
+		 * @param callGraphEdges
+		 */
+		public void setCallGraphNodes(Q callGraphNodes) {
+			setCallGraphNodes(callGraphNodes.eval().nodes());
+		}
+		
+		/**
+		 * Sets nodes and induces call edges
+		 * @param callGraphEdges
+		 */
+		public void setCallGraphNodes(AtlasSet<Node> callGraphNodes) {
+			this.callGraphNodes = callGraphNodes;
+			this.callGraphEdges = Common.toQ(callGraphNodes).induce(Common.universe().edgesTaggedWithAny(XCSG.Call)).eval().edges();
+		}
+
+		public AtlasSet<Edge> getCallGraphEdges() {
+			return callGraphEdges;
+		}
+
+		/**
+		 * Sets edges and nodes contained in the edges
+		 * @param callGraphEdges
+		 */
+		public void setCallGraphEdges(Q callGraphEdges) {
+			setCallGraphEdges(callGraphEdges.eval().edges());
+		}
+		
+		/**
+		 * Sets edges and nodes contained in the edges
+		 * @param callGraphEdges
+		 */
+		public void setCallGraphEdges(AtlasSet<Edge> callGraphEdges) {
+			this.callGraphEdges = callGraphEdges;
+			this.callGraphNodes = Common.toGraph(callGraphEdges).nodes();
+		}
+
+		public AtlasSet<Node> getDifferentiatingCallsitesSetA() {
+			return differentiatingCallsitesSetA;
+		}
+
+		public void setDifferentiatingCallsitesSetA(AtlasSet<Node> differentiatingCallsitesSetA) {
+			this.differentiatingCallsitesSetA = differentiatingCallsitesSetA;
+		}
+
+		public AtlasSet<Node> getDifferentiatingCallsitesSetB() {
+			return differentiatingCallsitesSetB;
+		}
+
+		public void setDifferentiatingCallsitesSetB(AtlasSet<Node> differentiatingCallsitesSetB) {
+			this.differentiatingCallsitesSetB = differentiatingCallsitesSetB;
+		}
+
+		public AtlasSet<Node> getControlFlowEvents() {
+			return controlFlowEvents;
+		}
+
+		public void setControlFlowEvents(AtlasSet<Node> controlFlowEvents) {
+			this.controlFlowEvents = controlFlowEvents;
+		}
+
+		private PCGBuilderView getOuterType() {
+			return PCGBuilderView.this;
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			PCGComponents other = (PCGComponents) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (name == null) {
+				if (other.name != null)
+					return false;
+			} else if (!name.equals(other.name))
+				return false;
+			return true;
+		}
+
+		@Override
+		public int compareTo(PCGComponents other) {
+			return Long.compare(this.createdAt, other.createdAt);
+		}
 	}
 }
