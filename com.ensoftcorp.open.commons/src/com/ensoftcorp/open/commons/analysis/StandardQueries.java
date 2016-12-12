@@ -442,35 +442,13 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static String getQualifiedTypeName(Node type) {
-		return getQualifiedTypeName(type, XCSG.Package);
-	}
-	
-	/**
-	 * Helper method to get the stringified qualified name of the class
-	 * Stop after tags specify parent containers to stop qualifying at (example packages or jars)
-	 * @param method
-	 * @return
-	 */
-	public static String getQualifiedTypeName(Node type, String...stopAfterTags) {
 		if(type == null){
 			throw new IllegalArgumentException("Type is null!");
 		}
 		if(!type.taggedWith(XCSG.Type)){
 			throw new IllegalArgumentException("Type parameter is not a type!");
 		}
-		String result = type.attr().get(XCSG.name).toString();
-		Node parent = getDeclarativeParent(type);
-		boolean qualified = false;
-		while (parent != null && parent.taggedWith(XCSG.Namespace) && !qualified) {
-			for(String stopAfterTag : stopAfterTags){
-				if(parent.taggedWith(stopAfterTag)){
-					qualified = true;
-				}
-			}
-			result = parent.attr().get(XCSG.name) + "." + result;
-			parent = getDeclarativeParent(parent);
-		}
-		return result;
+		return getQualifiedName(type, XCSG.Package);
 	}
 	
 	/**
@@ -479,26 +457,38 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static String getQualifiedFunctionName(Node function) {
-		return getQualifiedFunctionName(function, XCSG.Package);
-	}
-	
-	/**
-	 * Helper method to get the stringified qualified name of the method
-	 * Stop after tags specify parent containers to stop qualifying at (example packages or jars)
-	 * @param method
-	 * @return
-	 */
-	public static String getQualifiedFunctionName(Node function, String... stopAfterTags) {
 		if(function == null){
 			throw new IllegalArgumentException("Function is null!");
 		}
 		if(!function.taggedWith(XCSG.Function)){
 			throw new IllegalArgumentException("Function parameter is not a function!");
 		}
-		String result = function.attr().get(XCSG.name).toString();
-		Node parent = getDeclarativeParent(function);
+		return getQualifiedName(function, XCSG.Package);
+	}
+	
+	/**
+	 * Helper method to get the stringified qualified name of the method
+	 * @param method
+	 * @return
+	 */
+	public static String getQualifiedName(Node node) {
+		return getQualifiedName(node, XCSG.Package);
+	}
+	
+	/**
+	 * Helper method to get the stringified qualified name of the class
+	 * Stop after tags specify parent containers to stop qualifying at (example packages or jars)
+	 * @param method
+	 * @return
+	 */
+	public static String getQualifiedName(Node node, String...stopAfterTags) {
+		if(node == null){
+			throw new IllegalArgumentException("Node is null!");
+		}
+		String result = node.attr().get(XCSG.name).toString();
+		Node parent = getDeclarativeParent(node);
 		boolean qualified = false;
-		while (parent != null && parent.taggedWith(XCSG.Namespace) && !qualified) {
+		while (parent != null && !qualified) {
 			for(String stopAfterTag : stopAfterTags){
 				if(parent.taggedWith(stopAfterTag)){
 					qualified = true;
@@ -509,7 +499,7 @@ public final class StandardQueries {
 		}
 		return result;
 	}
-
+	
 	/**
 	 * Returns the single delcarative parent
 	 * Returns null if there is no parent
