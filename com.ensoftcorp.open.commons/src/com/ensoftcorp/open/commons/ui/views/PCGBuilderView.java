@@ -5,24 +5,28 @@ import org.eclipse.debug.internal.ui.IInternalDebugUIConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Adapter;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.wb.swt.ResourceManager;
 
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
@@ -33,9 +37,6 @@ import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.analysis.StandardQueries;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
-import org.eclipse.wb.swt.ResourceManager;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 
 public class PCGBuilderView extends ViewPart {
 
@@ -65,6 +66,21 @@ public class PCGBuilderView extends ViewPart {
 		final CTabFolder pcgFolder = new CTabFolder(parent, SWT.CLOSE);
 		pcgFolder.setBorderVisible(true);
 		pcgFolder.setSimple(false); // adds the Eclise style "swoosh"
+		
+		// add a prompt to ask if we should really close the builder tab
+		pcgFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
+			public void close(CTabFolderEvent event) {
+				MessageBox messageBox = new MessageBox(Display.getCurrent().getActiveShell(),
+						SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+				messageBox.setMessage("Close PCG builder instance?");
+				messageBox.setText("Exiting Application");
+				int response = messageBox.open();
+				if (response != SWT.YES) {
+					event.doit = false;
+				}
+			}
+		});
+		
 		pcgFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		addPCG(pcgFolder);
 		
