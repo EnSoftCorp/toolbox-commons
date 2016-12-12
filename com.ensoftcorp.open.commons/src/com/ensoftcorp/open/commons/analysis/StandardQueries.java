@@ -442,13 +442,34 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static String getQualifiedTypeName(Node type) {
-		String result = type.attr().get(XCSG.name).toString();
-		Q parent = Common.toQ(Common.toGraph(type)).parent();
-		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Namespace))) {
-			result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
-			parent = parent.parent();
+		return getQualifiedTypeName(type, XCSG.Package);
+	}
+	
+	/**
+	 * Helper method to get the stringified qualified name of the class
+	 * Stop after tags specify parent containers to stop qualifying at (example packages or jars)
+	 * @param method
+	 * @return
+	 */
+	public static String getQualifiedTypeName(Node type, String...stopAfterTags) {
+		if(type == null){
+			throw new IllegalArgumentException("Type is null!");
 		}
-		result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
+		if(!type.taggedWith(XCSG.Type)){
+			throw new IllegalArgumentException("Type parameter is not a type!");
+		}
+		String result = type.attr().get(XCSG.name).toString();
+		Node parent = getDeclarativeParent(type);
+		boolean qualified = false;
+		while (parent != null && parent.taggedWith(XCSG.Namespace) && !qualified) {
+			for(String stopAfterTag : stopAfterTags){
+				if(parent.taggedWith(stopAfterTag)){
+					qualified = true;
+				}
+			}
+			result = parent.attr().get(XCSG.name) + "." + result;
+			parent = getDeclarativeParent(parent);
+		}
 		return result;
 	}
 	
@@ -458,14 +479,50 @@ public final class StandardQueries {
 	 * @return
 	 */
 	public static String getQualifiedFunctionName(Node function) {
-		String result = function.attr().get(XCSG.name).toString();
-		Q parent = Common.toQ(Common.toGraph(function)).parent();
-		while (CommonQueries.isEmpty(parent.nodesTaggedWithAny(XCSG.Namespace))) {
-			result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
-			parent = parent.parent();
+		return getQualifiedFunctionName(function, XCSG.Package);
+	}
+	
+	/**
+	 * Helper method to get the stringified qualified name of the method
+	 * Stop after tags specify parent containers to stop qualifying at (example packages or jars)
+	 * @param method
+	 * @return
+	 */
+	public static String getQualifiedFunctionName(Node function, String... stopAfterTags) {
+		if(function == null){
+			throw new IllegalArgumentException("Function is null!");
 		}
-		result = parent.eval().nodes().getFirst().attr().get(XCSG.name) + "." + result;
+		if(!function.taggedWith(XCSG.Function)){
+			throw new IllegalArgumentException("Function parameter is not a function!");
+		}
+		String result = function.attr().get(XCSG.name).toString();
+		Node parent = getDeclarativeParent(function);
+		boolean qualified = false;
+		while (parent != null && parent.taggedWith(XCSG.Namespace) && !qualified) {
+			for(String stopAfterTag : stopAfterTags){
+				if(parent.taggedWith(stopAfterTag)){
+					qualified = true;
+				}
+			}
+			result = parent.attr().get(XCSG.name) + "." + result;
+			parent = getDeclarativeParent(parent);
+		}
 		return result;
+	}
+
+	/**
+	 * Returns the single delcarative parent
+	 * Returns null if there is no parent
+	 * Throws an IllegalArgumentException if there is more than one parent
+	 * @param function
+	 * @return
+	 */
+	private static Node getDeclarativeParent(Node node) {
+		AtlasSet<Node> parentNodes = Common.toQ(node).parent().eval().nodes();
+		if(parentNodes.size() > 1){
+			throw new IllegalArgumentException("Multiple declarative parents!");
+		}
+		return parentNodes.one();
 	}
 	
 }
