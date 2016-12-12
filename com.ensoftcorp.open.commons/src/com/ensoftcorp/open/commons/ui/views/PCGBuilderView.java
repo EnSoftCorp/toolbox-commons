@@ -89,7 +89,10 @@ public class PCGBuilderView extends ViewPart {
 				messageBox.setMessage("Close PCG builder instance?");
 				messageBox.setText("Exiting Application");
 				int response = messageBox.open();
-				if (response != SWT.YES) {
+				if (response == SWT.YES) {
+					String tabName = pcgFolder.getSelection().getText();
+					pcgs.remove(tabName);
+				} else {
 					event.doit = false;
 				}
 			}
