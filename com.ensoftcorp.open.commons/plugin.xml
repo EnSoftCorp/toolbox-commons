@@ -28,7 +28,6 @@
 	         class="com.ensoftcorp.open.commons.handlers.ToolboxPreferencesHandler">
 	   </handler>
 	</extension>
-	
 	<extension
 	      point="org.eclipse.ui.handlers">
 	   <handler
@@ -36,7 +35,6 @@
 	         class="com.ensoftcorp.open.commons.handlers.ShowGraphElementsHandler">
 	   </handler>
 	</extension>
-	
 	<extension
 	      point="org.eclipse.ui.handlers">
 	   <handler
