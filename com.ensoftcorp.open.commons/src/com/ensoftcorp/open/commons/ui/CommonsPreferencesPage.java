@@ -2,6 +2,7 @@ package com.ensoftcorp.open.commons.ui;
 
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -50,14 +51,17 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 	@Override
 	protected void createFieldEditors() {
 		// add option to enable/disable each category of subystem
-		addField(new LabelFieldEditor("Subsystem Tagging", getFieldEditorParent()));
 		Subsystems.loadSubsystemContributions();
-		HashMap<String,String> taggingCategories = new HashMap<String,String>();
-		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
-			taggingCategories.put(subsystem.getCategory(), subsystem.getCategoryDescription());
-		}
-		for(Entry<String,String> taggingCategory : taggingCategories.entrySet()){
-			addField(new BooleanFieldEditor(taggingCategory.getKey(), "&" + ("Tag: " + taggingCategory.getValue()), getFieldEditorParent()));
+		Set<Subsystem> registeredSubsystems = Subsystems.getRegisteredSubsystems();
+		if(!registeredSubsystems.isEmpty()){
+			addField(new LabelFieldEditor("Subsystem Tagging", getFieldEditorParent()));
+			HashMap<String,String> taggingCategories = new HashMap<String,String>();
+			for(Subsystem subsystem : registeredSubsystems){
+				taggingCategories.put(subsystem.getCategory(), subsystem.getCategoryDescription());
+			}
+			for(Entry<String,String> taggingCategory : taggingCategories.entrySet()){
+				addField(new BooleanFieldEditor(taggingCategory.getKey(), "&" + ("Tag: " + taggingCategory.getValue()), getFieldEditorParent()));
+			}
 		}
 	}
 
