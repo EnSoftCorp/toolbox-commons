@@ -282,7 +282,7 @@ public final class StandardQueries {
 	 * @param nodes
 	 * @return
 	 */
-	public static Q getContainingFunction(Q nodes) {
+	public static Q getContainingFunctions(Q nodes) {
 		AtlasSet<Node> nodeSet = nodes.eval().nodes();
 		AtlasSet<Node> containingMethods = new AtlasHashSet<Node>();
 		for (Node currentNode : nodeSet) {
