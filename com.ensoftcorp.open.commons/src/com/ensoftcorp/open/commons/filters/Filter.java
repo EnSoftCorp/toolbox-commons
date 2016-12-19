@@ -1,6 +1,8 @@
 package com.ensoftcorp.open.commons.filters;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
@@ -21,11 +23,33 @@ public abstract class Filter {
 	protected static String[] NOTHING = { SUPPORTS_EVERYTHING };
 	
 	protected Q input;
+
+	protected Map<String,Boolean> booleanParameters = new HashMap<String,Boolean>();
+	protected Map<String,Integer> integerParameters = new HashMap<String,Integer>();
+	protected Map<String,Double> doubleParameters = new HashMap<String,Double>();
 	
 	public Filter(Q input){
 		this.input = input;
 	}
 	
+	public Map<String, Boolean> getBooleanParameters() {
+		Map<String, Boolean> params = new HashMap<String,Boolean>();
+		params.putAll(booleanParameters);
+		return params;
+	}
+
+	public Map<String, Integer> getIntegerParameters() {
+		Map<String, Integer> params = new HashMap<String,Integer>();
+		params.putAll(integerParameters);
+		return params;
+	}
+	
+	public Map<String, Double> getDoubleParameters() {
+		Map<String, Double> params = new HashMap<String,Double>();
+		params.putAll(doubleParameters);
+		return params;
+	}
+
 	/**
 	 * The display name of the filter
 	 * 
