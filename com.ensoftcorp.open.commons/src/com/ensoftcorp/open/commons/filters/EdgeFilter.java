@@ -6,10 +6,6 @@ import com.ensoftcorp.atlas.core.query.Q;
 
 public abstract class EdgeFilter extends Filter {
 
-	protected EdgeFilter(Q input, Map<String,Object> parameters) {
-		super(input, parameters);
-	}
-	
 	protected EdgeFilter(Q input) {
 		super(input);
 	}

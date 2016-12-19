@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
+import com.sun.org.apache.xalan.internal.xsltc.runtime.Parameter;
 
 /**
  * Filters are generalized implementation of the classic Gang of Four
@@ -23,23 +24,63 @@ public abstract class Filter {
 	protected static String[] NOTHING = { SUPPORTS_EVERYTHING };
 	
 	protected Q input;
-	protected Map<String,Object> parameters;
 	
 	protected Filter(Q input){
 		this.input = input;
-		this.parameters = new HashMap<String,Object>();
+		this.parameterNames = new HashMap<String,Class<? extends Object>>();
+		this.parameterValues = new HashMap<String,Object>();
 	}
 	
-	protected Filter(Q input, Map<String,Object> parameters){
-		this.input = input;
-		this.parameters = parameters;
+	private Map<String,Class<? extends Object>> parameterNames;
+	private Map<String,Object> parameterValues;
+	
+	/**
+	 * Adds a possible parameter type to this filter
+	 * @param name
+	 * @param type
+	 */
+	protected void addPossibleParameter(String name, Class<? extends Object> type){
+		parameterNames.put(name, type);
+	}
+	
+	/**
+	 * Returns a copy of all possible parameter types for this filter
+	 * @return
+	 */
+	public Map<String,Class<? extends Object>> getPossibleParameters(){
+		Map<String,Class<? extends Object>> possibleParams = new HashMap<String,Class<? extends Object>>();
+		possibleParams.putAll(parameterNames);
+		return possibleParams;
+	}
+	
+	/**
+	 * Sets a parameter value
+	 * @param name
+	 * @param value
+	 */
+	protected void setParameterValue(String name, Object value) throws FilterConstructionException {
+		if(!parameterNames.containsKey(name)){
+			throw new FilterConstructionException("Parameter name [" + name + "] is not a valid parameter for the " + getName() + " filter.");
+		} else if(parameterNames.get(name) == value.getClass()){
+			throw new FilterConstructionException("Parameter name [" + name + "] must be a " + parameterNames.get(name).getName() + " type.");
+		} else {
+			parameterValues.put(name, value);
+		}
+	}
+	
+	public boolean isParameterSet(String name){
+		return parameterValues.containsKey(name);
+	}
+	
+	public Object getParameterValue(String name){
+		return parameterValues.get(name);
 	}
 	
 	/**
 	 * Returns the instance of the filter
 	 * @return
 	 */
-	public abstract Filter getInstance(Q input, Map<String,Object> parameters);
+	public abstract Filter getInstance(Q input, Map<String,Object> parameters) throws FilterConstructionException;
 
 	/**
 	 * The display name of the filter

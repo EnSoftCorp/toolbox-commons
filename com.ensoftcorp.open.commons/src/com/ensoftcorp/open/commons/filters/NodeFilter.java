@@ -6,10 +6,6 @@ import com.ensoftcorp.atlas.core.query.Q;
 
 public abstract class NodeFilter extends Filter {
 
-	protected NodeFilter(Q input, Map<String,Object> parameters) {
-		super(input, parameters);
-	}
-	
 	protected NodeFilter(Q input) {
 		super(input);
 	}
