@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.analysis;
+package com.ensoftcorp.open.commons.analyzers;
 
 import java.awt.Color;
 import java.util.Comparator;
