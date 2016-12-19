@@ -1,10 +1,16 @@
 package com.ensoftcorp.open.commons.filters;
 
+import java.util.Map;
+
 import com.ensoftcorp.atlas.core.query.Q;
 
 public abstract class NodeFilter extends Filter {
 
-	public NodeFilter(Q input) {
+	protected NodeFilter(Q input, Map<String,Object> parameters) {
+		super(input, parameters);
+	}
+	
+	protected NodeFilter(Q input) {
 		super(input);
 	}
 

@@ -1,10 +1,16 @@
 package com.ensoftcorp.open.commons.filters;
 
+import java.util.Map;
+
 import com.ensoftcorp.atlas.core.query.Q;
 
 public abstract class EdgeFilter extends Filter {
 
-	public EdgeFilter(Q input) {
+	protected EdgeFilter(Q input, Map<String,Object> parameters) {
+		super(input, parameters);
+	}
+	
+	protected EdgeFilter(Q input) {
 		super(input);
 	}
 

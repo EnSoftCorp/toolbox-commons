@@ -23,32 +23,23 @@ public abstract class Filter {
 	protected static String[] NOTHING = { SUPPORTS_EVERYTHING };
 	
 	protected Q input;
-
-	protected Map<String,Boolean> booleanParameters = new HashMap<String,Boolean>();
-	protected Map<String,Integer> integerParameters = new HashMap<String,Integer>();
-	protected Map<String,Double> doubleParameters = new HashMap<String,Double>();
+	protected Map<String,Object> parameters;
 	
-	public Filter(Q input){
+	protected Filter(Q input){
 		this.input = input;
+		this.parameters = new HashMap<String,Object>();
 	}
 	
-	public Map<String, Boolean> getBooleanParameters() {
-		Map<String, Boolean> params = new HashMap<String,Boolean>();
-		params.putAll(booleanParameters);
-		return params;
-	}
-
-	public Map<String, Integer> getIntegerParameters() {
-		Map<String, Integer> params = new HashMap<String,Integer>();
-		params.putAll(integerParameters);
-		return params;
+	protected Filter(Q input, Map<String,Object> parameters){
+		this.input = input;
+		this.parameters = parameters;
 	}
 	
-	public Map<String, Double> getDoubleParameters() {
-		Map<String, Double> params = new HashMap<String,Double>();
-		params.putAll(doubleParameters);
-		return params;
-	}
+	/**
+	 * Returns the instance of the filter
+	 * @return
+	 */
+	public abstract Filter getInstance(Q input, Map<String,Object> parameters);
 
 	/**
 	 * The display name of the filter
@@ -68,17 +59,13 @@ public abstract class Filter {
 	 * The set of supported node tags that this filter can operate on
 	 * @return
 	 */
-	protected String[] getSupportedNodeTags() {
-		return EVERYTHING;
-	}
+	protected abstract String[] getSupportedNodeTags();
 	
 	/**
 	 * The set of supported edge tags that this filter can operate on
 	 * @return
 	 */
-	protected String[] getSupportedEdgeTags() {
-		return EVERYTHING;
-	}
+	protected abstract String[] getSupportedEdgeTags();
 	
 	/**
 	 * Returns true if the input contains supported edges or nodes

@@ -6,8 +6,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.SWT;
 
 public class FilterView extends ViewPart {
-	public FilterView() {
-	}
+	
+	public FilterView() {}
 
 	@Override
 	public void createPartControl(Composite arg0) {
