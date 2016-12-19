@@ -2,7 +2,6 @@ package com.ensoftcorp.open.commons.filters;
 
 import java.util.ArrayList;
 
-import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
 
@@ -127,12 +126,12 @@ public abstract class Filter {
 	public abstract Q filter(Q input);
 	
 	/**
-	 * Returns the evaluated filtered result. Note that this method enforces
+	 * Returns the filtered result. Note that this method enforces
 	 * that the result must be a subset of the original input.
 	 * @return
 	 */
-	public Graph getFilteredResult(){
-		return filter(getSupportedInput(input)).intersection(input).eval();
+	public Q getFilteredResult(){
+		return filter(getSupportedInput(input)).intersection(input);
 	}
 	
 }

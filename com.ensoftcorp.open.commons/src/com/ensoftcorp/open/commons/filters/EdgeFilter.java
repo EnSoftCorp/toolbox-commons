@@ -1,6 +1,5 @@
 package com.ensoftcorp.open.commons.filters;
 
-import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
 
 public abstract class EdgeFilter extends Filter {
@@ -18,13 +17,13 @@ public abstract class EdgeFilter extends Filter {
 	}
 	
 	/**
-	 * Returns the evaluated filtered result. Note that this method enforces
+	 * Returns the filtered result. Note that this method enforces
 	 * that the result must be a subset of the original input and retains 
 	 * only edges.
 	 * @return
 	 */
-	public Graph getFilteredResult(){
-		return filter(getSupportedInput(input)).intersection(input).retainEdges().eval();
+	public Q getFilteredResult(){
+		return filter(getSupportedInput(input)).intersection(input).retainEdges();
 	}
 	
 }
