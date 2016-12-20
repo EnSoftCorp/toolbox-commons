@@ -1,7 +1,5 @@
 package com.ensoftcorp.open.commons.filters;
 
-import java.util.Map;
-
 import com.ensoftcorp.atlas.core.query.Q;
 
 public abstract class NodeFilter extends Filter {
@@ -28,4 +26,12 @@ public abstract class NodeFilter extends Filter {
 		return filter(getSupportedInput(input)).intersection(input).retainNodes();
 	}
 	
+	@Override
+	public String toString(){
+		Long n1 = input.eval().nodes().size();
+		String n1s = n1 > 1 ? "s" : "";
+		Long n2 = getFilteredResult().eval().nodes().size();
+		String n2s = n2 > 1 ? "s" : "";
+		return "[" + n1 + " node" + n1s + "] -> " + getName() + " -> [" + n2 + " node" + n2s + "]";
+	}
 }

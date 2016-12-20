@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
-import com.sun.org.apache.xalan.internal.xsltc.runtime.Parameter;
 
 /**
  * Filters are generalized implementation of the classic Gang of Four
@@ -186,4 +186,22 @@ public abstract class Filter {
 		return filter(getSupportedInput(input)).intersection(input);
 	}
 	
+	@Override
+	public String toString(){
+		Graph g1 = getFilteredResult().eval();
+		Long n1 = g1.nodes().size();
+		String n1s = n1 > 1 ? "s" : "";
+		Long e1 = g1.edges().size();
+		String e1s = e1 > 1 ? "s" : "";
+
+		Graph g2 = input.eval();
+		Long n2 = g2.nodes().size();
+		String n2s = n2 > 1 ? "s" : "";
+		Long e2 = g2.edges().size();
+		String e2s = e2 > 1 ? "s" : "";
+		
+		return "[" + n1 + " node" + n1s + ", " + e1 + " edge" + e1s + "] -> " 
+					+ getName() 
+					+ " -> [" + n2 + " node" + n2s + ", " + e2 + " edge" + e2s + "]";
+	}
 }
