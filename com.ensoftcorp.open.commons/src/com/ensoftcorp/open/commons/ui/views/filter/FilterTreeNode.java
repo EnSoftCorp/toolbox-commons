@@ -13,6 +13,7 @@ public class FilterTreeNode {
 	
 	private Graph graph;
 	private Filter filter;
+	private String name;
 	private boolean expanded;
 	
 	public FilterTreeNode(Q input, Filter filter, boolean expanded){
@@ -24,11 +25,16 @@ public class FilterTreeNode {
 			throw new IllegalArgumentException("Filter is not applicable to imput.");
 		}
 		this.filter = filter;
+		this.name = filter.toString();
 		this.expanded = expanded;
 	}
 	
+	public Filter getFilter(){
+		return filter;
+	}
+	
 	public String getName(){
-		return filter.getName();
+		return name;
 	}
 	
 	public Q getInput(){

@@ -28,6 +28,8 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
 import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
+import com.ensoftcorp.open.commons.filters.Filter;
+import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
@@ -123,6 +125,30 @@ public class FilterView extends ViewPart {
 		applyFilterButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		applyFilterButton.setText("Apply Filter");
 		sashForm.setWeights(new int[] { 1, 1 });
+		
+		filterTree.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(filterTree.getSelectionCount() == 1){
+					TreeItem treeItem = filterTree.getSelection()[0];
+					Q input;
+					if(treeItem.getData() instanceof FilterTreeRoot){
+						FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
+						input = root.getRootInput();
+					} else {
+						FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+						input = node.getInput();
+					}
+					LinkedList<Filter> applicableFilters = new LinkedList<Filter>();
+					for(Filter filter : Filters.getRegisteredFilters()){
+						if(filter.isApplicableTo(input)){
+							applicableFilters.add(filter);
+						}
+					}
+					// TODO: implement - update combo list
+				}
+			}
+		});
 		
 		// add menu handlers
 		addFileMenuItems(fileMenuDropDownItem);
