@@ -91,6 +91,18 @@
       </category>
    </extension>
    
+   <!-- extension for Filter View view -->
+	<extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.filter.FilterView"
+            icon="icons/toolbox.gif"
+            id="com.ensoftcorp.open.commons.ui.views.filter"
+            name="Filter View">
+      </view>
+   </extension>
+   
    <!-- defines an extension point schema for contributing subsystem definitons -->
    <extension-point 
    		id="com.ensoftcorp.open.commons.subsystem" 
