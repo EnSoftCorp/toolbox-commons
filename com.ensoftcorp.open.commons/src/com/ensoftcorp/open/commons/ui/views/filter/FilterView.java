@@ -1,5 +1,8 @@
 package com.ensoftcorp.open.commons.ui.views.filter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 
 import org.eclipse.swt.SWT;
@@ -30,15 +33,18 @@ import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
+import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 
 public class FilterView extends ViewPart {
 
 	private static LinkedList<FilterTreeRoot> treeRoots = new LinkedList<FilterTreeRoot>();
 	
 	private Tree filterTree;
-	private Combo searchFilterBar;
+	private Combo filterSearchBar;
 
 	// the current Atlas selection
 	private Graph selection = Common.empty().eval();
@@ -46,6 +52,9 @@ public class FilterView extends ViewPart {
 	public FilterView() {
 		setPartName("Filter View");
 		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/toolbox.gif"));
+		
+		// load plugin filter contributions
+		Filters.loadFilterContributions();
 	}
 
 	@Override
@@ -84,9 +93,9 @@ public class FilterView extends ViewPart {
 		Label applicableFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
 		applicableFiltersLabel.setText("(0/0) Filters Applicable");
 
-		searchFilterBar = new Combo(controlPanelComposite, SWT.NONE);
-		searchFilterBar.setEnabled(false);
-		searchFilterBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		filterSearchBar = new Combo(controlPanelComposite, SWT.NONE);
+		filterSearchBar.setEnabled(false);
+		filterSearchBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
 		Composite filterParametersComposite = new Composite(controlPanelComposite, SWT.NONE);
 		filterParametersComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
@@ -126,31 +135,71 @@ public class FilterView extends ViewPart {
 		applyFilterButton.setText("Apply Filter");
 		sashForm.setWeights(new int[] { 1, 1 });
 		
-		filterTree.addSelectionListener(new SelectionAdapter() {
+		// handle key release on search bar
+		filterSearchBar.addKeyListener(new KeyAdapter() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(filterTree.getSelectionCount() == 1){
-					TreeItem treeItem = filterTree.getSelection()[0];
-					Q input;
-					if(treeItem.getData() instanceof FilterTreeRoot){
-						FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
-						input = root.getRootInput();
-					} else {
-						FilterTreeNode node = (FilterTreeNode) treeItem.getData();
-						input = node.getInput();
+			public void keyReleased(KeyEvent key) {
+				if(key.character == '\r'){
+					// selection made
+					Filter filter = (Filter) filterSearchBar.getData(filterSearchBar.getItem(filterSearchBar.getSelectionIndex()));
+					if(filter != null){
+						Log.info("SELECTED FILTER: " + filter.getName());
+						// TODO: implement
 					}
-					LinkedList<Filter> applicableFilters = new LinkedList<Filter>();
-					for(Filter filter : Filters.getRegisteredFilters()){
-						if(filter.isApplicableTo(input)){
-							applicableFilters.add(filter);
+				} else {
+					if(Character.isLetter(key.character)){
+						filterSearchBar.setListVisible(false); // hide the list, we are going to modify the values
+						String searchText = filterSearchBar.getText();
+
+						// remove all items
+						// note: doing this the hard way because removeAll method also clears the text
+						for(String item : filterSearchBar.getItems()){
+							filterSearchBar.remove(item);
+						}
+
+						// add the autocomplete suggestions for each matching permission
+						for(Filter filter : getApplicableFilters()){
+							if(filter.getName().toLowerCase().contains(searchText.toLowerCase())){
+								filterSearchBar.add(filter.getName());
+								filterSearchBar.setData(filter.getName(), filter);
+							}
 						}
 					}
-					// TODO: implement - update combo list
 				}
 			}
 		});
 		
-		// add menu handlers
+		// handle apply filter button pressed
+		applyFilterButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// selection made
+				Filter filter = (Filter) filterSearchBar.getData(filterSearchBar.getItem(filterSearchBar.getSelectionIndex()));
+				if(filter != null){
+					Log.info("SELECTED FILTER: " + filter.getName());
+					// TODO: implement
+				}
+			}
+		});
+		
+		// handle filter tree item selection
+		filterTree.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(filterTree.getSelectionCount() == 1){
+					ArrayList<Filter> applicableFilters = getApplicableFilters();
+					// update the search bar with the applicable filters
+					filterSearchBar.removeAll();
+					for(Filter filter : applicableFilters){
+						filterSearchBar.add(filter.getName());
+						filterSearchBar.setData(filter.getName(), filter);
+					}
+					// TODO: fill out filter parameters if any
+				}
+			}
+		});
+		
+		// add toolbar menu handlers
 		addFileMenuItems(fileMenuDropDownItem);
 		addOptionMenuItems(optionMenuDropDownItem);
 		
@@ -168,6 +217,36 @@ public class FilterView extends ViewPart {
 		
 		// add the selection listener
 		SelectionUtil.addSelectionListener(selectionListener);
+	}
+	
+	private ArrayList<Filter> getApplicableFilters() {
+		ArrayList<Filter> applicableFilters = new ArrayList<Filter>();
+		if(filterTree.getSelectionCount() == 1){
+			// get the input set of the selected tree item
+			TreeItem treeItem = filterTree.getSelection()[0];
+			Q input;
+			if(treeItem.getData() instanceof FilterTreeRoot){
+				FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
+				input = root.getRootInput();
+			} else {
+				FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+				input = node.getInput();
+			}
+			// find the applicable filters
+			for(Filter filter : Filters.getRegisteredFilters()){
+				if(filter.isApplicableTo(input)){
+					applicableFilters.add(filter);
+				}
+			}
+			// sort the filters alphabetically
+			Collections.sort(applicableFilters, new Comparator<Filter>(){
+				@Override
+				public int compare(Filter f1, Filter f2) {
+					return f1.getName().compareTo(f2.getName());
+				}
+			});
+		}
+		return applicableFilters;
 	}
 
 	private void addFileMenuItems(ToolItem fileMenuDropDownItem) {

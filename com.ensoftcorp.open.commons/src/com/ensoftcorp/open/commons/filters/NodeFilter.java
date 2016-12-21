@@ -4,10 +4,6 @@ import com.ensoftcorp.atlas.core.query.Q;
 
 public abstract class NodeFilter extends Filter {
 
-	protected NodeFilter(Q input) {
-		super(input);
-	}
-
 	/**
 	 * Node filters do not operate on edges
 	 * @return

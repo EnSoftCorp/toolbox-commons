@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
 
 /**
@@ -23,16 +24,10 @@ public abstract class Filter {
 	protected static String[] EVERYTHING = { SUPPORTS_NOTHING };
 	protected static String[] NOTHING = { SUPPORTS_EVERYTHING };
 	
-	protected Q input;
+	protected Q input = Common.empty();
 	
-	protected Filter(Q input){
-		this.input = input;
-		this.parameterNames = new HashMap<String,Class<? extends Object>>();
-		this.parameterValues = new HashMap<String,Object>();
-	}
-	
-	private Map<String,Class<? extends Object>> parameterNames;
-	private Map<String,Object> parameterValues;
+	private Map<String,Class<? extends Object>> parameterNames = new HashMap<String,Class<? extends Object>>();
+	private Map<String,Object> parameterValues = new HashMap<String,Object>();
 	
 	/**
 	 * Adds a possible parameter type to this filter
