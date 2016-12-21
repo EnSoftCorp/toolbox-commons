@@ -44,6 +44,7 @@ public class FilterView extends ViewPart {
 	private static LinkedList<FilterTreeRoot> treeRoots = new LinkedList<FilterTreeRoot>();
 	
 	private Tree filterTree;
+	private Label filterTreeLabel;
 	private Combo filterSearchBar;
 
 	// the current Atlas selection
@@ -65,7 +66,7 @@ public class FilterView extends ViewPart {
 		Composite filterTreeComposite = new Composite(sashForm, SWT.NONE);
 		filterTreeComposite.setLayout(new GridLayout(1, false));
 		
-		Label filterTreeLabel = new Label(filterTreeComposite, SWT.NONE);
+		filterTreeLabel = new Label(filterTreeComposite, SWT.NONE);
 		filterTreeLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		filterTreeLabel.setText("Filter Tree (0 roots)");
 
@@ -157,13 +158,13 @@ public class FilterView extends ViewPart {
 							filterSearchBar.remove(item);
 						}
 
-						// add the autocomplete suggestions for each matching permission
-						for(Filter filter : getApplicableFilters()){
-							if(filter.getName().toLowerCase().contains(searchText.toLowerCase())){
-								filterSearchBar.add(filter.getName());
-								filterSearchBar.setData(filter.getName(), filter);
-							}
-						}
+//						// add the autocomplete suggestions for each matching permission
+//						for(Filter filter : getApplicableFilters()){
+//							if(filter.getName().toLowerCase().contains(searchText.toLowerCase())){
+//								filterSearchBar.add(filter.getName());
+//								filterSearchBar.setData(filter.getName(), filter);
+//							}
+//						}
 					}
 				}
 			}
@@ -187,14 +188,26 @@ public class FilterView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(filterTree.getSelectionCount() == 1){
-					ArrayList<Filter> applicableFilters = getApplicableFilters();
 					// update the search bar with the applicable filters
 					filterSearchBar.removeAll();
-					for(Filter filter : applicableFilters){
-						filterSearchBar.add(filter.getName());
-						filterSearchBar.setData(filter.getName(), filter);
+					
+					// get the input set of the selected tree item
+					TreeItem treeItem = filterTree.getSelection()[0];
+					if(treeItem.getData() instanceof FilterTreeRoot){
+						FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
+						for(Filter filter : root.getApplicableFilters()){
+							filterSearchBar.add(filter.getName());
+							filterSearchBar.setData(filter.getName(), filter);
+						}
+						// TODO: fill out filter parameters if any
+					} else {
+						FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+						for(Filter filter : node.getApplicableFilters()){
+							filterSearchBar.add(filter.getName());
+							filterSearchBar.setData(filter.getName(), filter);
+						}
+						// TODO: fill out filter parameters if any
 					}
-					// TODO: fill out filter parameters if any
 				}
 			}
 		});
@@ -217,36 +230,6 @@ public class FilterView extends ViewPart {
 		
 		// add the selection listener
 		SelectionUtil.addSelectionListener(selectionListener);
-	}
-	
-	private ArrayList<Filter> getApplicableFilters() {
-		ArrayList<Filter> applicableFilters = new ArrayList<Filter>();
-		if(filterTree.getSelectionCount() == 1){
-			// get the input set of the selected tree item
-			TreeItem treeItem = filterTree.getSelection()[0];
-			Q input;
-			if(treeItem.getData() instanceof FilterTreeRoot){
-				FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
-				input = root.getRootInput();
-			} else {
-				FilterTreeNode node = (FilterTreeNode) treeItem.getData();
-				input = node.getInput();
-			}
-			// find the applicable filters
-			for(Filter filter : Filters.getRegisteredFilters()){
-				if(filter.isApplicableTo(input)){
-					applicableFilters.add(filter);
-				}
-			}
-			// sort the filters alphabetically
-			Collections.sort(applicableFilters, new Comparator<Filter>(){
-				@Override
-				public int compare(Filter f1, Filter f2) {
-					return f1.getName().compareTo(f2.getName());
-				}
-			});
-		}
-		return applicableFilters;
 	}
 
 	private void addFileMenuItems(ToolItem fileMenuDropDownItem) {
@@ -275,6 +258,8 @@ public class FilterView extends ViewPart {
 				if(name != null){
 					try {
 						treeRoots.add(new FilterTreeRoot(currentSelection, name, true));
+						String plurality = (treeRoots.size() > 1 ? "s" : "");
+						filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
 						refreshFilterTree();
 					} catch (IllegalArgumentException e){
 						DisplayUtils.showError("Could not add root set. " + e.getMessage());
@@ -300,6 +285,20 @@ public class FilterView extends ViewPart {
 					}
 				} else {
 					DisplayUtils.showError("Please select a root set in the filter tree to rename.");
+				}
+			}
+		});
+		optionListener.add("Delete Root Set", new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				if(filterTree.getSelectionCount() == 1){
+					TreeItem treeItem = filterTree.getSelection()[0];
+					FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
+					treeRoots.remove(root);
+					String plurality = (treeRoots.size() > 1 ? "s" : "");
+					filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
+					refreshFilterTree();
+				} else {
+					DisplayUtils.showError("Please select a root set in the filter tree to delete.");
 				}
 			}
 		});

@@ -3,8 +3,8 @@ package com.ensoftcorp.open.commons.filters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
@@ -27,7 +27,6 @@ public abstract class Filter {
 	protected Q input = Common.empty();
 	
 	private Map<String,Class<? extends Object>> parameterNames = new HashMap<String,Class<? extends Object>>();
-	private Map<String,Object> parameterValues = new HashMap<String,Object>();
 	
 	/**
 	 * Adds a possible parameter type to this filter
@@ -49,33 +48,49 @@ public abstract class Filter {
 	}
 	
 	/**
-	 * Sets a parameter value
+	 * Returns true if the given parameter has been specified
 	 * @param name
-	 * @param value
+	 * @param parameters
+	 * @return
 	 */
-	protected void setParameterValue(String name, Object value) throws FilterConstructionException {
-		if(!parameterNames.containsKey(name)){
-			throw new FilterConstructionException("Parameter name [" + name + "] is not a valid parameter for the " + getName() + " filter.");
-		} else if(parameterNames.get(name) == value.getClass()){
-			throw new FilterConstructionException("Parameter name [" + name + "] must be a " + parameterNames.get(name).getName() + " type.");
-		} else {
-			parameterValues.put(name, value);
-		}
-	}
-	
-	public boolean isParameterSet(String name){
-		return parameterValues.containsKey(name);
-	}
-	
-	public Object getParameterValue(String name){
-		return parameterValues.get(name);
+	public boolean isParameterSet(String name, Map<String,Object> parameters){
+		return parameters.containsKey(name);
 	}
 	
 	/**
-	 * Returns the instance of the filter
+	 * Returns the specified parameter value or null if the parameter is unspecified
+	 * @param name
+	 * @param parameters
 	 * @return
 	 */
-	public abstract Filter getInstance(Q input, Map<String,Object> parameters) throws FilterConstructionException;
+	public Object getParameterValue(String name, Map<String,Object> parameters){
+		return parameters.get(name);
+	}
+	
+	/**
+	 * Type checks expected parameters and rejects undeclared passed parameters
+	 * @return
+	 * @throws InvalidFilterParameterException  
+	 */
+	public void checkParameters(Map<String,Object> parameters) throws InvalidFilterParameterException {
+		for(Entry<String,Object> parameter : parameters.entrySet()){
+			checkParameter(parameter.getKey(), parameter.getValue());
+		}
+	}
+	
+	/**
+	 * Checks a parameter name and value
+	 * @param name
+	 * @param value
+	 */
+	private void checkParameter(String name, Object value) throws InvalidFilterParameterException {
+		if(!parameterNames.containsKey(name)){
+			throw new InvalidFilterParameterException("Parameter name [" + name + "] is not a valid parameter for the " + getName() + " filter.");
+			
+		} else if(parameterNames.get(name) == value.getClass()){
+			throw new InvalidFilterParameterException("Parameter name [" + name + "] must be a " + parameterNames.get(name).getName() + " type.");
+		}
+	}
 
 	/**
 	 * The display name of the filter
@@ -170,33 +185,13 @@ public abstract class Filter {
 	 * @param input
 	 * @return
 	 */
-	public abstract Q filter(Q input);
+	public abstract Q filter(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException;
 	
 	/**
-	 * Returns the filtered result. Note that this method enforces
-	 * that the result must be a subset of the original input.
-	 * @return
+	 * Returns the filter name
 	 */
-	public Q getFilteredResult(){
-		return filter(getSupportedInput(input)).intersection(input);
-	}
-	
 	@Override
 	public String toString(){
-		Graph g1 = getFilteredResult().eval();
-		Long n1 = g1.nodes().size();
-		String n1s = n1 > 1 ? "s" : "";
-		Long e1 = g1.edges().size();
-		String e1s = e1 > 1 ? "s" : "";
-
-		Graph g2 = input.eval();
-		Long n2 = g2.nodes().size();
-		String n2s = n2 > 1 ? "s" : "";
-		Long e2 = g2.edges().size();
-		String e2s = e2 > 1 ? "s" : "";
-		
-		return "[" + n1 + " node" + n1s + ", " + e1 + " edge" + e1s + "] -> " 
-					+ getName() 
-					+ " -> [" + n2 + " node" + n2s + ", " + e2 + " edge" + e2s + "]";
+		return getName();
 	}
 }
