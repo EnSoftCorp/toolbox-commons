@@ -2,8 +2,10 @@ package com.ensoftcorp.open.commons.filters;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
@@ -21,20 +23,22 @@ public abstract class Filter {
 	private static String SUPPORTS_NOTHING = "SUPPORTS_NOTHING";
 	private static String SUPPORTS_EVERYTHING = "SUPPORTS_EVERYTHING";
 	
-	protected static String[] EVERYTHING = { SUPPORTS_NOTHING };
-	protected static String[] NOTHING = { SUPPORTS_EVERYTHING };
+	protected static String[] EVERYTHING = { SUPPORTS_EVERYTHING };
+	protected static String[] NOTHING = { SUPPORTS_NOTHING };
 	
 	protected Q input = Common.empty();
 	
 	private Map<String,Class<? extends Object>> parameterNames = new HashMap<String,Class<? extends Object>>();
+	private Map<String,Boolean> requiredParameters = new HashMap<String,Boolean>();
 	
 	/**
 	 * Adds a possible parameter type to this filter
 	 * @param name
 	 * @param type
 	 */
-	protected void addPossibleParameter(String name, Class<? extends Object> type){
+	protected void addPossibleParameter(String name, Class<? extends Object> type, boolean required){
 		parameterNames.put(name, type);
+		requiredParameters.put(name, required);
 	}
 	
 	/**
@@ -45,6 +49,14 @@ public abstract class Filter {
 		Map<String,Class<? extends Object>> possibleParams = new HashMap<String,Class<? extends Object>>();
 		possibleParams.putAll(parameterNames);
 		return possibleParams;
+	}
+	
+	/**
+	 * Returns a copy of all possible parameter types for this filter
+	 * @return
+	 */
+	public Set<String> getRequiredParameters(){
+		return new HashSet<String>(requiredParameters.keySet());
 	}
 	
 	/**
@@ -69,12 +81,18 @@ public abstract class Filter {
 	
 	/**
 	 * Type checks expected parameters and rejects undeclared passed parameters
+	 * Also checks that all required parameters have been specified
 	 * @return
 	 * @throws InvalidFilterParameterException  
 	 */
 	public void checkParameters(Map<String,Object> parameters) throws InvalidFilterParameterException {
 		for(Entry<String,Object> parameter : parameters.entrySet()){
 			checkParameter(parameter.getKey(), parameter.getValue());
+		}
+		for(String parameter : getRequiredParameters()){
+			if(!parameters.containsKey(parameter)){
+				throw new InvalidFilterParameterException("Missing required parameter: " + parameter);
+			}
 		}
 	}
 	

@@ -18,11 +18,11 @@ public class LoopNestingDepthFilter extends NodeFilter {
 	private static final String DEPTH_LESS_THAN = "DEPTH_LESS_THAN";
 	private static final String DEPTH_LESS_THAN_EQUAL_TO = "DEPTH_LESS_THAN_EQUAL_TO";
 
-	protected LoopNestingDepthFilter() {
-		this.addPossibleParameter(DEPTH_GREATER_THAN, Integer.class);
-		this.addPossibleParameter(DEPTH_GREATER_THAN_EQUAL_TO, Integer.class);
-		this.addPossibleParameter(DEPTH_LESS_THAN, Integer.class);
-		this.addPossibleParameter(DEPTH_LESS_THAN_EQUAL_TO, Integer.class);
+	public LoopNestingDepthFilter() {
+		this.addPossibleParameter(DEPTH_GREATER_THAN, Integer.class, false);
+		this.addPossibleParameter(DEPTH_GREATER_THAN_EQUAL_TO, Integer.class, false);
+		this.addPossibleParameter(DEPTH_LESS_THAN, Integer.class, false);
+		this.addPossibleParameter(DEPTH_LESS_THAN_EQUAL_TO, Integer.class, false);
 	}
 
 	@Override
@@ -38,6 +38,7 @@ public class LoopNestingDepthFilter extends NodeFilter {
 	@Override
 	public Q filter(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException {
 		checkParameters(parameters);
+		input = super.filter(input, parameters);
 		
 		AtlasSet<Node> result = new AtlasHashSet<Node>();
 		Q loopChildEdges = Common.universe().edgesTaggedWithAny(XCSG.LoopChild).retainEdges();

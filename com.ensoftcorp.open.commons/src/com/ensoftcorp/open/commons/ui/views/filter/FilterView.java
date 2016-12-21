@@ -1,13 +1,13 @@
 package com.ensoftcorp.open.commons.ui.views.filter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Collection;
 import java.util.LinkedList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -36,15 +36,14 @@ import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 
 public class FilterView extends ViewPart {
 
-	private static LinkedList<FilterTreeRoot> treeRoots = new LinkedList<FilterTreeRoot>();
+	private static LinkedList<FilterRootNode> treeRoots = new LinkedList<FilterRootNode>();
 	
 	private Tree filterTree;
 	private Label filterTreeLabel;
+	private Label applicableFiltersLabel;
 	private Combo filterSearchBar;
 
 	// the current Atlas selection
@@ -91,8 +90,8 @@ public class FilterView extends ViewPart {
 		Label label = new Label(controlPanelComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
 		label.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 
-		Label applicableFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
-		applicableFiltersLabel.setText("(0/0) Filters Applicable");
+		applicableFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
+		applicableFiltersLabel.setText("(0/" + Filters.getRegisteredFilters().size() + ") Filters Applicable");
 
 		filterSearchBar = new Combo(controlPanelComposite, SWT.NONE);
 		filterSearchBar.setEnabled(false);
@@ -132,6 +131,7 @@ public class FilterView extends ViewPart {
 		errorLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 
 		Button applyFilterButton = new Button(applyFilterComposite, SWT.NONE);
+		applyFilterButton.setEnabled(false);
 		applyFilterButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		applyFilterButton.setText("Apply Filter");
 		sashForm.setWeights(new int[] { 1, 1 });
@@ -175,11 +175,7 @@ public class FilterView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// selection made
-				Filter filter = (Filter) filterSearchBar.getData(filterSearchBar.getItem(filterSearchBar.getSelectionIndex()));
-				if(filter != null){
-					Log.info("SELECTED FILTER: " + filter.getName());
-					// TODO: implement
-				}
+				// TODO: implement
 			}
 		});
 		
@@ -188,26 +184,13 @@ public class FilterView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(filterTree.getSelectionCount() == 1){
-					// update the search bar with the applicable filters
-					filterSearchBar.removeAll();
-					
 					// get the input set of the selected tree item
 					TreeItem treeItem = filterTree.getSelection()[0];
-					if(treeItem.getData() instanceof FilterTreeRoot){
-						FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
-						for(Filter filter : root.getApplicableFilters()){
-							filterSearchBar.add(filter.getName());
-							filterSearchBar.setData(filter.getName(), filter);
-						}
-						// TODO: fill out filter parameters if any
-					} else {
-						FilterTreeNode node = (FilterTreeNode) treeItem.getData();
-						for(Filter filter : node.getApplicableFilters()){
-							filterSearchBar.add(filter.getName());
-							filterSearchBar.setData(filter.getName(), filter);
-						}
-						// TODO: fill out filter parameters if any
-					}
+					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+					populateFilterSearchBarResults(node.getApplicableFilters());
+				} else {
+					// nothing is applicable
+					populateFilterSearchBarResults(new LinkedList<Filter>());
 				}
 			}
 		});
@@ -232,6 +215,17 @@ public class FilterView extends ViewPart {
 		SelectionUtil.addSelectionListener(selectionListener);
 	}
 
+	private void populateFilterSearchBarResults(Collection<Filter> applicableFilters){
+		// update the search bar with the applicable filters
+		filterSearchBar.removeAll();
+		applicableFiltersLabel.setText("(" + applicableFilters.size() + "/" + Filters.getRegisteredFilters().size() + ") Filters Applicable");
+		for(Filter filter : applicableFilters){
+			filterSearchBar.add(filter.getName());
+			filterSearchBar.setData(filter.getName(), filter);
+		}
+		filterSearchBar.setEnabled(!applicableFilters.isEmpty());
+	}
+	
 	private void addFileMenuItems(ToolItem fileMenuDropDownItem) {
 		DropdownSelectionListener fileListener = new DropdownSelectionListener(fileMenuDropDownItem);
 		fileListener.add("Save Filter Chain", new SelectionAdapter() {
@@ -257,7 +251,7 @@ public class FilterView extends ViewPart {
 				String name = DisplayUtils.promptString("Add Root Set", "Root Set Name:", false);
 				if(name != null){
 					try {
-						treeRoots.add(new FilterTreeRoot(currentSelection, name, true));
+						treeRoots.add(new FilterRootNode(currentSelection, name, true));
 						String plurality = (treeRoots.size() > 1 ? "s" : "");
 						filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
 						refreshFilterTree();
@@ -273,7 +267,7 @@ public class FilterView extends ViewPart {
 			public void widgetSelected(SelectionEvent event) {
 				if(filterTree.getSelectionCount() == 1){
 					TreeItem treeItem = filterTree.getSelection()[0];
-					FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
+					FilterRootNode root = (FilterRootNode) treeItem.getData();
 					String name = DisplayUtils.promptString("Rename Root Set", "Root Set Name:", false);
 					if(name != null){
 						try {
@@ -292,10 +286,13 @@ public class FilterView extends ViewPart {
 			public void widgetSelected(SelectionEvent event) {
 				if(filterTree.getSelectionCount() == 1){
 					TreeItem treeItem = filterTree.getSelection()[0];
-					FilterTreeRoot root = (FilterTreeRoot) treeItem.getData();
+					FilterRootNode root = (FilterRootNode) treeItem.getData();
 					treeRoots.remove(root);
+					root.delete();
 					String plurality = (treeRoots.size() > 1 ? "s" : "");
 					filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
+					// clear the display
+					populateFilterSearchBarResults(new LinkedList<Filter>());
 					refreshFilterTree();
 				} else {
 					DisplayUtils.showError("Please select a root set in the filter tree to delete.");
@@ -307,29 +304,48 @@ public class FilterView extends ViewPart {
 
 	private void refreshFilterTree() {
 		filterTree.removeAll();
-		for(FilterTreeRoot treeRoot : treeRoots){
+		for(FilterRootNode treeRoot : treeRoots){
 			addTreeRootItem(treeRoot);
 		}
 	}
 
-	public void addTreeRootItem(FilterTreeRoot root){
+	private void addTreeRootItem(FilterRootNode root){
 		TreeItem treeItem = new TreeItem(filterTree, SWT.NONE);
 		treeItem.setData(root);
-		treeItem.setText(root.getName());
+		treeItem.setText(root.getName() + " " + summarizeContent(root.getOutput()));
 		treeItem.setExpanded(root.isExpanded());
-		for(FilterTreeNode node : root.nodes){
+		for(FilterTreeNode node : root.getChildren()){
 			addFilterTreeItem(node, treeItem);
 		}
 	}
 	
-	public void addFilterTreeItem(FilterTreeNode node, TreeItem treeItem){
+	private void addFilterTreeItem(FilterTreeNode node, TreeItem treeItem){
 		TreeItem subTreeItem = new TreeItem(treeItem, SWT.NONE);
 		subTreeItem.setData(node);
-		subTreeItem.setText(node.getName());
+		subTreeItem.setText(node.getName() + " " + summarizeContent(node.getOutput()));
 		subTreeItem.setExpanded(node.isExpanded());
-		for(FilterTreeNode child : node.nodes){
+		for(FilterTreeNode child : node.getChildren()){
 			addFilterTreeItem(child, subTreeItem);
 		}
+	}
+	
+	private String summarizeContent(Graph content){
+		String result = "(";
+		if(content.nodes().isEmpty() && content.edges().isEmpty()){
+			// empty
+			result += "empty";
+		} else if(content.edges().isEmpty()){
+			// only nodes
+			result += content.nodes().size() + " nodes";
+		} else if(content.nodes().isEmpty()){
+			// only edges
+			result += content.edges().size() + " edges";
+		} else {
+			// nodes and edges
+			result += content.nodes().size() + " nodes, " + content.edges().size() + " edges";
+		}
+		result += ")";
+		return result;
 	}
 	
 	@Override

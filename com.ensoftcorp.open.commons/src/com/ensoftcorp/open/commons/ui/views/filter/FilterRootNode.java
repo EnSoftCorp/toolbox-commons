@@ -2,29 +2,29 @@ package com.ensoftcorp.open.commons.ui.views.filter;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
 
-public class FilterTreeRoot {
+public class FilterRootNode implements FilterTreeNode {
 
 	private static Set<String> uniqueNames = new HashSet<String>();
 	
-	public LinkedList<FilterTreeNode> nodes = new LinkedList<FilterTreeNode>();
+	private LinkedList<FilterTreeNode> children = new LinkedList<FilterTreeNode>();
 	private LinkedList<Filter> applicableFilters = new LinkedList<Filter>();
 	
-	private Graph graph;
+	private Graph rootSet;
 	private String name;
 	private boolean expanded;
 	
-	public FilterTreeRoot(Q input, String name, boolean expanded){
-		this.graph = input.eval();
-		if(graph.nodes().isEmpty()){
-			throw new IllegalArgumentException("Input is empty. Please make an Atlas selection.");
+	public FilterRootNode(Q rootSet, String name, boolean expanded){
+		this.rootSet = rootSet.eval();
+		if(rootSet.eval().nodes().isEmpty()){
+			throw new IllegalArgumentException("Root set input is empty. Please make an Atlas selection.");
 		}
 		this.name = name;
 		if(uniqueNames.contains(name)){
@@ -33,7 +33,7 @@ public class FilterTreeRoot {
 			uniqueNames.add(name);
 		}
 		this.expanded = expanded;
-		this.applicableFilters.addAll(Filters.getApplicableFilters(input));
+		this.applicableFilters.addAll(Filters.getApplicableFilters(rootSet));
 	}
 	
 	public String getName(){
@@ -49,17 +49,25 @@ public class FilterTreeRoot {
 			uniqueNames.add(newName);
 		}
 	}
-	
-	public boolean isExpanded(){
-		return expanded;
+
+	@Override
+	public FilterTreeNode getParent() {
+		return null;
 	}
-	
-	public Q getRootInput(){
-		return Common.toQ(graph);
+
+	@Override
+	public Graph getOutput() {
+		return rootSet;
 	}
-	
-	public LinkedList<Filter> getApplicableFilters(){
+
+	@Override
+	public List<Filter> getApplicableFilters() {
 		return new LinkedList<Filter>(applicableFilters);
+	}
+
+	@Override
+	public boolean isExpanded() {
+		return expanded;
 	}
 	
 	@Override
@@ -78,12 +86,21 @@ public class FilterTreeRoot {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		FilterTreeRoot other = (FilterTreeRoot) obj;
+		FilterRootNode other = (FilterRootNode) obj;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+
+	@Override
+	public List<FilterTreeNode> getChildren() {
+		return new LinkedList<FilterTreeNode>(children);
+	}
+
+	public void delete() {
+		uniqueNames.remove(name);
 	}
 }
