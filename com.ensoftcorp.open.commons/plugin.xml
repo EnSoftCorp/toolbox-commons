@@ -114,6 +114,8 @@
    		id="com.ensoftcorp.open.commons.codemap" 
    		name="Prioritized Codemap Stage" 
    		schema="schema/com.ensoftcorp.open.commons.codemap.exsd"/>
+   <extension-point id="com.ensoftcorp.open.commons.filter" name="Filter" schema="schema/com.ensoftcorp.open.commons.filter.exsd"/>
+   <extension-point id="com.ensoftcorp.open.commons.analyzer" name="Analyzer" schema="schema/com.ensoftcorp.open.commons.analyzer.exsd"/>
    
    <!-- adds a post code map hook for running registered prioritized codemap stages -->
    <extension

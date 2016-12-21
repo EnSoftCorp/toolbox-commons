@@ -37,7 +37,7 @@ public class Subsystems {
 	}
 
 	/**
-	 * Registers the contributed plugin susbsystem definitions
+	 * Registers the contributed plugin subsystems definitions
 	 */
 	public static void loadSubsystemContributions() {
 		IExtensionRegistry registry = Platform.getExtensionRegistry();

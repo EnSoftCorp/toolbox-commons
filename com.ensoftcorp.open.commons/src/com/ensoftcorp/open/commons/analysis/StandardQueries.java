@@ -276,6 +276,29 @@ public final class StandardQueries {
 	public static Q writtenBy(Q context, Q origin) {
 		return readersOf(context, origin);
 	}
+	
+	/**
+	 * Returns the least common ancestor of both child1 and child2 within the given graph
+	 * @param child1
+	 * @param child2
+	 * @param graph
+	 * @return
+	 */
+	public static GraphElement leastCommonAncestor(GraphElement child1, GraphElement child2, Graph graph){
+		return leastCommonAncestor(child1, child2, Common.toQ(graph));
+	}
+	
+	/**
+	 * Returns the least common ancestor of both child1 and child2 within the given graph
+	 * @param child1
+	 * @param child2
+	 * @param graph
+	 * @return
+	 */
+	public static GraphElement leastCommonAncestor(GraphElement child1, GraphElement child2, Q graph){
+		Q ancestors = graph.reverse(Common.toQ(child1)).intersection(graph.reverse(Common.toQ(child2)));
+		return ancestors.leaves().eval().nodes().getFirst();
+	}
 
 	/**
 	 * Returns the containing method of a given Q or empty if one is not found
@@ -494,7 +517,10 @@ public final class StandardQueries {
 					qualified = true;
 				}
 			}
-			result = parent.attr().get(XCSG.name) + "." + result;
+			String prefix = parent.attr().get(XCSG.name).toString();
+			if(!prefix.equals("")){
+				result = parent.attr().get(XCSG.name) + "." + result;
+			}
 			parent = getDeclarativeParent(parent);
 		}
 		return result;
