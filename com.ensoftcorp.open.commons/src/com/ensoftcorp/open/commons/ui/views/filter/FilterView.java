@@ -10,6 +10,7 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -33,7 +34,6 @@ import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
-import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
@@ -117,7 +117,7 @@ public class FilterView extends ViewPart {
 		Label noParamsLabel = new Label(filterParametersScrolledComposite, SWT.NONE);
 		noParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		noParamsLabel.setAlignment(SWT.CENTER);
-		noParamsLabel.setText("No parameters available for this filter.");
+		noParamsLabel.setText("No filter selected."); // TODO: No parameters available for this filter.
 		filterParametersScrolledComposite.setContent(noParamsLabel);
 		filterParametersScrolledComposite.setMinSize(noParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
@@ -140,32 +140,51 @@ public class FilterView extends ViewPart {
 		filterSearchBar.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent key) {
-				if(key.character == '\r'){
-					// selection made
-					Filter filter = (Filter) filterSearchBar.getData(filterSearchBar.getItem(filterSearchBar.getSelectionIndex()));
-					if(filter != null){
-						Log.info("SELECTED FILTER: " + filter.getName());
-						// TODO: implement
-					}
-				} else {
-					if(Character.isLetter(key.character)){
+				// tree item has to be selected for this event to occur
+				// wrapped in a try/catch just to be safe
+				try {
+					// get the input set of the selected tree item
+					TreeItem treeItem = filterTree.getSelection()[0];
+					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+					String searchText = filterSearchBar.getText();
+					if(searchText.trim().equals("")){
 						filterSearchBar.setListVisible(false); // hide the list, we are going to modify the values
-						String searchText = filterSearchBar.getText();
+						
+						// remove all items
+						filterSearchBar.removeAll();
 
+						// there is no search term, so add all applicable filters
+						for(Filter filter : node.getApplicableFilters()){
+							filterSearchBar.add(filter.getName());
+						}
+					} else if(key.character == '\r'){
+						// selection made
+						// TODO: implement
+					} else if(key.keyCode == SWT.ARROW_DOWN){
+						filterSearchBar.setListVisible(true); // show the drop down list
+					} else if(Character.isLetter(key.character)){
+						filterSearchBar.setListVisible(false); // hide the list, we are going to modify the values
+						
 						// remove all items
 						// note: doing this the hard way because removeAll method also clears the text
 						for(String item : filterSearchBar.getItems()){
 							filterSearchBar.remove(item);
 						}
 
-//						// add the autocomplete suggestions for each matching permission
-//						for(Filter filter : getApplicableFilters()){
-//							if(filter.getName().toLowerCase().contains(searchText.toLowerCase())){
-//								filterSearchBar.add(filter.getName());
-//								filterSearchBar.setData(filter.getName(), filter);
-//							}
-//						}
+						// add the autocomplete suggestions for each matching permission
+						for(Filter filter : node.getApplicableFilters()){
+							if(filter.getName().toLowerCase().contains(searchText.toLowerCase())){
+								filterSearchBar.add(filter.getName());
+							}
+						}
+						
+						// for some reason the previous actions are clearing the search text on some OS's so restoring it now
+						filterSearchBar.setText(searchText);
+						// make sure the cursor selection is at the end
+						filterSearchBar.setSelection(new Point(searchText.length(), searchText.length()));
 					}
+				} catch (Throwable t){
+					DisplayUtils.showError(t, "An unexpected error occured.");
 				}
 			}
 		});
@@ -252,7 +271,7 @@ public class FilterView extends ViewPart {
 				if(name != null){
 					try {
 						treeRoots.add(new FilterRootNode(currentSelection, name, true));
-						String plurality = (treeRoots.size() > 1 ? "s" : "");
+						String plurality = ((treeRoots.size() > 1 || treeRoots.size() == 0) ? "s" : "");
 						filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
 						refreshFilterTree();
 					} catch (IllegalArgumentException e){
@@ -289,7 +308,7 @@ public class FilterView extends ViewPart {
 					FilterRootNode root = (FilterRootNode) treeItem.getData();
 					treeRoots.remove(root);
 					root.delete();
-					String plurality = (treeRoots.size() > 1 ? "s" : "");
+					String plurality = ((treeRoots.size() > 1 || treeRoots.size() == 1) ? "s" : "");
 					filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
 					// clear the display
 					populateFilterSearchBarResults(new LinkedList<Filter>());
@@ -336,13 +355,17 @@ public class FilterView extends ViewPart {
 			result += "empty";
 		} else if(content.edges().isEmpty()){
 			// only nodes
-			result += content.nodes().size() + " nodes";
+			String plurality = ((content.nodes().size() > 1 || content.nodes().size() == 0) ? "s" : "");
+			result += content.nodes().size() + " node" + plurality;
 		} else if(content.nodes().isEmpty()){
 			// only edges
-			result += content.edges().size() + " edges";
+			String plurality = ((content.edges().size() > 1 || content.edges().size() == 0) ? "s" : "");
+			result += content.edges().size() + " edge" + plurality;
 		} else {
 			// nodes and edges
-			result += content.nodes().size() + " nodes, " + content.edges().size() + " edges";
+			String nodePlurality = ((content.nodes().size() > 1 || content.nodes().size() == 0) ? "s" : "");
+			String edgePlurality = ((content.edges().size() > 1 || content.edges().size() == 0) ? "s" : "");
+			result += content.nodes().size() + " node" + nodePlurality + ", " + content.edges().size() + " edge" + edgePlurality;
 		}
 		result += ")";
 		return result;
