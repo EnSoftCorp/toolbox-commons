@@ -56,7 +56,13 @@ public abstract class Filter {
 	 * @return
 	 */
 	public Set<String> getRequiredParameters(){
-		return new HashSet<String>(requiredParameters.keySet());
+		HashSet<String> required = new HashSet<String>();
+		for(Entry<String,Boolean> requirement : requiredParameters.entrySet()){
+			if(requirement.getValue()){
+				required.add(requirement.getKey());
+			}
+		}
+		return required;
 	}
 	
 	/**
