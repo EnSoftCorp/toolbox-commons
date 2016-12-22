@@ -24,7 +24,7 @@ public class FilterNode implements FilterTreeNode {
 	private String name;
 	private boolean expanded;
 	
-	public FilterNode(FilterNode parent, Q input, Filter filter, Map<String,Object> parameters, boolean expanded) throws InvalidFilterParameterException {
+	public FilterNode(FilterTreeNode parent, Q input, Filter filter, Map<String,Object> parameters, boolean expanded) throws InvalidFilterParameterException {
 		this.inputGraph = input.eval();
 		if(inputGraph.nodes().isEmpty()){
 			throw new IllegalArgumentException("Input is empty.");
@@ -40,6 +40,7 @@ public class FilterNode implements FilterTreeNode {
 		this.applicableFilters.addAll(Filters.getApplicableFilters(Common.toQ(outputGraph)));
 	}
 	
+	@Override
 	public FilterNode getParent(){
 		return parent;
 	}
@@ -52,12 +53,19 @@ public class FilterNode implements FilterTreeNode {
 		return filterParameters;
 	}
 	
+	@Override
 	public String getName(){
 		return name;
 	}
 	
+	@Override
 	public boolean isExpanded(){
 		return expanded;
+	}
+	
+	@Override
+	public void setExpanded(boolean expanded){
+		this.expanded = expanded;
 	}
 	
 	public LinkedList<Filter> getApplicableFilters(){
@@ -101,6 +109,17 @@ public class FilterNode implements FilterTreeNode {
 	@Override
 	public Graph getOutput() {
 		return outputGraph;
+	}
+
+	@Override
+	public void addChild(Filter filter, Map<String, Object> filterParameters) throws InvalidFilterParameterException {
+		children.add(new FilterNode(this, Common.toQ(getOutput()), filter, filterParameters, true));
+		// newly added child should be expanded along with the parents to show the path to it
+		FilterTreeNode parent = getParent();
+		while(parent != null){
+			parent.setExpanded(true);
+			parent = parent.getParent();
+		}
 	}
 	
 }

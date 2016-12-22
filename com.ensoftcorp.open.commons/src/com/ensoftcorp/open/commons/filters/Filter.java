@@ -20,6 +20,8 @@ import com.ensoftcorp.atlas.core.script.CommonQueries;
  */
 public abstract class Filter {
 
+	private Class<? extends Filter> filterType = this.getClass();
+
 	private static String SUPPORTS_NOTHING = "SUPPORTS_NOTHING";
 	private static String SUPPORTS_EVERYTHING = "SUPPORTS_EVERYTHING";
 	
@@ -216,5 +218,30 @@ public abstract class Filter {
 	@Override
 	public String toString(){
 		return getName();
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((filterType == null) ? 0 : filterType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Filter other = (Filter) obj;
+		if (filterType == null) {
+			if (other.filterType != null)
+				return false;
+		} else if (!filterType.equals(other.filterType))
+			return false;
+		return true;
 	}
 }

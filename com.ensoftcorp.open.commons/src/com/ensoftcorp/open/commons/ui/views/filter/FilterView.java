@@ -40,6 +40,10 @@ import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
+import org.eclipse.swt.events.TreeAdapter;
+import org.eclipse.swt.events.TreeEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 
 public class FilterView extends ViewPart {
 
@@ -79,10 +83,10 @@ public class FilterView extends ViewPart {
 		filterTreeLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		filterTreeLabel.setText("Filter Tree (0 roots)");
 
-		filterTree = new Tree(filterTreeComposite, /* SWT.CHECK | */ SWT.BORDER);
+		filterTree = new Tree(filterTreeComposite, SWT.SINGLE | SWT.VIRTUAL | /* SWT.CHECK | */ SWT.BORDER);
 		filterTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		filterTree.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-
+		
 		refreshFilterTree();
 
 		Composite controlPanelComposite = new Composite(sashForm, SWT.NONE);
@@ -146,6 +150,37 @@ public class FilterView extends ViewPart {
 		applyFilterButton.setText("Apply Filter");
 		sashForm.setWeights(new int[] { 1, 1 });
 		
+		// record expanded state in the data structure
+		filterTree.addTreeListener(new TreeAdapter() {
+			@Override
+			public void treeExpanded(TreeEvent e) {
+				for(TreeItem treeItem : filterTree.getSelection()){
+					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+					node.setExpanded(true);
+				}
+			}
+			
+			@Override
+			public void treeCollapsed(TreeEvent e) {
+				for(TreeItem treeItem : filterTree.getSelection()){
+					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+					node.setExpanded(false);
+				}
+			}
+		});
+		
+		// handle double click on tree item
+		filterTree.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				if(filterTree.getSelectionCount() == 1){
+					TreeItem treeItem = filterTree.getSelection()[0];
+					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+					DisplayUtils.show(Common.toQ(node.getOutput()), node.getName());
+				}
+			}
+		});
+		
 		// handle key release on search bar
 		filterSearchBar.addKeyListener(new KeyAdapter() {
 			@Override
@@ -202,7 +237,7 @@ public class FilterView extends ViewPart {
 						filterSearchBar.setSelection(new Point(searchText.length(), searchText.length()));
 					}
 				} catch (Throwable t){
-					DisplayUtils.showError(t, "An unexpected error searching filters occured.");
+					DisplayUtils.showError(t, "An unexpected error searching filters occurred.");
 				}
 			}
 		});
@@ -219,7 +254,24 @@ public class FilterView extends ViewPart {
 		applyFilterButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				// TODO: implement
+				// filter and node have to be selected for this event to occur
+				// wrapped in a try/catch just to be safe
+				try {
+					// get the selected tree node
+					TreeItem treeItem = filterTree.getSelection()[0];
+					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+					
+					// get the selected filter
+					Filter filter = (Filter) filterSearchBar.getData(filterSearchBar.getText());
+					
+					// make a copy of the parameters, cause they can change later
+					HashMap<String,Object> filterParametersCopy = new HashMap<String,Object>(filterParameters);
+					
+					node.addChild(filter, filterParametersCopy);
+					refreshFilterTree();
+				} catch (Throwable t){
+					DisplayUtils.showError(t, "An unexpected error applying filter occurred.");
+				}
 			}
 		});
 		
@@ -508,7 +560,7 @@ public class FilterView extends ViewPart {
 			}
 			
 		} catch (Throwable t){
-			DisplayUtils.showError(t, "An unexpected error populating filter contents occured.");
+			DisplayUtils.showError(t, "An unexpected error populating filter contents occurred.");
 		}
 	}
 	
@@ -566,15 +618,19 @@ public class FilterView extends ViewPart {
 				Q currentSelection = Common.toQ(selection);
 				String name = DisplayUtils.promptString("Add Root Set", "Root Set Name:", false);
 				if(name != null){
-					try {
-						treeRoots.add(new FilterRootNode(currentSelection, name, true));
-						String plurality = ((treeRoots.size() > 1 || treeRoots.size() == 0) ? "s" : "");
-						filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
-						refreshFilterTree();
-					} catch (IllegalArgumentException e){
-						DisplayUtils.showError("Could not add root set. " + e.getMessage());
-					} catch (Throwable t){
-						DisplayUtils.showError(t, "Could not add root set.");
+					if(name.trim().equals("")){
+						DisplayUtils.showError("Root set name must contain some non-whitespace characters.");
+					} else {
+						try {
+							treeRoots.add(new FilterRootNode(currentSelection, name, true));
+							String plurality = ((treeRoots.size() > 1 || treeRoots.size() == 0) ? "s" : "");
+							filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
+							refreshFilterTree();
+						} catch (IllegalArgumentException e){
+							DisplayUtils.showError("Could not add root set. " + e.getMessage());
+						} catch (Throwable t){
+							DisplayUtils.showError(t, "Could not add root set.");
+						}
 					}
 				}
 			}
@@ -586,11 +642,15 @@ public class FilterView extends ViewPart {
 					FilterRootNode root = (FilterRootNode) treeItem.getData();
 					String name = DisplayUtils.promptString("Rename Root Set", "Root Set Name:", false);
 					if(name != null){
-						try {
-							root.rename(name);
-							refreshFilterTree();
-						} catch (Exception e){
-							DisplayUtils.showError("Could not rename root set. " + e.getMessage());
+						if(name.trim().equals("")){
+							DisplayUtils.showError("Root set name must contain some non-whitespace characters.");
+						} else {
+							try {
+								root.rename(name);
+								refreshFilterTree();
+							} catch (Exception e){
+								DisplayUtils.showError("Could not rename root set. " + e.getMessage());
+							}
 						}
 					}
 				} else {
@@ -619,27 +679,44 @@ public class FilterView extends ViewPart {
 	}
 
 	private void refreshFilterTree() {
+		filterTree.setRedraw(false);
+		
+		// clear the tree
 		filterTree.removeAll();
+		
+		// add each tree node
 		for(FilterRootNode treeRoot : treeRoots){
 			addTreeRootItem(treeRoot);
+		}
+		
+		// set whether or not the nodes are expanded
+		restoreExpandedState(filterTree.getItems());
+		
+		filterTree.setRedraw(true);
+		filterTree.redraw();
+	}
+	
+	private void restoreExpandedState(TreeItem[] treeItems){
+		for(TreeItem treeItem : treeItems){
+			FilterTreeNode node = (FilterTreeNode) treeItem.getData();
+			treeItem.setExpanded(node.isExpanded());
+			restoreExpandedState(treeItem.getItems());
 		}
 	}
 
 	private void addTreeRootItem(FilterRootNode root){
-		TreeItem treeItem = new TreeItem(filterTree, SWT.NONE);
+		TreeItem treeItem = new TreeItem(filterTree, SWT.VIRTUAL);
 		treeItem.setData(root);
 		treeItem.setText(root.getName() + " " + summarizeContent(root.getOutput()));
-		treeItem.setExpanded(root.isExpanded());
 		for(FilterTreeNode node : root.getChildren()){
 			addFilterTreeItem(node, treeItem);
 		}
 	}
 	
 	private void addFilterTreeItem(FilterTreeNode node, TreeItem treeItem){
-		TreeItem subTreeItem = new TreeItem(treeItem, SWT.NONE);
+		TreeItem subTreeItem = new TreeItem(treeItem, SWT.VIRTUAL);
 		subTreeItem.setData(node);
 		subTreeItem.setText(node.getName() + " " + summarizeContent(node.getOutput()));
-		subTreeItem.setExpanded(node.isExpanded());
 		for(FilterTreeNode child : node.getChildren()){
 			addFilterTreeItem(child, subTreeItem);
 		}

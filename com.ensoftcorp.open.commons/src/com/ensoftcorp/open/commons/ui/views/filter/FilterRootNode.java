@@ -3,12 +3,15 @@ package com.ensoftcorp.open.commons.ui.views.filter;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
+import com.ensoftcorp.open.commons.filters.InvalidFilterParameterException;
 
 public class FilterRootNode implements FilterTreeNode {
 
@@ -71,6 +74,11 @@ public class FilterRootNode implements FilterTreeNode {
 	}
 	
 	@Override
+	public void setExpanded(boolean expanded){
+		this.expanded = expanded;
+	}
+	
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -102,5 +110,11 @@ public class FilterRootNode implements FilterTreeNode {
 
 	public void delete() {
 		uniqueNames.remove(name);
+	}
+
+	@Override
+	public void addChild(Filter filter, Map<String, Object> filterParameters) throws InvalidFilterParameterException {
+		children.add(new FilterNode(this, Common.toQ(getOutput()), filter, filterParameters, true));
+		setExpanded(true);
 	}
 }
