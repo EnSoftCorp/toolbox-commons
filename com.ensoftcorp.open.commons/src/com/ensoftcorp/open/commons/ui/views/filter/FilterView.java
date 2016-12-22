@@ -154,18 +154,14 @@ public class FilterView extends ViewPart {
 		filterTree.addTreeListener(new TreeAdapter() {
 			@Override
 			public void treeExpanded(TreeEvent e) {
-				for(TreeItem treeItem : filterTree.getSelection()){
-					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
-					node.setExpanded(true);
-				}
+				FilterTreeNode node = (FilterTreeNode) e.item.getData();
+				node.setExpanded(true);
 			}
 			
 			@Override
 			public void treeCollapsed(TreeEvent e) {
-				for(TreeItem treeItem : filterTree.getSelection()){
-					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
-					node.setExpanded(false);
-				}
+				FilterTreeNode node = (FilterTreeNode) e.item.getData();
+				node.setExpanded(false);
 			}
 		});
 		
