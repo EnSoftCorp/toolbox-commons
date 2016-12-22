@@ -375,7 +375,6 @@ public class FilterView extends ViewPart {
 										filterParameters.put(parameterName, text);
 										validateFilterParameters(filter);
 									} else {
-										filterParameters.put(parameterName, null);
 										setValidationErrorMessage(parameterName + " must be an non-empty string.");
 										applyFilterButton.setEnabled(false);
 									}
@@ -394,7 +393,6 @@ public class FilterView extends ViewPart {
 									filterParameters.put(parameterName, text);
 									validateFilterParameters(filter);
 								} else {
-									filterParameters.put(parameterName, null);
 									setValidationErrorMessage(parameterName + " must be an non-empty string.");
 									applyFilterButton.setEnabled(false);
 								}
@@ -428,7 +426,6 @@ public class FilterView extends ViewPart {
 										filterParameters.put(parameterName, Integer.parseInt(integerInputText.getText()));
 										validateFilterParameters(filter);
 									} catch (Exception ex){
-										filterParameters.put(parameterName, null);
 										setValidationErrorMessage(parameterName + " must be an integer.");
 										applyFilterButton.setEnabled(false);
 									}
@@ -446,7 +443,6 @@ public class FilterView extends ViewPart {
 									filterParameters.put(parameterName, Integer.parseInt(integerInputText.getText()));
 									validateFilterParameters(filter);
 								} catch (Exception ex){
-									filterParameters.put(parameterName, null);
 									setValidationErrorMessage(parameterName + " must be an integer.");
 									applyFilterButton.setEnabled(false);
 								}
@@ -480,7 +476,6 @@ public class FilterView extends ViewPart {
 										filterParameters.put(parameterName, Double.parseDouble(doubleInputText.getText()));
 										validateFilterParameters(filter);
 									} catch (Exception ex){
-										filterParameters.put(parameterName, null);
 										setValidationErrorMessage(parameterName + " must be a double.");
 										applyFilterButton.setEnabled(false);
 									}
@@ -498,7 +493,6 @@ public class FilterView extends ViewPart {
 									filterParameters.put(parameterName, Double.parseDouble(doubleInputText.getText()));
 									validateFilterParameters(filter);
 								} catch (Exception ex){
-									filterParameters.put(parameterName, null);
 									setValidationErrorMessage(parameterName + " must be a double.");
 									applyFilterButton.setEnabled(false);
 								}

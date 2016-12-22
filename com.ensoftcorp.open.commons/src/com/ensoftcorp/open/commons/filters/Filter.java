@@ -97,7 +97,7 @@ public abstract class Filter {
 		}
 		for(String parameter : getRequiredParameters()){
 			if(!parameters.containsKey(parameter)){
-				throw new InvalidFilterParameterException("Missing required parameter: " + parameter);
+				throw new InvalidFilterParameterException(parameter + " is required.");
 			}
 		}
 	}
@@ -109,10 +109,9 @@ public abstract class Filter {
 	 */
 	private void checkParameter(String name, Object value) throws InvalidFilterParameterException {
 		if(!parameterNames.containsKey(name)){
-			throw new InvalidFilterParameterException("Parameter name [" + name + "] is not a valid parameter for the " + getName() + " filter.");
-			
-		} else if(parameterNames.get(name) == value.getClass()){
-			throw new InvalidFilterParameterException("Parameter name [" + name + "] must be a " + parameterNames.get(name).getName() + " type.");
+			throw new InvalidFilterParameterException(name + " is not a valid parameter for the " + getName() + " filter.");
+		} else if(parameterNames.get(name) != value.getClass()){
+			throw new InvalidFilterParameterException(name + " must be a " + parameterNames.get(name).getName() + " type.");
 		}
 	}
 
