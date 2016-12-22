@@ -2,8 +2,9 @@ package com.ensoftcorp.open.commons.ui.views.filter;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -50,6 +51,10 @@ public class FilterView extends ViewPart {
 	private Combo filterSearchBar;
 	private ScrolledComposite filterParametersScrolledComposite;
 	private Button applyFilterButton;
+	private Label errorLabel;
+	
+	// the filter parameters to be used when applying a filter
+	private Map<String,Object> filterParameters = new HashMap<String,Object>();
 	
 	// the current Atlas selection
 	private Graph selection = Common.empty().eval();
@@ -131,9 +136,9 @@ public class FilterView extends ViewPart {
 		applyFilterComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		applyFilterComposite.setLayout(new GridLayout(2, false));
 
-		Label errorLabel = new Label(applyFilterComposite, SWT.NONE);
+		errorLabel = new Label(applyFilterComposite, SWT.NONE);
 		errorLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
-		errorLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+		errorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
 		applyFilterButton = new Button(applyFilterComposite, SWT.NONE);
 		applyFilterButton.setEnabled(false);
@@ -263,6 +268,9 @@ public class FilterView extends ViewPart {
 		filterParametersScrolledComposite.setContent(noSelectedFilterLabel);
 		filterParametersScrolledComposite.setMinSize(noSelectedFilterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
+		filterParameters.clear();
+		clearValidationErrorMessage();
+		
 		applyFilterButton.setEnabled(false);
 	}
 	
@@ -272,6 +280,9 @@ public class FilterView extends ViewPart {
 		try {
 			Filter filter = (Filter) filterSearchBar.getData(filterSearchBar.getText());
 			
+			filterParameters.clear();
+			validateFilterParameters(filter);
+			
 			if(filter.getPossibleParameters().isEmpty()){
 				Label noParamsLabel = new Label(filterParametersScrolledComposite, SWT.NONE);
 				noParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
@@ -279,7 +290,6 @@ public class FilterView extends ViewPart {
 				noParamsLabel.setText("No parameters available for this filter.");
 				filterParametersScrolledComposite.setContent(noParamsLabel);
 				filterParametersScrolledComposite.setMinSize(noParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-				applyFilterButton.setEnabled(true);
 			} else {
 				Composite inputComposite = new Composite(filterParametersScrolledComposite, SWT.NONE);
 				inputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
@@ -319,13 +329,21 @@ public class FilterView extends ViewPart {
 								boolean enabled = enableBooleanInputCheckbox.getSelection();
 								booleanInputLabel.setEnabled(enabled);
 								booleanInputCheckbox.setEnabled(enabled);
+								if(enabled){
+									filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
+									validateFilterParameters(filter);
+								} else {
+									filterParameters.remove(parameterName);
+									validateFilterParameters(filter);
+								}
 							}
 						});
 
 						booleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
 							@Override
 							public void widgetSelected(SelectionEvent e) {
-								
+								filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
+								validateFilterParameters(filter);
 							}
 						});
 					} else if(parameterType == String.class){
@@ -351,13 +369,35 @@ public class FilterView extends ViewPart {
 								boolean enabled = enableStringInputCheckbox.getSelection();
 								stringInputLabel.setEnabled(enabled);
 								stringInputText.setEnabled(enabled);
+								if(enabled){
+									String text = stringInputText.getText();
+									if(!text.equals("")){
+										filterParameters.put(parameterName, text);
+										validateFilterParameters(filter);
+									} else {
+										filterParameters.put(parameterName, null);
+										setValidationErrorMessage(parameterName + " must be an non-empty string.");
+										applyFilterButton.setEnabled(false);
+									}
+								} else {
+									filterParameters.remove(parameterName);
+									validateFilterParameters(filter);
+								}
 							}
 						});
 
 						stringInputText.addKeyListener(new KeyAdapter() {
 							@Override
 							public void keyReleased(KeyEvent e) {
-								
+								String text = stringInputText.getText();
+								if(!text.equals("")){
+									filterParameters.put(parameterName, text);
+									validateFilterParameters(filter);
+								} else {
+									filterParameters.put(parameterName, null);
+									setValidationErrorMessage(parameterName + " must be an non-empty string.");
+									applyFilterButton.setEnabled(false);
+								}
 							}
 						});
 					} else if(parameterType == Integer.class){
@@ -383,13 +423,33 @@ public class FilterView extends ViewPart {
 								boolean enabled = enableIntegerInputCheckbox.getSelection();
 								integerInputLabel.setEnabled(enabled);
 								integerInputText.setEnabled(enabled);
+								if(enabled){
+									try {
+										filterParameters.put(parameterName, Integer.parseInt(integerInputText.getText()));
+										validateFilterParameters(filter);
+									} catch (Exception ex){
+										filterParameters.put(parameterName, null);
+										setValidationErrorMessage(parameterName + " must be an integer.");
+										applyFilterButton.setEnabled(false);
+									}
+								} else {
+									filterParameters.remove(parameterName);
+									validateFilterParameters(filter);
+								}
 							}
 						});
 
 						integerInputText.addKeyListener(new KeyAdapter() {
 							@Override
 							public void keyReleased(KeyEvent e) {
-								
+								try {
+									filterParameters.put(parameterName, Integer.parseInt(integerInputText.getText()));
+									validateFilterParameters(filter);
+								} catch (Exception ex){
+									filterParameters.put(parameterName, null);
+									setValidationErrorMessage(parameterName + " must be an integer.");
+									applyFilterButton.setEnabled(false);
+								}
 							}
 						});
 					} else if(parameterType == Double.class){
@@ -415,13 +475,33 @@ public class FilterView extends ViewPart {
 								boolean enabled = enableDoubleInputCheckbox.getSelection();
 								doubleInputLabel.setEnabled(enabled);
 								doubleInputText.setEnabled(enabled);
+								if(enabled){
+									try {
+										filterParameters.put(parameterName, Double.parseDouble(doubleInputText.getText()));
+										validateFilterParameters(filter);
+									} catch (Exception ex){
+										filterParameters.put(parameterName, null);
+										setValidationErrorMessage(parameterName + " must be a double.");
+										applyFilterButton.setEnabled(false);
+									}
+								} else {
+									filterParameters.remove(parameterName);
+									validateFilterParameters(filter);
+								}
 							}
 						});
 
 						doubleInputText.addKeyListener(new KeyAdapter() {
 							@Override
 							public void keyReleased(KeyEvent e) {
-								
+								try {
+									filterParameters.put(parameterName, Double.parseDouble(doubleInputText.getText()));
+									validateFilterParameters(filter);
+								} catch (Exception ex){
+									filterParameters.put(parameterName, null);
+									setValidationErrorMessage(parameterName + " must be a double.");
+									applyFilterButton.setEnabled(false);
+								}
 							}
 						});
 					} else {
@@ -436,6 +516,25 @@ public class FilterView extends ViewPart {
 		} catch (Throwable t){
 			DisplayUtils.showError(t, "An unexpected error populating filter contents occured.");
 		}
+	}
+	
+	private void validateFilterParameters(Filter filter){
+		try {
+			filter.checkParameters(filterParameters);
+			clearValidationErrorMessage();
+			applyFilterButton.setEnabled(true);
+		} catch (Exception e){
+			setValidationErrorMessage(e.getMessage());
+			applyFilterButton.setEnabled(false);
+		}
+	}
+	
+	private void clearValidationErrorMessage() {
+		errorLabel.setText("");
+	}
+	
+	private void setValidationErrorMessage(String message) {
+		errorLabel.setText(message);
 	}
 
 	private void populateFilterSearchBarResults(Collection<Filter> applicableFilters){
