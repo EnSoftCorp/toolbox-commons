@@ -21,12 +21,21 @@ import com.ensoftcorp.atlas.core.script.CommonQueries;
 public abstract class Filter {
 
 	private Class<? extends Filter> filterType = this.getClass();
-
+	private int numRequiredParameters = 0;
+	
 	private static String SUPPORTS_NOTHING = "SUPPORTS_NOTHING";
 	private static String SUPPORTS_EVERYTHING = "SUPPORTS_EVERYTHING";
 	
 	protected static String[] EVERYTHING = { SUPPORTS_EVERYTHING };
 	protected static String[] NOTHING = { SUPPORTS_NOTHING };
+	
+	public void setMinimumNumberParametersRequired(int numRequired){
+		numRequiredParameters = numRequired;
+	}
+	
+	public int getMinimumNumberParametersRequired(){
+		return numRequiredParameters;
+	}
 	
 	protected Q input = Common.empty();
 	
@@ -101,6 +110,9 @@ public abstract class Filter {
 			if(!parameters.containsKey(parameter)){
 				throw new InvalidFilterParameterException(parameter + " is required.");
 			}
+		}
+		if(parameters.keySet().size() < numRequiredParameters){
+			throw new InvalidFilterParameterException("At least " + numRequiredParameters + " parameter" + (numRequiredParameters > 1 ? "s" : "") + " must be set.");
 		}
 	}
 	

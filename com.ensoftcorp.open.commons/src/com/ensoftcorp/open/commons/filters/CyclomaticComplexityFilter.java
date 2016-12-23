@@ -32,6 +32,7 @@ public class CyclomaticComplexityFilter extends NodeFilter {
 		this.addPossibleParameter(COMPLEXITY_GREATER_THAN_EQUAL_TO, Integer.class, false);
 		this.addPossibleParameter(COMPLEXITY_LESS_THAN, Integer.class, false);
 		this.addPossibleParameter(COMPLEXITY_LESS_THAN_EQUAL_TO, Integer.class, false);
+		this.setMinimumNumberParametersRequired(1);
 	}
 
 	@Override
@@ -100,7 +101,7 @@ public class CyclomaticComplexityFilter extends NodeFilter {
 
 	@Override
 	protected String[] getSupportedNodeTags() {
-		return new String[]{ XCSG.Method };
+		return new String[]{ XCSG.Function };
 	}
 
 }
