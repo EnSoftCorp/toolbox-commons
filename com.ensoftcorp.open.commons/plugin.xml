@@ -149,4 +149,14 @@
       <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage"></codemap>
    </extension>
 
+   <!-- adds analyzer definitions -->
+   <extension point="com.ensoftcorp.open.commons.analyzer">
+      <analyzer class="com.ensoftcorp.open.commons.analyzers.CyclomaticComplexity"></analyzer>
+   </extension>
+   
+   <!-- adds filter definitions -->
+   <extension point="com.ensoftcorp.open.commons.filter">
+      <filter class="com.ensoftcorp.open.commons.filters.CyclomaticComplexityFilter"></filter>
+   </extension>
+
 </plugin>

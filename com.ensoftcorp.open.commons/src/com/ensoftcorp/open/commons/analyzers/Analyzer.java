@@ -39,6 +39,7 @@ public abstract class Analyzer {
 	 */
 	public static class Result {
 		private String displayLabel;
+		private Object data = null;
 		private Q q;
 		
 		public Result(String displayLabel, Q q){
@@ -52,6 +53,14 @@ public abstract class Analyzer {
 		
 		public Q getQ(){
 			return q;
+		}
+		
+		public Object getData(){
+			return data;
+		}
+		
+		public void setData(Object data){
+			this.data = data;
 		}
 	}
 	
@@ -88,11 +97,11 @@ public abstract class Analyzer {
 	 * Defines the sorted ordering for the results (by label)
 	 * @return
 	 */
-	public Comparator<String> getResultOrder(){
-		return new Comparator<String>(){
+	public Comparator<Result> getResultOrder(){
+		return new Comparator<Result>(){
 			@Override
-			public int compare(String o1, String o2) {
-				return o1.compareToIgnoreCase(o2);
+			public int compare(Result o1, Result o2) {
+				return o1.getDisplayLabel().compareToIgnoreCase(o2.getDisplayLabel());
 			}
 		};
 	}
