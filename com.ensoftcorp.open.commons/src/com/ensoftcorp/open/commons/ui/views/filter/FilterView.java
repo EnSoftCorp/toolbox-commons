@@ -5,14 +5,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TreeAdapter;
+import org.eclipse.swt.events.TreeEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -40,10 +46,6 @@ import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
-import org.eclipse.swt.events.TreeAdapter;
-import org.eclipse.swt.events.TreeEvent;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 
 public class FilterView extends ViewPart {
 
@@ -105,7 +107,7 @@ public class FilterView extends ViewPart {
 		label.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 
 		applicableFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
-		applicableFiltersLabel.setText("(0/" + Filters.getRegisteredFilters().size() + ") Filters Applicable");
+		applicableFiltersLabel.setText("(0/" + Filters.getRegisteredFilters().size() + ") Applicable Filters");
 
 		filterSearchBar = new Combo(controlPanelComposite, SWT.NONE);
 		filterSearchBar.setEnabled(false);
@@ -130,7 +132,6 @@ public class FilterView extends ViewPart {
 
 		Label noSelectedFilterLabel = new Label(filterParametersScrolledComposite, SWT.NONE);
 		noSelectedFilterLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		noSelectedFilterLabel.setAlignment(SWT.CENTER);
 		noSelectedFilterLabel.setText("No filter selected.");
 		filterParametersScrolledComposite.setContent(noSelectedFilterLabel);
 		filterParametersScrolledComposite.setMinSize(noSelectedFilterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -281,6 +282,11 @@ public class FilterView extends ViewPart {
 					TreeItem treeItem = filterTree.getSelection()[0];
 					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
 					populateFilterSearchBarResults(node.getApplicableFilters());
+					
+					if(node instanceof FilterNode){
+						// show the parameters the filter was applied with
+						populateAppliedParameters(((FilterNode) node).getFilter(), ((FilterNode) node).getFilterParameters());
+					}
 				} else {
 					// nothing is applicable
 					populateFilterSearchBarResults(new LinkedList<Filter>());
@@ -308,10 +314,31 @@ public class FilterView extends ViewPart {
 		SelectionUtil.addSelectionListener(selectionListener);
 	}
 	
+	private void populateAppliedParameters(Filter filter, Map<String, Object> filterParameters) {
+		StyledText filterParametersSummary = new StyledText(filterParametersScrolledComposite, SWT.READ_ONLY | SWT.WRAP);
+		filterParametersSummary.setEditable(false);
+		filterParametersSummary.setText(summarizeFilterParameters(filter, filterParameters));
+		filterParametersScrolledComposite.setContent(filterParametersSummary);
+		filterParametersScrolledComposite.setMinSize(filterParametersSummary.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+	}
+	
+	private String summarizeFilterParameters(Filter filter, Map<String, Object> filterParameters) {
+		StringBuilder result = new StringBuilder();
+		for(Entry<String,Object> filterParameter : filterParameters.entrySet()){
+			result.append(filterParameter.getKey() + ": " + filterParameter.getValue().toString() + "\n");
+		}
+		
+		String summary = result.toString().trim();
+		if(summary.equals("")){
+			return "No parameters were provided to the selected filter.";
+		} else {
+			return summary;
+		}
+	}
+
 	private void clearFilterSelection() {
 		Label noSelectedFilterLabel = new Label(filterParametersScrolledComposite, SWT.NONE);
 		noSelectedFilterLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		noSelectedFilterLabel.setAlignment(SWT.CENTER);
 		noSelectedFilterLabel.setText("No filter selected.");
 		filterParametersScrolledComposite.setContent(noSelectedFilterLabel);
 		filterParametersScrolledComposite.setMinSize(noSelectedFilterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -582,7 +609,7 @@ public class FilterView extends ViewPart {
 	private void populateFilterSearchBarResults(Collection<Filter> applicableFilters){
 		// update the search bar with the applicable filters
 		filterSearchBar.removeAll();
-		applicableFiltersLabel.setText("(" + applicableFilters.size() + "/" + Filters.getRegisteredFilters().size() + ") Filters Applicable");
+		applicableFiltersLabel.setText("(" + applicableFilters.size() + "/" + Filters.getRegisteredFilters().size() + ") Applicable Filters");
 		for(Filter filter : applicableFilters){
 			filterSearchBar.add(filter.getName());
 			filterSearchBar.setData(filter.getName(), filter);

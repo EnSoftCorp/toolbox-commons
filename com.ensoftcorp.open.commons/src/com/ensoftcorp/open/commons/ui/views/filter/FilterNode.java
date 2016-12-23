@@ -38,6 +38,15 @@ public class FilterNode implements FilterTreeNode {
 		this.filterParameters = parameters;
 		this.outputGraph = filter.filter(input, parameters).eval();
 		this.applicableFilters.addAll(Filters.getApplicableFilters(Common.toQ(outputGraph)));
+		// remove filters that have been already applied
+		applicableFilters.remove(filter);
+		FilterTreeNode current = parent;
+		while(current != null){
+			if(current instanceof FilterNode){
+				applicableFilters.remove(((FilterNode) current).getFilter());
+			}
+			current = current.getParent();
+		}
 	}
 	
 	@Override

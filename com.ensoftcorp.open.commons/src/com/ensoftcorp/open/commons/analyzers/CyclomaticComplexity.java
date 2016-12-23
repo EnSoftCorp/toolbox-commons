@@ -38,7 +38,7 @@ public class CyclomaticComplexity extends Analyzer {
 
 	@Override
 	public Map<String,Result> getResults(Q context) {
-		Q functions = Common.universe().nodesTaggedWithAny(XCSG.Function);
+		Q functions = context.nodesTaggedWithAny(XCSG.Function);
 		HashMap<String,Result> results = new HashMap<String,Result>();
 		for(Node function : functions.eval().nodes()){
 			Integer metric = cyclomaticComplexity(function);
