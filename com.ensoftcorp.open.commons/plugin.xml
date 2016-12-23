@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   
-   
-   
-   <!-- add analyzer defintions -->
-   <extension point="com.ensoftcorp.open.commons.filter">
-      <filter class="com.ensoftcorp.open.commons.filters.examples.LoopNestingDepthFilter"></filter>
-   </extension>
-   
-   
-   
-   
+
    <!-- create an Atlas Toolbox parent preferences menu item -->
    <extension
          point="org.eclipse.ui.preferencePages">
