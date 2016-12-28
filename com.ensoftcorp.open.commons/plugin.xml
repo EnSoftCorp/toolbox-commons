@@ -158,5 +158,8 @@
    <extension point="com.ensoftcorp.open.commons.filter">
       <filter class="com.ensoftcorp.open.commons.filters.CyclomaticComplexityFilter"></filter>
    </extension>
+   <extension point="com.ensoftcorp.open.commons.filter">
+      <filter class="com.ensoftcorp.open.commons.filters.SubsystemInteractionFilter"></filter>
+   </extension>
 
 </plugin>

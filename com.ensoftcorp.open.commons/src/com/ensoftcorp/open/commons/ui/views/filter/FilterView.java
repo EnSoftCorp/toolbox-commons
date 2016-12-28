@@ -389,10 +389,12 @@ public class FilterView extends ViewPart {
 
 						final Button enableBooleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
 						enableBooleanInputCheckbox.setEnabled(!requiredParameter);
+						enableBooleanInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
 
 						final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
 						booleanInputLabel.setEnabled(requiredParameter);
 						booleanInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+						booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
 
 						final Button booleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
 						booleanInputCheckbox.setEnabled(requiredParameter);
@@ -429,10 +431,12 @@ public class FilterView extends ViewPart {
 
 						final Button enableStringInputCheckbox = new Button(stringInputComposite, SWT.CHECK);
 						enableStringInputCheckbox.setEnabled(!requiredParameter);
+						enableStringInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
 
 						final Label stringInputLabel = new Label(stringInputComposite, SWT.NONE);
 						stringInputLabel.setEnabled(requiredParameter);
 						stringInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+						stringInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
 
 						final Text stringInputText = new Text(stringInputComposite, SWT.BORDER);
 						stringInputText.setEnabled(requiredParameter);
@@ -481,11 +485,13 @@ public class FilterView extends ViewPart {
 
 						final Button enableIntegerInputCheckbox = new Button(integerInputComposite, SWT.CHECK);
 						enableIntegerInputCheckbox.setEnabled(!requiredParameter);
-
+						enableIntegerInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						
 						final Label integerInputLabel = new Label(integerInputComposite, SWT.NONE);
 						integerInputLabel.setEnabled(requiredParameter);
 						integerInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
-
+						integerInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						
 						final Text integerInputText = new Text(integerInputComposite, SWT.BORDER);
 						integerInputText.setEnabled(requiredParameter);
 						integerInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -531,11 +537,13 @@ public class FilterView extends ViewPart {
 
 						final Button enableDoubleInputCheckbox = new Button(doubleInputComposite, SWT.CHECK);
 						enableDoubleInputCheckbox.setEnabled(!requiredParameter);
-
+						enableDoubleInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						
 						final Label doubleInputLabel = new Label(doubleInputComposite, SWT.NONE);
 						doubleInputLabel.setEnabled(requiredParameter);
 						doubleInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
-
+						doubleInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						
 						final Text doubleInputText = new Text(doubleInputComposite, SWT.BORDER);
 						doubleInputText.setEnabled(requiredParameter);
 						doubleInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
