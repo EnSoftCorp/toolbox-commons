@@ -28,10 +28,10 @@ public class CyclomaticComplexityFilter extends NodeFilter {
 	private static final String COMPLEXITY_LESS_THAN_EQUAL_TO = "COMPLEXITY_LESS_THAN_EQUAL_TO";
 
 	public CyclomaticComplexityFilter() {
-		this.addPossibleParameter(COMPLEXITY_GREATER_THAN, Integer.class, false);
-		this.addPossibleParameter(COMPLEXITY_GREATER_THAN_EQUAL_TO, Integer.class, false);
-		this.addPossibleParameter(COMPLEXITY_LESS_THAN, Integer.class, false);
-		this.addPossibleParameter(COMPLEXITY_LESS_THAN_EQUAL_TO, Integer.class, false);
+		this.addPossibleParameter(COMPLEXITY_GREATER_THAN, Integer.class, false, "Filters functions with cyclomatic complexity less than or equal to the specified value");
+		this.addPossibleParameter(COMPLEXITY_GREATER_THAN_EQUAL_TO, Integer.class, false, "Filters functions with cyclomatic complexity less than the specified value");
+		this.addPossibleParameter(COMPLEXITY_LESS_THAN, Integer.class, false, "Filters functions with cyclomatic complexity greater than or equal to the specified value");
+		this.addPossibleParameter(COMPLEXITY_LESS_THAN_EQUAL_TO, Integer.class, false, "Filters functions with cyclomatic complexity greater than the specified value");
 		this.setMinimumNumberParametersRequired(1);
 	}
 

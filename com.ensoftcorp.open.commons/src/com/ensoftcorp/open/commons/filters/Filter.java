@@ -40,6 +40,7 @@ public abstract class Filter {
 	protected Q input = Common.empty();
 	
 	private Map<String,Class<? extends Object>> parameterNames = new HashMap<String,Class<? extends Object>>();
+	private Map<String,String> parameterDescriptions = new HashMap<String,String>();
 	private Map<String,Boolean> requiredParameters = new HashMap<String,Boolean>();
 	
 	/**
@@ -47,8 +48,9 @@ public abstract class Filter {
 	 * @param name
 	 * @param type
 	 */
-	protected void addPossibleParameter(String name, Class<? extends Object> type, boolean required){
+	protected void addPossibleParameter(String name, Class<? extends Object> type, boolean required, String description){
 		parameterNames.put(name, type);
+		parameterDescriptions.put(name, description);
 		requiredParameters.put(name, required);
 	}
 	
@@ -60,6 +62,15 @@ public abstract class Filter {
 		Map<String,Class<? extends Object>> possibleParams = new HashMap<String,Class<? extends Object>>();
 		possibleParams.putAll(parameterNames);
 		return possibleParams;
+	}
+	
+	/**
+	 * Returns the parameter description or null if the parameter does not exist
+	 * @param parameter
+	 * @return
+	 */
+	public String getParameterDescription(String parameter){
+		return parameterDescriptions.get(parameter);
 	}
 	
 	/**
