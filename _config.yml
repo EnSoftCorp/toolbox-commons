@@ -85,6 +85,5 @@ exclude:
 
 # Include the following files and directories
 include:
-    - atlas2-updates/
     - updates/
     - javadoc/
