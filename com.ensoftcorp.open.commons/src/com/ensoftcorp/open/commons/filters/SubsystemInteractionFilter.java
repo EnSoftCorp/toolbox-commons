@@ -3,7 +3,6 @@ package com.ensoftcorp.open.commons.filters;
 import java.util.ArrayList;
 import java.util.Map;
 
-import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
