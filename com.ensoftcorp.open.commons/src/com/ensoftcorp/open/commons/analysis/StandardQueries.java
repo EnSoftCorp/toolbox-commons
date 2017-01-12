@@ -284,7 +284,7 @@ public final class StandardQueries {
 	 * @param graph
 	 * @return
 	 */
-	public static GraphElement leastCommonAncestor(GraphElement child1, GraphElement child2, Graph graph){
+	public static Node leastCommonAncestor(Node child1, Node child2, Graph graph){
 		return leastCommonAncestor(child1, child2, Common.toQ(graph));
 	}
 	
@@ -295,7 +295,7 @@ public final class StandardQueries {
 	 * @param graph
 	 * @return
 	 */
-	public static GraphElement leastCommonAncestor(GraphElement child1, GraphElement child2, Q graph){
+	public static Node leastCommonAncestor(Node child1, Node child2, Q graph){
 		Q ancestors = graph.reverse(Common.toQ(child1)).intersection(graph.reverse(Common.toQ(child2)));
 		return ancestors.leaves().eval().nodes().getFirst();
 	}
