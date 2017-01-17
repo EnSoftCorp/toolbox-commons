@@ -3,10 +3,10 @@
 <schema targetNamespace="com.ensoftcorp.open.commons" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="com.ensoftcorp.open.commons" id="com.ensoftcorp.open.commons.analyzer" name="Analyzer"/>
+         <meta.schema plugin="com.ensoftcorp.open.commons" id="com.ensoftcorp.open.commons.filter.rootset" name="Filterable Rootset"/>
       </appinfo>
       <documentation>
-         This extension point allows plugins to contribute analyzer definitions.
+         This extension point allows plugins to contribute rootsetable root set definitions.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <choice minOccurs="1" maxOccurs="unbounded">
-            <element ref="analyzer"/>
+            <element ref="rootset"/>
          </choice>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,7 +47,7 @@
       </complexType>
    </element>
 
-   <element name="analyzer">
+   <element name="rootset">
       <complexType>
          <attribute name="class" type="string">
             <annotation>
@@ -55,7 +55,7 @@
                   
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn="com.ensoftcorp.open.commons.analysis.analyzers.Analyzer:"/>
+                  <meta.attribute kind="java" basedOn="com.ensoftcorp.open.commons.filters.rootset.FilterableRootset:"/>
                </appinfo>
             </annotation>
          </attribute>

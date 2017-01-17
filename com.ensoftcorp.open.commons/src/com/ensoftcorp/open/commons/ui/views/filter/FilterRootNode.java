@@ -25,9 +25,13 @@ public class FilterRootNode implements FilterTreeNode {
 	private boolean expanded;
 	
 	public FilterRootNode(Q rootSet, String name, boolean expanded){
+		this(rootSet, name, expanded, false);
+	}
+	
+	public FilterRootNode(Q rootSet, String name, boolean expanded, boolean allowEmptyRootset){
 		this.rootSet = rootSet.eval();
-		if(rootSet.eval().nodes().isEmpty()){
-			throw new IllegalArgumentException("Root set input is empty. Please make an Atlas selection.");
+		if(!allowEmptyRootset && rootSet.eval().nodes().isEmpty()){
+			throw new IllegalArgumentException("Root set input is empty.");
 		}
 		this.name = name;
 		if(uniqueNames.contains(name)){

@@ -116,6 +116,7 @@
    		schema="schema/com.ensoftcorp.open.commons.codemap.exsd"/>
    <extension-point id="com.ensoftcorp.open.commons.filter" name="Filter" schema="schema/com.ensoftcorp.open.commons.filter.exsd"/>
    <extension-point id="com.ensoftcorp.open.commons.analyzer" name="Analyzer" schema="schema/com.ensoftcorp.open.commons.analyzer.exsd"/>
+   <extension-point id="com.ensoftcorp.open.commons.filter.rootset" name="Filterable Root Set" schema="schema/com.ensoftcorp.open.commons.filter.rootset.exsd"/>
    
    <!-- adds a post code map hook for running registered prioritized codemap stages -->
    <extension
@@ -161,5 +162,20 @@
    <extension point="com.ensoftcorp.open.commons.filter">
       <filter class="com.ensoftcorp.open.commons.filters.SubsystemInteractionFilter"></filter>
    </extension>
+   
+   <!-- adds filter rootset definitions -->
+   <extension point="com.ensoftcorp.open.commons.filter.rootset">
+      <rootset class="com.ensoftcorp.open.commons.filters.rootset.UniverseRootset"></rootset>
+   </extension>
+   <extension point="com.ensoftcorp.open.commons.filter.rootset">
+      <rootset class="com.ensoftcorp.open.commons.filters.rootset.ApplicationRootset"></rootset>
+   </extension>
+   <extension point="com.ensoftcorp.open.commons.filter.rootset">
+      <rootset class="com.ensoftcorp.open.commons.filters.rootset.ApplicationFunctionsRootset"></rootset>
+   </extension>
+   <extension point="com.ensoftcorp.open.commons.filter.rootset">
+      <rootset class="com.ensoftcorp.open.commons.filters.rootset.ApplicationConditionsRootset"></rootset>
+   </extension>
+   
 
 </plugin>

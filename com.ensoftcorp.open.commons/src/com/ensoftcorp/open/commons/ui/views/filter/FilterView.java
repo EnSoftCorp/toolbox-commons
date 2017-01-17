@@ -44,6 +44,8 @@ import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
+import com.ensoftcorp.open.commons.filters.rootset.FilterableRootset;
+import com.ensoftcorp.open.commons.filters.rootset.FilterableRootsets;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
@@ -71,11 +73,11 @@ public class FilterView extends ViewPart {
 		
 		// load plugin filter contributions
 		Filters.loadFilterContributions();
+		FilterableRootsets.loadFilterContributions();
 	}
 
 	@Override
 	public void createPartControl(Composite parent) {
-		
 		SashForm sashForm = new SashForm(parent, SWT.NONE);
 		
 		Composite filterTreeComposite = new Composite(sashForm, SWT.NONE);
@@ -708,6 +710,20 @@ public class FilterView extends ViewPart {
 					refreshFilterTree();
 				} else {
 					DisplayUtils.showError("Please select a root set in the filter tree to delete.");
+				}
+			}
+		});
+		optionListener.add("Load Default Rootsets", new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				for(FilterableRootset rootset : FilterableRootsets.getRegisteredRootSets()){
+					try{
+						treeRoots.add(new FilterRootNode(rootset.getRootSet(), rootset.getName(), false, true));
+						refreshFilterTree();
+					} catch (IllegalArgumentException e1){
+						// root set is already loaded or was empty, but this is ok for defaults
+					} catch (Exception e2){
+						DisplayUtils.showError(e2, "There was an error loading the default rootsets.");
+					}
 				}
 			}
 		});

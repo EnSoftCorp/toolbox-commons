@@ -15,8 +15,9 @@ public class Activator extends AbstractUIPlugin {
 	public static final String PLUGIN_ANALYZER_EXTENSION_ID = "com.ensoftcorp.open.commons.analyzer"; //$NON-NLS-1$
 	public static final String PLUGIN_SUBSYSTEM_EXTENSION_ID = "com.ensoftcorp.open.commons.subsystem"; //$NON-NLS-1$
 	public static final String PLUGIN_FILTER_EXTENSION_ID = "com.ensoftcorp.open.commons.filter"; //$NON-NLS-1$
+	public static final String PLUGIN_FILTERABLE_ROOT_SET_EXTENSION_ID = "com.ensoftcorp.open.commons.filter.rootset"; //$NON-NLS-1$
 	public static final String PLUGIN_CODEMAP_EXTENSION_ID = "com.ensoftcorp.open.commons.codemap"; //$NON-NLS-1$
-	
+
 	// The shared instance
 	private static Activator plugin;
 	

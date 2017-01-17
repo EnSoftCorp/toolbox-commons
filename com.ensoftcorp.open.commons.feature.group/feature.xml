@@ -2,7 +2,7 @@
 <feature
       id="com.ensoftcorp.open.commons.feature.group"
       label="Toolbox Commons"
-      version="3.0.13.qualifier"
+      version="3.0.14.qualifier"
       provider-name="EnSoft Corp.">
 
    <description url="https://ensoftcorp.github.io/toolbox-commons">
@@ -48,12 +48,12 @@ SOFTWARE.
       <import plugin="org.eclipse.core.filesystem"/>
       <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="com.ensoftcorp.atlas.core" version="3.0.13" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.ui" version="3.0.13" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.java.core" version="3.0.13" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.java.ui" version="3.0.13" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.c.core" version="3.0.13" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.c.ui" version="3.0.13" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.core" version="3.0.14" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.ui" version="3.0.14" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.java.core" version="3.0.14" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.java.ui" version="3.0.14" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.c.core" version="3.0.14" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.c.ui" version="3.0.14" match="greaterOrEqual"/>
       <import plugin="org.apache.commons.io" version="2.2.0" match="greaterOrEqual"/>
       <import plugin="org.apache.commons.lang3" version="3.1.0" match="greaterOrEqual"/>
    </requires>
