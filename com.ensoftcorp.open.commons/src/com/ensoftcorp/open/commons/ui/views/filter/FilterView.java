@@ -254,6 +254,11 @@ public class FilterView extends ViewPart {
 				// filter and node have to be selected for this event to occur
 				// wrapped in a try/catch just to be safe
 				try {
+					if(filterTree.getSelectionCount() == 0){
+						DisplayUtils.showError("A filter set from the filter tree must be selected before applying a filter.");
+						return;
+					}
+					
 					// get the selected tree node
 					TreeItem treeItem = filterTree.getSelection()[0];
 					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
