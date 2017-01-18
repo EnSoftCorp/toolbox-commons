@@ -16,6 +16,7 @@ import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.highlight.Highlighter;
 import com.ensoftcorp.atlas.core.markup.IMarkup;
 import com.ensoftcorp.atlas.core.markup.Markup;
+import com.ensoftcorp.atlas.core.markup.MarkupFromH;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
@@ -215,12 +216,25 @@ public class DisplayUtils {
 			}
 		});
 	}
-
+	
 	/**
 	 * Saves the given Q to a file as an image
 	 * 
 	 * @param q
 	 * @param h
+	 * @param extend
+	 * @param title
+	 * @throws InterruptedException
+	 */
+	public static void save(Q q, Highlighter highlighter, boolean extend, String title, File directory) throws InterruptedException {
+		save(q, new MarkupFromH(highlighter), extend, title, directory);
+	}
+
+	/**
+	 * Saves the given Q to a file as an image
+	 * 
+	 * @param q
+	 * @param markup
 	 * @param extend
 	 * @param title
 	 * @throws InterruptedException
