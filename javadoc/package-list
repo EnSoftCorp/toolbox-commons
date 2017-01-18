@@ -1,8 +1,10 @@
 com.ensoftcorp.open.commons
+com.ensoftcorp.open.commons.algorithms
 com.ensoftcorp.open.commons.analysis
 com.ensoftcorp.open.commons.analyzers
 com.ensoftcorp.open.commons.codemap
 com.ensoftcorp.open.commons.filters
+com.ensoftcorp.open.commons.filters.rootset
 com.ensoftcorp.open.commons.handlers
 com.ensoftcorp.open.commons.log
 com.ensoftcorp.open.commons.preferences
