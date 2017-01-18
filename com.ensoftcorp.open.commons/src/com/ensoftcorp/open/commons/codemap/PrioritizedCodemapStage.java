@@ -37,6 +37,11 @@ public abstract class PrioritizedCodemapStage {
 	public abstract void performIndexing(IProgressMonitor monitor);
 	
 	@Override
+	public String toString() {
+		return getIdentifier();
+	}
+	
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

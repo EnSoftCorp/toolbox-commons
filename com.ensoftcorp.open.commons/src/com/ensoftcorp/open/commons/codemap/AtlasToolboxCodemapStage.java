@@ -69,7 +69,7 @@ public class AtlasToolboxCodemapStage implements ToolboxIndexingStage {
 				return codemapStage;
 			}
 		}
-		throw new RuntimeException("Unsatisfiable codemap dependencies!");
+		throw new RuntimeException(codemapStages.size() + " unsatisfiable codemap dependencies!\nUnsatisfied Dependencies: " + codemapStages.toString());
 	}
 	
 	/**
