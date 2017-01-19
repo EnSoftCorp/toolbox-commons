@@ -6,9 +6,9 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
+import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
 /**
