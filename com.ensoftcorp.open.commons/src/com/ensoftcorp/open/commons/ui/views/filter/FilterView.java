@@ -58,6 +58,7 @@ public class FilterView extends ViewPart {
 	private Label applicableFiltersLabel;
 	private Combo filterSearchBar;
 	private ScrolledComposite filterParametersScrolledComposite;
+	private StyledText filterDescriptionText;
 	private Button applyFilterButton;
 	private Label errorLabel;
 	
@@ -115,12 +116,23 @@ public class FilterView extends ViewPart {
 		filterSearchBar.setEnabled(false);
 		filterSearchBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-		Composite filterParametersComposite = new Composite(controlPanelComposite, SWT.NONE);
-		filterParametersComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		filterParametersComposite.setLayout(new GridLayout(1, false));
-		filterParametersComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		Composite filterComposite = new Composite(controlPanelComposite, SWT.NONE);
+		filterComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+		filterComposite.setLayout(new GridLayout(1, false));
+		filterComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		Group grpFilterDescription = new Group(filterComposite, SWT.NONE);
+		grpFilterDescription.setLayout(new GridLayout(1, false));
+		grpFilterDescription.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		grpFilterDescription.setText("Filter Description");
+		
+		filterDescriptionText = new StyledText(grpFilterDescription, SWT.READ_ONLY | SWT.WRAP);
+		filterDescriptionText.setBackground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_BACKGROUND));
+		filterDescriptionText.setMarginColor(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+		filterDescriptionText.setText("No filter selected.");
+		filterDescriptionText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		Group filterParametersGroup = new Group(filterParametersComposite, SWT.NONE);
+		Group filterParametersGroup = new Group(filterComposite, SWT.NONE);
 		filterParametersGroup.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		filterParametersGroup.setText("Filter Parameters");
 		filterParametersGroup.setLayout(new GridLayout(1, false));
@@ -138,7 +150,7 @@ public class FilterView extends ViewPart {
 		filterParametersScrolledComposite.setContent(noSelectedFilterLabel);
 		filterParametersScrolledComposite.setMinSize(noSelectedFilterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
-		Composite applyFilterComposite = new Composite(filterParametersComposite, SWT.NONE);
+		Composite applyFilterComposite = new Composite(filterComposite, SWT.NONE);
 		applyFilterComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		applyFilterComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		applyFilterComposite.setLayout(new GridLayout(2, false));
@@ -259,6 +271,9 @@ public class FilterView extends ViewPart {
 					if(filterTree.getSelectionCount() == 0){
 						DisplayUtils.showError("A filter set from the filter tree must be selected before applying a filter.");
 						return;
+					} else {
+						// assume everything works and disable the button to prevent further actions
+						applyFilterButton.setEnabled(false);
 					}
 					
 					// get the selected tree node
@@ -270,11 +285,15 @@ public class FilterView extends ViewPart {
 					
 					// make a copy of the parameters, cause they can change later
 					HashMap<String,Object> filterParametersCopy = new HashMap<String,Object>(filterParameters);
-					
 					node.addChild(filter, filterParametersCopy);
+
+					// refresh the tree
 					refreshFilterTree();
 				} catch (Throwable t){
 					DisplayUtils.showError(t, "An unexpected error applying filter occurred.");
+					
+					// something went wrong, give the user a chance to fix and apply again
+					applyFilterButton.setEnabled(true);
 				}
 			}
 		});
@@ -322,6 +341,7 @@ public class FilterView extends ViewPart {
 	}
 	
 	private void populateAppliedParameters(Filter filter, Map<String, Object> filterParameters) {
+		filterDescriptionText.setText(filter.getDescription());
 		StyledText filterParametersSummary = new StyledText(filterParametersScrolledComposite, SWT.READ_ONLY | SWT.WRAP);
 		filterParametersSummary.setEditable(false);
 		filterParametersSummary.setText(summarizeFilterParameters(filter, filterParameters));
@@ -347,6 +367,7 @@ public class FilterView extends ViewPart {
 		Label noSelectedFilterLabel = new Label(filterParametersScrolledComposite, SWT.NONE);
 		noSelectedFilterLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		noSelectedFilterLabel.setText("No filter selected.");
+		filterDescriptionText.setText("No filter selected.");
 		filterParametersScrolledComposite.setContent(noSelectedFilterLabel);
 		filterParametersScrolledComposite.setMinSize(noSelectedFilterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
@@ -361,6 +382,8 @@ public class FilterView extends ViewPart {
 		// wrapped in a try/catch just to be safe
 		try {
 			Filter filter = (Filter) filterSearchBar.getData(filterSearchBar.getText());
+			
+			filterDescriptionText.setText(filter.getDescription());
 			
 			filterParameters.clear();
 			validateFilterParameters(filter);
