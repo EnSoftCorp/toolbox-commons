@@ -167,15 +167,6 @@
    <extension point="com.ensoftcorp.open.commons.filter.rootset">
       <rootset class="com.ensoftcorp.open.commons.filters.rootset.UniverseRootset"></rootset>
    </extension>
-   <extension point="com.ensoftcorp.open.commons.filter.rootset">
-      <rootset class="com.ensoftcorp.open.commons.filters.rootset.ApplicationRootset"></rootset>
-   </extension>
-   <extension point="com.ensoftcorp.open.commons.filter.rootset">
-      <rootset class="com.ensoftcorp.open.commons.filters.rootset.ApplicationFunctionsRootset"></rootset>
-   </extension>
-   <extension point="com.ensoftcorp.open.commons.filter.rootset">
-      <rootset class="com.ensoftcorp.open.commons.filters.rootset.ApplicationConditionsRootset"></rootset>
-   </extension>
    
 
 </plugin>
