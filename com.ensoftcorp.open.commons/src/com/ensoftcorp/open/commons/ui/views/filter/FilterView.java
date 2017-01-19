@@ -696,7 +696,21 @@ public class FilterView extends ViewPart {
 				}
 			}
 		});
-		optionListener.add("Delete Root Set", new SelectionAdapter() {
+		optionListener.add("Load Default Rootsets", new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				for(FilterableRootset rootset : FilterableRootsets.getRegisteredRootSets()){
+					try{
+						treeRoots.add(new FilterRootNode(rootset.getRootSet(), rootset.getName(), false, true));
+						refreshFilterTree();
+					} catch (IllegalArgumentException e1){
+						// root set is already loaded or was empty, but this is ok for defaults
+					} catch (Exception e2){
+						DisplayUtils.showError(e2, "There was an error loading the default rootsets.");
+					}
+				}
+			}
+		});
+		optionListener.add("Delete Selected Root Set", new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				if(filterTree.getSelectionCount() == 1){
 					TreeItem treeItem = filterTree.getSelection()[0];
@@ -713,18 +727,10 @@ public class FilterView extends ViewPart {
 				}
 			}
 		});
-		optionListener.add("Load Default Rootsets", new SelectionAdapter() {
+		optionListener.add("Delete All Root Sets (Reset Filter View)", new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				for(FilterableRootset rootset : FilterableRootsets.getRegisteredRootSets()){
-					try{
-						treeRoots.add(new FilterRootNode(rootset.getRootSet(), rootset.getName(), false, true));
-						refreshFilterTree();
-					} catch (IllegalArgumentException e1){
-						// root set is already loaded or was empty, but this is ok for defaults
-					} catch (Exception e2){
-						DisplayUtils.showError(e2, "There was an error loading the default rootsets.");
-					}
-				}
+				treeRoots.clear();
+				refreshFilterTree();
 			}
 		});
 		optionMenuDropDownItem.addSelectionListener(optionListener);
