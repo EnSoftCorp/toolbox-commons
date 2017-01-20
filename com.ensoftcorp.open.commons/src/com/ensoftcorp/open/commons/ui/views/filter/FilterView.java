@@ -1,11 +1,22 @@
 package com.ensoftcorp.open.commons.ui.views.filter;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -25,8 +36,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -35,6 +49,8 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.log.Log;
@@ -195,6 +211,12 @@ public class FilterView extends ViewPart {
 		filterSearchBar.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent key) {
+				
+				if(filterSearchBar.getText().trim().equals("") || filterTree.getSelectionCount() == 0){
+					// nothing to search
+					return;
+				}
+				
 				// tree item has to be selected for this event to occur
 				// wrapped in a try/catch just to be safe
 				try {
@@ -288,6 +310,7 @@ public class FilterView extends ViewPart {
 
 					// refresh the tree
 					refreshFilterTree();
+					clearFilterSelection();
 				} catch (Throwable t){
 					DisplayUtils.showError(t, "An unexpected error applying filter occurred.");
 					
@@ -678,18 +701,72 @@ public class FilterView extends ViewPart {
 	
 	private void addFileMenuItems(ToolItem fileMenuDropDownItem) {
 		DropdownSelectionListener fileListener = new DropdownSelectionListener(fileMenuDropDownItem);
-		fileListener.add("Save Filter Chain", new SelectionAdapter() {
+		fileListener.add("Save Filter Tree", new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				// TODO: implement
-				DisplayUtils.showError("Not Implemented!");
+				try {
+				    FileDialog dialog = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
+				    dialog.setFilterNames(new String[] { "XML Files", "All Files (*.*)" });
+				    dialog.setFilterExtensions(new String[] { "*.xml", "*.*" });
+				    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+				    dialog.setFileName("filter-tree-" + sdf.format(new Date()) + ".xml");
+				    File outputFile = new File(dialog.open());
+					
+					DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+					DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+					// filter tree
+					Document doc = docBuilder.newDocument();
+					Element treeElement = doc.createElement("tree");
+					doc.appendChild(treeElement);
+
+					// filter tree root elements
+					for(FilterRootNode root : treeRoots){
+						Element rootElement = doc.createElement("rootset");
+						treeElement.appendChild(rootElement);
+						rootElement.setAttribute("name", root.getName());
+						
+						// filter tree nodes
+						for(FilterTreeNode node : root.getChildren()){
+							addFilters(doc, rootElement, node);
+						}
+						
+						// write the content into xml file
+						TransformerFactory transformerFactory = TransformerFactory.newInstance();
+						transformerFactory.setAttribute("indent-number", new Integer(2));
+						Transformer transformer = transformerFactory.newTransformer();
+						transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+						DOMSource source = new DOMSource(doc);
+						StreamResult result = new StreamResult(outputFile);
+						transformer.transform(source, result);
+					}
+				} catch (Exception e){
+					DisplayUtils.showError(e, "Could not save the filter tree!");
+				}
+			}
+
+			private void addFilters(Document doc, Element parentElement, FilterTreeNode node) {
+				FilterNode filter = (FilterNode) node;
+				Element filterElement = doc.createElement("filter");
+				parentElement.appendChild(filterElement);
+				filterElement.setAttribute("code", filter.getFilter().getClass().getName());
+				for(String parameter : filter.getFilterParameters().keySet()){
+					Element parametersElement = doc.createElement("parameter");
+					filterElement.appendChild(parametersElement);
+					parametersElement.setAttribute("name", parameter);
+					parametersElement.setAttribute("type", filter.getFilter().getPossibleParameters().get(parameter).getName());
+					parametersElement.setAttribute("value", filter.getFilterParameters().get(parameter).toString());
+				}
+				for(FilterTreeNode child : filter.children){
+					addFilters(doc, filterElement, node);
+				}
 			}
 		});
-		fileListener.add("Load Filter Chain", new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				// TODO: implement
-				DisplayUtils.showError("Not Implemented!");
-			}
-		});
+//		fileListener.add("Load Filter Chain", new SelectionAdapter() {
+//			public void widgetSelected(SelectionEvent event) {
+//				// TODO: implement
+//				
+//			}
+//		});
 		fileMenuDropDownItem.addSelectionListener(fileListener);
 	}
 
