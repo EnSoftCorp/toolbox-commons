@@ -42,6 +42,19 @@ public abstract class Filter {
 	private Map<String,Class<? extends Object>> parameterNames = new HashMap<String,Class<? extends Object>>();
 	private Map<String,String> parameterDescriptions = new HashMap<String,String>();
 	private Map<String,Boolean> requiredParameters = new HashMap<String,Boolean>();
+	private HashSet<String> flags = new HashSet<String>();
+	
+	/**
+	 * Flags are booleans that are always true and never required
+	 * @param name
+	 * @param description
+	 */
+	protected void addPossibleFlag(String name, String description){
+		parameterNames.put(name, Boolean.class);
+		parameterDescriptions.put(name, description);
+		requiredParameters.put(name, false);
+		flags.add(name);
+	}
 	
 	/**
 	 * Adds a possible parameter type to this filter
@@ -65,12 +78,29 @@ public abstract class Filter {
 	}
 	
 	/**
+	 * Returns the set of possible flags
+	 * @return
+	 */
+	public Set<String> getPossibleFlags(){
+		return new HashSet<String>(flags);
+	}
+	
+	/**
 	 * Returns the parameter description or null if the parameter does not exist
 	 * @param parameter
 	 * @return
 	 */
 	public String getParameterDescription(String parameter){
 		return parameterDescriptions.get(parameter);
+	}
+	
+	/**
+	 * Returns the description of a flag
+	 * @param parameter
+	 * @return
+	 */
+	public String getFlagDescription(String parameter){
+		return getParameterDescription(parameter);
 	}
 	
 	/**
@@ -95,6 +125,16 @@ public abstract class Filter {
 	 */
 	public boolean isParameterSet(String name, Map<String,Object> parameters){
 		return parameters.containsKey(name);
+	}
+	
+	/**
+	 * Returns true if the given flag was set
+	 * @param name
+	 * @param parameters
+	 * @return
+	 */
+	public boolean isFlagSet(String name, Map<String,Object> parameters){
+		return isParameterSet(name, parameters);
 	}
 	
 	/**

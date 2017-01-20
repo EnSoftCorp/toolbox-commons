@@ -20,13 +20,13 @@ public class SubsystemInteractionFilter extends NodeFilter {
 
 	private static final String SUBSYSTEM_TAGS = "SUBSYSTEM_TAGS";
 	private static final String DATA_FLOW_INTERACTION = "DATA_FLOW_INTERACTION";
-	private static final String CONTROL_FLOW_INTERACTION = "CONTROL_FLOW_INTERACTION";
+	private static final String CALL_INTERACTION = "CALL_INTERACTION";
 	private static final String INTERACTION_EDGE_TAGS = "INTERACTION_EDGE_TAGS";
 
 	public SubsystemInteractionFilter() {
 		this.addPossibleParameter(SUBSYSTEM_TAGS, String.class, true, "A comma separated list of subsystem tags");
-		this.addPossibleParameter(DATA_FLOW_INTERACTION, Boolean.class, false, "Includes XCSG.Data_Flow_Edge edges in the interaction edge types");
-		this.addPossibleParameter(CONTROL_FLOW_INTERACTION, Boolean.class, false, "Includes XCSG.Control_Flow_Edge edges in the interaction edge types");
+		this.addPossibleFlag(DATA_FLOW_INTERACTION, "Includes XCSG.Data_Flow_Edge edges in the interaction edge types");
+		this.addPossibleFlag(CALL_INTERACTION, "Includes XCSG.Call edges in the interaction edge types");
 		this.addPossibleParameter(INTERACTION_EDGE_TAGS, String.class, false, "A comma separated list of edge tags to include in interaction edge types");
 		this.setMinimumNumberParametersRequired(2);
 	}
@@ -38,7 +38,7 @@ public class SubsystemInteractionFilter extends NodeFilter {
 
 	@Override
 	public String getDescription() {
-		return "Filters nodes based on how whether or not they or their children interact with specified subsystems.";
+		return "Filters nodes based on whether or not they or their children interact with the specified subsystems.";
 	}
 
 	@Override
@@ -50,16 +50,12 @@ public class SubsystemInteractionFilter extends NodeFilter {
 
 		ArrayList<String> interactionEdgeTags = new ArrayList<String>();
 		
-		if(isParameterSet(DATA_FLOW_INTERACTION, parameters)){
-			if((Boolean) getParameterValue(DATA_FLOW_INTERACTION, parameters)){
-				interactionEdgeTags.add(XCSG.DataFlow_Edge);
-			}
+		if(isFlagSet(DATA_FLOW_INTERACTION, parameters)){
+			interactionEdgeTags.add(XCSG.DataFlow_Edge);
 		}
 		
-		if(isParameterSet(CONTROL_FLOW_INTERACTION, parameters)){
-			if((Boolean) getParameterValue(CONTROL_FLOW_INTERACTION, parameters)){
-				interactionEdgeTags.add(XCSG.ControlFlow_Edge);
-			}
+		if(isFlagSet(CALL_INTERACTION, parameters)){
+			interactionEdgeTags.add(XCSG.Call);
 		}
 		
 		if(isParameterSet(INTERACTION_EDGE_TAGS, parameters)){
@@ -72,18 +68,21 @@ public class SubsystemInteractionFilter extends NodeFilter {
 		String[] interactionEdges = new String[interactionEdgeTags.size()];
 		interactionEdgeTags.toArray(interactionEdges);
 		
-		AtlasSet<Node> result = new AtlasHashSet<Node>();
-		for(String subsystem : subsystems){
-			Q interaction = Subsystems.getSubsystemInteractions(input.contained(), subsystem, interactionEdges);
-			result.addAll(interaction.containers().intersection(input).eval().nodes());
+		if(interactionEdges.length == 0){
+			return Common.empty();
+		} else {
+			AtlasSet<Node> result = new AtlasHashSet<Node>();
+			for(String subsystem : subsystems){
+				Q interaction = Subsystems.getSubsystemInteractions(input.contained(), subsystem, interactionEdges);
+				result.addAll(interaction.containers().intersection(input).eval().nodes());
+			}
+			return Common.toQ(result);
 		}
-		
-		return Common.toQ(result);
 	}
 
 	@Override
 	protected String[] getSupportedNodeTags() {
-		return EVERYTHING;
+		return new String[]{ XCSG.Project, XCSG.Namespace, XCSG.Type, XCSG.Function };
 	}
 
 }

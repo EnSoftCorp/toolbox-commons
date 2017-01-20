@@ -37,6 +37,7 @@ import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
+import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
@@ -57,8 +58,8 @@ public class FilterView extends ViewPart {
 	private Label filterTreeLabel;
 	private Label applicableFiltersLabel;
 	private Combo filterSearchBar;
+	private Label filterDescriptionText;
 	private ScrolledComposite filterParametersScrolledComposite;
-	private StyledText filterDescriptionText;
 	private Button applyFilterButton;
 	private Label errorLabel;
 	
@@ -126,11 +127,9 @@ public class FilterView extends ViewPart {
 		grpFilterDescription.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		grpFilterDescription.setText("Filter Description");
 		
-		filterDescriptionText = new StyledText(grpFilterDescription, SWT.READ_ONLY | SWT.WRAP);
-		filterDescriptionText.setBackground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_BACKGROUND));
-		filterDescriptionText.setMarginColor(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		filterDescriptionText.setText("No filter selected.");
+		filterDescriptionText = new Label(grpFilterDescription, SWT.WRAP);
 		filterDescriptionText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		filterDescriptionText.setText("No filter selected.");
 
 		Group filterParametersGroup = new Group(filterComposite, SWT.NONE);
 		filterParametersGroup.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
@@ -315,6 +314,7 @@ public class FilterView extends ViewPart {
 					}
 				} else {
 					// nothing is applicable
+					clearFilterSelection();
 					populateFilterSearchBarResults(new LinkedList<Filter>());
 				}
 			}
@@ -370,10 +370,8 @@ public class FilterView extends ViewPart {
 		filterDescriptionText.setText("No filter selected.");
 		filterParametersScrolledComposite.setContent(noSelectedFilterLabel);
 		filterParametersScrolledComposite.setMinSize(noSelectedFilterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
 		filterParameters.clear();
 		clearValidationErrorMessage();
-		
 		applyFilterButton.setEnabled(false);
 	}
 	
@@ -422,37 +420,60 @@ public class FilterView extends ViewPart {
 						enableBooleanInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
 
 						final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
-						booleanInputLabel.setEnabled(requiredParameter);
-						booleanInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
-						booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
-
-						final Button booleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
-						booleanInputCheckbox.setEnabled(requiredParameter);
-						booleanInputCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-
-						enableBooleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
-							@Override
-							public void widgetSelected(SelectionEvent e) {
-								boolean enabled = enableBooleanInputCheckbox.getSelection();
-								booleanInputLabel.setEnabled(enabled);
-								booleanInputCheckbox.setEnabled(enabled);
-								if(enabled){
+						
+						if(filter.getPossibleFlags().contains(parameterName)){	
+							booleanInputLabel.setText(parameterName);
+							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+							
+							enableBooleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									boolean enabled = enableBooleanInputCheckbox.getSelection();
+									booleanInputLabel.setEnabled(enabled);
+									if(enabled){
+										filterParameters.put(parameterName, true);
+										validateFilterParameters(filter);
+									} else {
+										filterParameters.remove(parameterName);
+										validateFilterParameters(filter);
+									}
+								}
+							});
+						} else {
+							booleanInputLabel.setEnabled(requiredParameter);
+							booleanInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+							
+							final Button booleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
+							booleanInputCheckbox.setEnabled(requiredParameter);
+							booleanInputCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							
+							booleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
 									filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
 									validateFilterParameters(filter);
-								} else {
-									filterParameters.remove(parameterName);
-									validateFilterParameters(filter);
 								}
-							}
-						});
-
-						booleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
-							@Override
-							public void widgetSelected(SelectionEvent e) {
-								filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
-								validateFilterParameters(filter);
-							}
-						});
+							});
+							
+							enableBooleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									boolean enabled = enableBooleanInputCheckbox.getSelection();
+									booleanInputLabel.setEnabled(enabled);
+									booleanInputCheckbox.setEnabled(enabled);
+									if(enabled){
+										filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
+										validateFilterParameters(filter);
+									} else {
+										filterParameters.remove(parameterName);
+										validateFilterParameters(filter);
+									}
+								}
+							});
+						}
+						
+						
 					} else if(parameterType == String.class){
 						Composite stringInputComposite = new Composite(inputComposite, SWT.NONE);
 						stringInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
@@ -726,8 +747,10 @@ public class FilterView extends ViewPart {
 						treeRoots.add(new FilterRootNode(rootset.getRootSet(), rootset.getName(), false, true));
 						refreshFilterTree();
 					} catch (IllegalArgumentException e1){
+						Log.warning("Could not add filters: ", e1);
 						// root set is already loaded or was empty, but this is ok for defaults
 					} catch (Exception e2){
+						Log.warning("Could not add filters: ", e2);
 						DisplayUtils.showError(e2, "There was an error loading the default rootsets.");
 					}
 				}
@@ -752,6 +775,10 @@ public class FilterView extends ViewPart {
 		});
 		optionListener.add("Delete All Root Sets (Reset Filter View)", new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
+				clearFilterSelection();
+				for(FilterRootNode root : treeRoots){
+					root.delete();
+				}
 				treeRoots.clear();
 				refreshFilterTree();
 			}
