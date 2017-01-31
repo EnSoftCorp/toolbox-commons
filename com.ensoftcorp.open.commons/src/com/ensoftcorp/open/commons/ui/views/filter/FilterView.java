@@ -40,7 +40,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -757,7 +756,7 @@ public class FilterView extends ViewPart {
 					parametersElement.setAttribute("value", filter.getFilterParameters().get(parameter).toString());
 				}
 				for(FilterTreeNode child : filter.children){
-					addFilters(doc, filterElement, node);
+					addFilters(doc, filterElement, child);
 				}
 			}
 		});

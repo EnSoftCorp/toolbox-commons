@@ -12,8 +12,8 @@ import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analyzers.Analyzer;
-import com.ensoftcorp.open.commons.analyzers.CyclomaticComplexity;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
+import com.ensoftcorp.open.commons.analyzers.CyclomaticComplexity;
 
 /**
  * Filters functions based on cyclomatic complexity
