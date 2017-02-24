@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="com.ensoftcorp.open.commons.feature.group"
+      id="com.ensoftcorp.open.commons.feature"
       label="Toolbox Commons"
       version="3.0.15.qualifier"
       provider-name="EnSoft Corp.">
@@ -48,11 +48,11 @@ SOFTWARE.
       <import plugin="org.eclipse.core.filesystem"/>
       <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="com.ensoftcorp.atlas.core" version="3.0.14" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.ui" version="3.0.14" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.core" version="3.0.15" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.ui" version="3.0.15" match="greaterOrEqual"/>
       <import plugin="org.apache.commons.io" version="2.2.0" match="greaterOrEqual"/>
       <import plugin="org.apache.commons.lang3" version="3.1.0" match="greaterOrEqual"/>
-      <import plugin="org.jgrapht" version="0.9.1" match="greaterOrEqual"/>
+      <import plugin="org.jgrapht" version="1.0.1" match="greaterOrEqual"/>
    </requires>
 
    <plugin

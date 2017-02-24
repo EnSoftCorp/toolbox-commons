@@ -16,7 +16,7 @@ Require-Bundle:
  com.ensoftcorp.atlas.ui;bundle-version="3.0.15";visibility:=reexport,
  org.apache.commons.io;bundle-version="2.2.0";visibility:=reexport,
  org.apache.commons.lang3;bundle-version="3.1.0";visibility:=reexport,
- org.jgrapht;bundle-version="0.9.1"
+ org.jgrapht;bundle-version="1.0.1"
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Export-Package: com.ensoftcorp.open.commons.algorithms,
