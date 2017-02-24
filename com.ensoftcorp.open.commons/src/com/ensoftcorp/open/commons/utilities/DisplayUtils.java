@@ -168,7 +168,8 @@ public class DisplayUtils {
 	 * @param title A title to indicate the graph content
 	 */
 	public static void show(final Q q, final String title) {
-		show(q, new Markup(), true, title);
+		Markup m = null;
+		show(q, m, true, title);
 	}
 	
 	/**
@@ -179,7 +180,36 @@ public class DisplayUtils {
 	 * @param extend A boolean to define if the graph should be extended (typical use is true)
 	 * @param title A title to indicate the graph content
 	 */
-	public static void show(final Q q, final Highlighter h, final boolean extend, final String title) {
+	public static void show(final Q q, final boolean extend, final String title) {
+		Markup m = null;
+		show(q, m, extend, title);
+	}
+	
+	/**
+	 * Shows a graph inside Atlas
+	 * 
+	 * @param q The query to show
+	 * @param highlighter An optional highlighter, set to null otherwise
+	 * @param extend A boolean to define if the graph should be extended (typical use is true)
+	 * @param title A title to indicate the graph content
+	 */
+	public static void show(final Q q, final Highlighter highlighter, final boolean extend, final String title) {
+		IMarkup m = null;
+		if(highlighter != null){
+			m = new MarkupFromH(highlighter);
+		}
+		show(q, m, extend, title);
+	}
+	
+	/**
+	 * Shows a graph inside Atlas
+	 * 
+	 * @param q The query to show
+	 * @param h An optional highlighter, set to null otherwise
+	 * @param extend A boolean to define if the graph should be extended (typical use is true)
+	 * @param title A title to indicate the graph content
+	 */
+	public static void show(final Q q, final IMarkup markup, final boolean extend, final String title) {
 		final Display display;
 		if(Display.getCurrent() != null){
 			display = Display.getCurrent();
@@ -208,53 +238,7 @@ public class DisplayUtils {
 					if (showGraph) {
 						Q extended = Common.universe().edgesTaggedWithAny(XCSG.Contains).reverse(q).union(q);
 						Q displayExpr = extend ? extended : q;
-						DisplayUtil.displayGraph(displayExpr.eval(), (h != null ? h : new Highlighter()), title);
-					}
-				} catch (Exception e){
-					DisplayUtils.showError(e, "Could not display graph.");
-				}
-			}
-		});
-	}
-	
-	/**
-	 * Shows a graph inside Atlas
-	 * 
-	 * @param q The query to show
-	 * @param h An optional highlighter, set to null otherwise
-	 * @param extend A boolean to define if the graph should be extended (typical use is true)
-	 * @param title A title to indicate the graph content
-	 */
-	public static void show(final Q q, final Markup m, final boolean extend, final String title) {
-		final Display display;
-		if(Display.getCurrent() != null){
-			display = Display.getCurrent();
-		} else {
-			display = Display.getDefault();
-		}
-		display.syncExec(new Runnable() {
-			public void run() {
-				try {
-					long graphSize = CommonQueries.nodeSize(q);
-					boolean showGraph = false;
-					if (graphSize > LARGE_GRAPH_WARNING) {
-						MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-						mb.setText("Warning");
-						mb.setMessage("The graph you are about to display has " + graphSize + " nodes.  " 
-								+ "Displaying large graphs may cause Eclipse to become unresponsive." 
-								+ "\n\nDo you want to continue?");
-						int response = mb.open();
-						if (response == SWT.YES) {
-							showGraph = true; // user says let's do it!!
-						}
-					} else {
-						// graph is small enough to display
-						showGraph = true;
-					}
-					if (showGraph) {
-						Q extended = Common.universe().edgesTaggedWithAny(XCSG.Contains).reverse(q).union(q);
-						Q displayExpr = extend ? extended : q;
-						DisplayUtil.displayGraph((m != null ? m : new Markup()), displayExpr.eval(), title);
+						DisplayUtil.displayGraph((markup != null ? markup : new Markup()), displayExpr.eval(), title);
 					}
 				} catch (Exception e){
 					DisplayUtils.showError(e, "Could not display graph.");
