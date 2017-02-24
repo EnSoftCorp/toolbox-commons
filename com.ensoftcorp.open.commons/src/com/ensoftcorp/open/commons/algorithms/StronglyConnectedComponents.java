@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.alg.DirectedNeighborIndex;
-import org.jgrapht.alg.StrongConnectivityInspector;
+import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
+import org.jgrapht.alg.interfaces.StrongConnectivityAlgorithm;
 import org.jgrapht.graph.DirectedPseudograph;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
@@ -25,24 +26,24 @@ import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.db.set.SingletonAtlasSet;
 
 /**
- * A wrapper for the JGraphT library for use on the Atlas graph
+ * A wrapper for the JGraphT implementation of StronglyConnectedComponent (SCC) computations
  * 
  * @author Tom Deering, Ben Holland
  */
-public class JGraphTAdapter {
+public class StronglyConnectedComponents {
 	private Graph graph;
 	private AtlasSet<Node> nodes;
 	private AtlasSet<Edge> edges;
 	private DirectedPseudograph<GraphElement, GraphElement> jGraph;
 
-	public JGraphTAdapter(Graph graph) {
+	public StronglyConnectedComponents(Graph graph) {
 		this.graph = graph;
 		nodes = graph.nodes();
 		edges = graph.edges();
 		init();
 	}
 
-	public JGraphTAdapter(AtlasSet<Node> nodes, AtlasSet<Edge> edges) {
+	public StronglyConnectedComponents(AtlasSet<Node> nodes, AtlasSet<Edge> edges) {
 		graph = new InducedGraph(nodes, edges);
 		this.nodes = graph.nodes();
 		this.edges = graph.edges();
@@ -65,7 +66,18 @@ public class JGraphTAdapter {
 	 * @return
 	 */
 	public List<AtlasHashSet<Node>> findSCCs() {
-		StrongConnectivityInspector<GraphElement, GraphElement> sci = new StrongConnectivityInspector<GraphElement, GraphElement>(jGraph);
+		// note: we have a choice of algorithms:
+		// GabowStrongConnectivityInspector - Allows obtaining the strongly connected components of a directed graph. 
+		// 									  The implemented algorithm follows Cheriyan-Mehlhorn/Gabow's algorithm 
+		// 									  Presented in Path-based depth-first search for strong and biconnected 
+		// 									  components by Gabow (2000). The running time is order of O(|V|+|E|)
+		// KosarajuStrongConnectivityInspector - Complements the ConnectivityInspector class with the capability to 
+		// 										 compute the strongly connected components of a directed graph. The
+		//										 algorithm is implemented after "Cormen et al: Introduction to algorithms",
+		// 										 Chapter 22.5. It has a running time of O(V + E). Unlike ConnectivityInspector,
+		// 										 this class does not implement incremental inspection. The full algorithm is 
+		// 										 executed at the first call of stronglyConnectedSets() or isStronglyConnected().
+		StrongConnectivityAlgorithm<GraphElement, GraphElement> sci = new KosarajuStrongConnectivityInspector<GraphElement, GraphElement>(jGraph);
 		LinkedList<AtlasHashSet<Node>> result = new LinkedList<AtlasHashSet<Node>>();
 		for(Set<GraphElement> scc : sci.stronglyConnectedSets()){
 			AtlasHashSet<Node> set = new AtlasHashSet<Node>();
@@ -94,8 +106,20 @@ public class JGraphTAdapter {
 			}
 		}
 
+		// note: we have a choice of algorithms:
+		// GabowStrongConnectivityInspector - Allows obtaining the strongly connected components of a directed graph. 
+		// 									  The implemented algorithm follows Cheriyan-Mehlhorn/Gabow's algorithm 
+		// 									  Presented in Path-based depth-first search for strong and biconnected 
+		// 									  components by Gabow (2000). The running time is order of O(|V|+|E|)
+		// KosarajuStrongConnectivityInspector - Complements the ConnectivityInspector class with the capability to 
+		// 										 compute the strongly connected components of a directed graph. The
+		//										 algorithm is implemented after "Cormen et al: Introduction to algorithms",
+		// 										 Chapter 22.5. It has a running time of O(V + E). Unlike ConnectivityInspector,
+		// 										 this class does not implement incremental inspection. The full algorithm is 
+		// 										 executed at the first call of stronglyConnectedSets() or isStronglyConnected().
+		
 		// Find root SCCs which are roots from each SCC, pick one representative
-		StrongConnectivityInspector<GraphElement, GraphElement> sci = new StrongConnectivityInspector<GraphElement, GraphElement>(jGraph);
+		StrongConnectivityAlgorithm<GraphElement, GraphElement> sci = new KosarajuStrongConnectivityInspector<GraphElement, GraphElement>(jGraph);
 		List<Set<GraphElement>> sccs = sci.stronglyConnectedSets();
 
 		AtlasSet<GraphElement> rootSCCSet = new AtlasHashSet<GraphElement>();
