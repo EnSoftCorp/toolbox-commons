@@ -29,8 +29,23 @@ If you want to install from source for bleeding edge changes, first grab a copy 
 ## Changelog
 Note that version numbers are based off [Atlas](http://www.ensoftcorp.com/atlas/download/) version numbers.
 
+### 3.0.15
+- Updated dependency on JGraphT library. Created a wrapper to enumerate CFG paths and compute Strongly Connected Components
+- DisplayUtils support for Markup objects
+- Bug fixes for FilterView
+
+### 3.0.14
+- Bug fixes
+
+### 3.0.13
+- Bug fixes
+
 ### 3.0.10
 - Bumped dependency versions, moved Dashboard to separate project
+- Added subsystem tagging logic and extension points
+- Major refactoring of packages
+- Prioritized indexer hooks
+- Added Atlas Toolbox menu with some useful search utilities
 
 ### 3.0.8
 - Minor refinements to helper utilities, added signature attribute key to wishful package
