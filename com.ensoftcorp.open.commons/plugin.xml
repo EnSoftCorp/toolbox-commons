@@ -67,7 +67,7 @@
 	         locationURI="menu:com.ensoftcorp.open.commons.menus.toolbox?after=additions">
 	      <menu
 	            label="Toolbox Commons"
-	            id="com.ensoftcorp.open.immutability.menus.commonsMenu">
+	            id="com.ensoftcorp.open.commons.menus.commonsMenu">
 	         <command
 	               commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
 	               label="Show Graph Elements by Address"
