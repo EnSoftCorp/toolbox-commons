@@ -1,6 +1,7 @@
 package com.ensoftcorp.open.commons.codemap;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -59,6 +60,7 @@ public class AtlasToolboxCodemapStage implements ToolboxIndexingStage {
 	 * @return
 	 */
 	private PrioritizedCodemapStage getDependencySatisfiedCodemapStage(Set<PrioritizedCodemapStage> codemapStages, HashSet<String> completedCodemapStages){
+		HashMap<String,HashSet<String>> unastisfiedCodemapStages = new HashMap<String,HashSet<String>>();
 		for(PrioritizedCodemapStage codemapStage : codemapStages){
 			HashSet<String> dependencies = new HashSet<String>();
 			for(String dependency : codemapStage.getCodemapStageDependencies()){
@@ -67,9 +69,13 @@ public class AtlasToolboxCodemapStage implements ToolboxIndexingStage {
 			dependencies.removeAll(completedCodemapStages);
 			if(dependencies.isEmpty()){
 				return codemapStage;
+			} else {
+				unastisfiedCodemapStages.put(codemapStage.getIdentifier(), dependencies);
 			}
 		}
-		throw new RuntimeException(codemapStages.size() + " unsatisfiable codemap dependencies!\nUnsatisfied Dependencies: " + codemapStages.toString());
+		throw new RuntimeException(codemapStages.size() + " unsatisfiable codemap stages!"
+			+ "\nCodemap Statges With Unsatisfied Dependencies: " + codemapStages.toString() 
+			+ "\nUnsatisfied Dependencies: " + unastisfiedCodemapStages.toString());
 	}
 	
 	/**
