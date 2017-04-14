@@ -13,14 +13,9 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	@SuppressWarnings("unused")
 	private static boolean initialized = false;
 	
-	@Override
-	public void initializeDefaultPreferences() {
+	public static void enableSubsystemCategory(String subsystemCategory, boolean enabled){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		// let each registered subystem tagging instruction be enabled by default
-		Subsystems.loadSubsystemContributions();
-		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
-			preferences.setDefault(subsystem.getTag(), false);
-		}
+		preferences.setValue(subsystemCategory, enabled);
 	}
 	
 	/**
@@ -35,13 +30,35 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		return result.booleanValue();
 	}
 	
+	@Override
+	public void initializeDefaultPreferences() {
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		// let each registered subystem tagging instruction be enabled by default
+		Subsystems.loadSubsystemContributions();
+		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
+			preferences.setDefault(subsystem.getTag(), false);
+		}
+	}
+	
+	/**
+	 * Restores the default preferences
+	 */
+	public static void restoreDefaults(){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		// let each registered subystem tagging instruction be enabled by default
+		Subsystems.loadSubsystemContributions();
+		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
+			preferences.setValue(subsystem.getTag(), false);
+		}
+		loadPreferences();
+	}
+	
 	/**
 	 * Loads or refreshes current preference values
 	 */
 	public static void loadPreferences() {
 		try {
-			@SuppressWarnings("unused")
-			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+			Activator.getDefault().getPreferenceStore();
 		} catch (Exception e){
 			Log.warning("Error accessing commons preferences, using defaults...", e);
 		}
