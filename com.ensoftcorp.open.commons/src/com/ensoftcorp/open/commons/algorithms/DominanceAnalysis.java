@@ -42,7 +42,7 @@ public class DominanceAnalysis {
 	/**
 	 * Control flow graph for dominance computation
 	 */
-	private UniqueEntryExitGraph cfg;
+	private UniqueEntryExitGraph graph;
 
 	/**
 	 * To compute dominators or post-dominators
@@ -115,13 +115,13 @@ public class DominanceAnalysis {
 	 * @param root
 	 *            the root of the graph.
 	 */
-	public DominanceAnalysis(UniqueEntryExitGraph g, boolean postdom) {
-		this.cfg = g;
+	public DominanceAnalysis(UniqueEntryExitGraph graph, boolean postdom) {
+		this.graph = graph;
 		this.postdom = postdom;
 		if (this.postdom) {
-			this.dfs(this.cfg.getExitNode());
+			this.dfs(this.graph.getExitNode());
 		} else {
-			this.dfs(this.cfg.getEntryNode());
+			this.dfs(this.graph.getEntryNode());
 		}
 		this.computeDominators();
 	}
@@ -222,7 +222,7 @@ public class DominanceAnalysis {
 	 *            the others are exception handlers.
 	 */
 	private void dfs(Node entryNode) {
-		Iterator<Node> it = new DepthFirstPreorderIterator(this.cfg, entryNode, this.postdom);
+		Iterator<Node> it = new DepthFirstPreorderIterator(this.graph, entryNode, this.postdom);
 
 		while (it.hasNext()) {
 			Node node = it.next();
@@ -397,9 +397,9 @@ public class DominanceAnalysis {
 
 	private AtlasSet<Node> getSuccessors(Node node) {
 		if (postdom) {
-			return this.cfg.getPredecessors(node);
+			return this.graph.getPredecessors(node);
 		} else {
-			return this.cfg.getSuccessors(node);
+			return this.graph.getSuccessors(node);
 		}
 	}
 }
