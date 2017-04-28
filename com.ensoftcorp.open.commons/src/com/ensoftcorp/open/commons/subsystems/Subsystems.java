@@ -15,7 +15,6 @@ import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
-import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.log.Log;
 
@@ -110,9 +109,8 @@ public class Subsystems {
 	 */
 	public static Q getSubsystemContents(String... subsystemTags) {
 		AtlasSet<Node> subsystemNodes = new AtlasHashSet<Node>();
-		Q containsEdges = Common.universe().edgesTaggedWithAny(XCSG.Contains);
 		Q subsystems = Common.universe().nodesTaggedWithAny(subsystemTags);
-		Q subsystemContents = containsEdges.forward(subsystems);
+		Q subsystemContents = subsystems.contained();
 		subsystemNodes.addAll(subsystemContents.eval().nodes());
 		return Common.toQ(subsystemNodes);
 	}
