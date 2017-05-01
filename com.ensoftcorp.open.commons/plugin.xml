@@ -97,7 +97,7 @@
       <view
             category="com.ensoftcorp.open.commons.views.categories.toolbox"
             class="com.ensoftcorp.open.commons.ui.views.filter.FilterView"
-            icon="icons/toolbox.gif"
+            icon="icons/funnel.gif"
             id="com.ensoftcorp.open.commons.ui.views.filter"
             name="Filter View">
       </view>
