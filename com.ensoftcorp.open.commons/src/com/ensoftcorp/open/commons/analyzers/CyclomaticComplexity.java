@@ -1,8 +1,8 @@
 package com.ensoftcorp.open.commons.analyzers;
 
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
@@ -37,14 +37,14 @@ public class CyclomaticComplexity extends Analyzer {
 	}
 
 	@Override
-	public Map<String,Result> getResults(Q context) {
+	public List<Result> getResults(Q context) {
 		Q functions = context.nodesTaggedWithAny(XCSG.Function);
-		HashMap<String,Result> results = new HashMap<String,Result>();
+		LinkedList<Result> results = new LinkedList<Result>();
 		for(Node function : functions.eval().nodes()){
 			Integer metric = cyclomaticComplexity(function);
 			Result result = new Result((RESULT_PREFIX + metric), Common.toQ(function));
 			result.setData(metric);
-			results.put(Analyzer.getUUID(), result);
+			results.add(result);
 		}
 		return results;
 	}

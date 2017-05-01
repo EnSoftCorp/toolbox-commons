@@ -3,9 +3,8 @@ package com.ensoftcorp.open.commons.analyzers;
 import java.awt.Color;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
@@ -22,16 +21,6 @@ import com.ensoftcorp.atlas.core.script.Common;
  * @author Ben Holland
  */
 public abstract class Analyzer {
-
-	/**
-	 * Returns a unique string
-	 * Can be used for generating result keys
-	 * @return
-	 */
-	public static String getUUID() {
-		UUID uuid = UUID.randomUUID();
-		return uuid.toString();
-	}
 	
 	/**
 	 * Just a pair class to hold a display name and the result
@@ -91,7 +80,7 @@ public abstract class Analyzer {
 	 * Results are for results within a given context
 	 * @return
 	 */
-	public abstract Map<String,Result> getResults(Q context);
+	public abstract List<Result> getResults(Q context);
 	
 	/**
 	 * Defines the sorted ordering for the results (by label)
@@ -113,10 +102,10 @@ public abstract class Analyzer {
 	public Q getAllResults(Q context){
 		AtlasSet<Node> nodes = new AtlasHashSet<Node>();
 		AtlasSet<Edge> edges = new AtlasHashSet<Edge>();
-		for(Entry<String,Result> entry : getResults(context).entrySet()){
-			Graph result = entry.getValue().getQ().eval();
-			nodes.addAll(result.nodes());
-			edges.addAll(result.edges());
+		for(Result result : getResults(context)){
+			Graph g = result.getQ().eval();
+			nodes.addAll(g.nodes());
+			edges.addAll(g.edges());
 		}
 		return Common.toQ(edges).union(Common.toQ(nodes));
 	}

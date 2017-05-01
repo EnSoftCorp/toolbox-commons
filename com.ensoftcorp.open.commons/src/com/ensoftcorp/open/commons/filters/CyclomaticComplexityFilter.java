@@ -53,9 +53,9 @@ public class CyclomaticComplexityFilter extends NodeFilter {
 		AtlasSet<Node> result = new AtlasHashSet<Node>();
 		
 		Analyzer cyclomaticComplexity = new CyclomaticComplexity();
-		Map<String,Result> cyclomaticComplexityResults = cyclomaticComplexity.getResults(input);
+		List<Result> cyclomaticComplexityResults = cyclomaticComplexity.getResults(input);
 
-		List<Result> complexities = new ArrayList<Result>(cyclomaticComplexityResults.values());
+		List<Result> complexities = new ArrayList<Result>(cyclomaticComplexityResults);
 		Collections.sort(complexities, cyclomaticComplexity.getResultOrder());
 		
 		for (Result complexity : complexities) {

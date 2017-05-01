@@ -114,9 +114,31 @@
    		id="com.ensoftcorp.open.commons.codemap" 
    		name="Prioritized Codemap Stage" 
    		schema="schema/com.ensoftcorp.open.commons.codemap.exsd"/>
-   <extension-point id="com.ensoftcorp.open.commons.filter" name="Filter" schema="schema/com.ensoftcorp.open.commons.filter.exsd"/>
-   <extension-point id="com.ensoftcorp.open.commons.analyzer" name="Analyzer" schema="schema/com.ensoftcorp.open.commons.analyzer.exsd"/>
-   <extension-point id="com.ensoftcorp.open.commons.filter.rootset" name="Filterable Root Set" schema="schema/com.ensoftcorp.open.commons.filter.rootset.exsd"/>
+
+   <!-- defines an extension point schema for contributing filters -->
+   <extension-point 
+   		id="com.ensoftcorp.open.commons.filter"
+   		name="Filter"
+   		schema="schema/com.ensoftcorp.open.commons.filter.exsd"/>
+   
+   <!-- defines an extension point schema for fitlerable root sets -->
+   <extension-point id="com.ensoftcorp.open.commons.filter.rootset"
+   		 name="Filterable Root Set"
+   		 schema="schema/com.ensoftcorp.open.commons.filter.rootset.exsd"/>
+   
+   <!-- defines an extension point schema for analyzers -->
+   <extension-point
+   		 id="com.ensoftcorp.open.commons.analyzer"
+   		 name="Analyzer"
+   		 schema="schema/com.ensoftcorp.open.commons.analyzer.exsd"/>
+
+   <!-- defines an extension point for contributing dashboard work items -->
+   <extension-point
+   		 id="com.ensoftcorp.open.commons.dashboard.workitem"
+   		 name="WorkItem"
+   		 schema="schema/com.ensoftcorp.open.commons.dashboard.workitem.exsd"/>
+   		 
+   <!-- defines an extension point schema for contributing prioritized codemap stages -->
    
    <!-- adds a post code map hook for running registered prioritized codemap stages -->
    <extension
@@ -167,5 +189,24 @@
    <extension point="com.ensoftcorp.open.commons.filter.rootset">
       <rootset class="com.ensoftcorp.open.commons.filters.rootset.UniverseRootset"></rootset>
    </extension>
-   
+
+	<!-- adds Dashboard view -->
+	<extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView"
+            icon="icons/dashboard.gif"
+            id="com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView"
+            name="Dashboard">
+      </view>
+   </extension>
+  
+   <!-- adds dashboard workitems -->
+   <extension
+         point="com.ensoftcorp.open.commons.dashboard.workitem">
+      <workitem
+            class="com.ensoftcorp.open.commons.dashboard.properties.CyclomaticComplexityProperty"></workitem>
+   </extension>
+  
 </plugin>
