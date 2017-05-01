@@ -19,6 +19,11 @@ public class CyclomaticComplexityProperty extends Property {
 	}
 	
 	@Override
+	public String getName() {
+		return "Cyclomatic Complexity";
+	}
+	
+	@Override
 	public String getDescription() {
 		return analyzer.getDescription();
 	}
