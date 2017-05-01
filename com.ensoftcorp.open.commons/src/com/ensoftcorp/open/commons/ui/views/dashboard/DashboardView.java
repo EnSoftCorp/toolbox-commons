@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
@@ -24,8 +25,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.dashboard.WorkItem;
 import com.ensoftcorp.open.commons.dashboard.WorkItems;
+import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
 public class DashboardView extends ViewPart {
 	
@@ -250,6 +253,26 @@ public class DashboardView extends ViewPart {
 		
 		Button showResultsButton = new Button(workItemResultsComposite, SWT.NONE);
 		showResultsButton.setText("Show Results");
+		
+		showResultsButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Display.getDefault().asyncExec(new Runnable(){
+					@Override
+					public void run() {
+						if(!workItem.isInitialized()){
+							try {
+								// TODO: decide context
+								workItem.initialize(Common.universe());
+								DisplayUtils.show(Common.toQ(workItem.getAllResults()), workItem.getWorkItem().getName());
+							} catch (InterruptedException e) {
+								DisplayUtils.showError(e, e.getMessage());
+							}
+						}
+					}
+				});
+			}
+		});
 		
 		workItemExpandBarItem.setHeight(workItemExpandBarItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 	}

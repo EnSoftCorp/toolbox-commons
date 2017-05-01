@@ -8,7 +8,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 import com.ensoftcorp.open.commons.dashboard.WorkItem;
 
@@ -19,6 +21,7 @@ public class WorkItemViewComponent {
 	private boolean empty = false;
 	private WorkItem workItem;
 	private List<Result> results = new LinkedList<Result>();
+	private Graph allResults = Common.empty().eval();
 	private boolean initialized = false;
 	
 	public WorkItemViewComponent(WorkItem workItem) {
@@ -30,6 +33,7 @@ public class WorkItemViewComponent {
 			@Override
 			protected IStatus run(IProgressMonitor mon) {
 				results = workItem.getResults(context);
+				allResults = workItem.getAllResults(context).eval();
 				initialized = true;
 				return Status.OK_STATUS;
 			}
@@ -57,6 +61,10 @@ public class WorkItemViewComponent {
 		return workItem;
 	}
 	
+	public Graph getAllResults(){
+		return allResults;
+	}
+	
 	public List<Result> getResults(){
 		return results;
 	}
@@ -67,7 +75,7 @@ public class WorkItemViewComponent {
 		for(String assumption : workItem.getAssumptions()){
 			result.append((assumptions++) + ") " + assumption + "\n");
 		}
-		String text = result.toString().toString();
+		String text = result.toString().trim();
 		return text.equals("") ? "No assumptions." : text;
 	}
 	
