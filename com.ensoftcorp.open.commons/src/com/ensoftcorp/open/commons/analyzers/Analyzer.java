@@ -62,6 +62,12 @@ public abstract class Analyzer {
 	}
 	
 	/**
+	 * A category to classify this analyzer under
+	 * @return
+	 */
+	public abstract String getCategory();
+	
+	/**
 	 * Returns a short description of the analyzer
 	 * @return
 	 */

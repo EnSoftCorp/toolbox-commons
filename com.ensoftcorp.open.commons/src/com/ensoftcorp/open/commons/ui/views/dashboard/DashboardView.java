@@ -26,8 +26,8 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.open.commons.dashboard.WorkItem;
-import com.ensoftcorp.open.commons.dashboard.WorkItems;
+import com.ensoftcorp.open.commons.analyzers.Analyzer;
+import com.ensoftcorp.open.commons.analyzers.Analyzers;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
 public class DashboardView extends ViewPart {
@@ -39,8 +39,8 @@ public class DashboardView extends ViewPart {
 	
 	public DashboardView() {}
 	
-	private Collection<WorkItemViewComponent> workItems = new LinkedList<WorkItemViewComponent>();
-	private HashMap<String, Collection<WorkItemViewComponent>> workItemTypes;
+	private Collection<WorkItem> workItems = new LinkedList<WorkItem>();
+	private HashMap<String, Collection<WorkItem>> workItemCategories;
 	private LinkedList<Button> filterCheckboxes = new LinkedList<Button>();
 	private Button searchCheckbox;
 	private Combo searchBar;
@@ -84,20 +84,21 @@ public class DashboardView extends ViewPart {
 		workQueueScrolledComposite.setExpandVertical(true);
 		
 		// load the contributed work items
-		for(WorkItem workItem : WorkItems.getContributions(Platform.getExtensionRegistry())){
-			workItems.add(new WorkItemViewComponent(workItem));
+		Analyzers.loadAnalyzerContributions();
+		for(Analyzer analyzer : Analyzers.getRegisteredAnalyzers()){
+			workItems.add(new WorkItem(analyzer));
 		}
 		
 		// sort the work items by type
-		workItemTypes = new HashMap<String,Collection<WorkItemViewComponent>>();
-		for(WorkItemViewComponent workItem : workItems){
-			String type = workItem.getWorkItem().getType();
-			Collection<WorkItemViewComponent> types = workItemTypes.remove(type);
+		workItemCategories = new HashMap<String,Collection<WorkItem>>();
+		for(WorkItem workItem : workItems){
+			String category = workItem.getAnalyzer().getCategory();
+			Collection<WorkItem> types = workItemCategories.remove(category);
 			if(types == null){
-				types = new LinkedList<WorkItemViewComponent>();
+				types = new LinkedList<WorkItem>();
 			}
 			types.add(workItem);
-			workItemTypes.put(type, types);
+			workItemCategories.put(category, types);
 		}
 		
 		Label workItemFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
@@ -114,7 +115,7 @@ public class DashboardView extends ViewPart {
 		
 		
 		// add the filter checkboxes
-		for(String workItemType : workItemTypes.keySet()){
+		for(String workItemType : workItemCategories.keySet()){
 			final Button filterCheckbox = new Button(workItemTypeGroup, SWT.CHECK);
 			filterCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			filterCheckbox.setText(workItemType);
@@ -200,9 +201,9 @@ public class DashboardView extends ViewPart {
 		for(Button filterCheckbox : filterCheckboxes){
 			if(filterCheckbox.getSelection()){
 				String type = filterCheckbox.getText();
-				Collection<WorkItemViewComponent> workItems = workItemTypes.get(type);
+				Collection<WorkItem> workItems = workItemCategories.get(type);
 				if(workItems != null){
-					for(WorkItemViewComponent workItem : workItems){
+					for(WorkItem workItem : workItems){
 						addWorkItem(workItem, workQueueComposite);
 					}
 				}
@@ -213,13 +214,13 @@ public class DashboardView extends ViewPart {
 		workQueueScrolledComposite.setMinSize(workQueueComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
 
-	private void addWorkItem(WorkItemViewComponent workItem, Composite workQueueComposite) {
+	private void addWorkItem(WorkItem workItem, Composite workQueueComposite) {
 		ExpandBar workItemExpandBar = new ExpandBar(workQueueComposite, SWT.NONE);
 		workItemExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
 		ExpandItem workItemExpandBarItem = new ExpandItem(workItemExpandBar, SWT.NONE);
 		workItemExpandBarItem.setExpanded(true);
-		workItemExpandBarItem.setText(workItem.getWorkItem().getName());
+		workItemExpandBarItem.setText(workItem.getAnalyzer().getName());
 		
 		Composite workItemComposite = new Composite(workItemExpandBar, SWT.NONE);
 		workItemExpandBarItem.setControl(workItemComposite);
@@ -230,7 +231,7 @@ public class DashboardView extends ViewPart {
 		descriptionLabel.setText("Description:");
 		
 		StyledText workItemDescription = new StyledText(workItemComposite, SWT.BORDER);
-		workItemDescription.setText(workItem.getWorkItem().getDescription());
+		workItemDescription.setText(workItem.getAnalyzer().getDescription());
 		workItemDescription.setEditable(false);
 		workItemDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
@@ -264,7 +265,7 @@ public class DashboardView extends ViewPart {
 							try {
 								// TODO: decide context
 								workItem.initialize(Common.universe());
-								DisplayUtils.show(Common.toQ(workItem.getAllResults()), workItem.getWorkItem().getName());
+								DisplayUtils.show(Common.toQ(workItem.getAllResults()), workItem.getAnalyzer().getName());
 							} catch (InterruptedException e) {
 								DisplayUtils.showError(e, e.getMessage());
 							}

@@ -11,29 +11,29 @@ import org.eclipse.core.runtime.jobs.Job;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.open.commons.analyzers.Analyzer;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
-import com.ensoftcorp.open.commons.dashboard.WorkItem;
 
-public class WorkItemViewComponent {
-
+public class WorkItem {
+	
 	private boolean expanded = false;
 	private boolean reviewed = false;
 	private boolean empty = false;
-	private WorkItem workItem;
+	private Analyzer analyzer;
 	private List<Result> results = new LinkedList<Result>();
 	private Graph allResults = Common.empty().eval();
 	private boolean initialized = false;
 	
-	public WorkItemViewComponent(WorkItem workItem) {
-		this.workItem = workItem;
+	public WorkItem(Analyzer analyzer) {
+		this.analyzer = analyzer;
 	}
 	
 	public synchronized void initialize(Q context) throws InterruptedException {
-		Job job = new Job("Analyzing " + workItem.getName()){
+		Job job = new Job("Analyzing " + analyzer.getName()){
 			@Override
 			protected IStatus run(IProgressMonitor mon) {
-				results = workItem.getResults(context);
-				allResults = workItem.getAllResults(context).eval();
+				results = analyzer.getResults(context);
+				allResults = analyzer.getAllResults(context).eval();
 				initialized = true;
 				return Status.OK_STATUS;
 			}
@@ -57,8 +57,8 @@ public class WorkItemViewComponent {
 		return empty;
 	}
 	
-	public WorkItem getWorkItem() {
-		return workItem;
+	public Analyzer getAnalyzer() {
+		return analyzer;
 	}
 	
 	public Graph getAllResults(){
@@ -72,7 +72,7 @@ public class WorkItemViewComponent {
 	public String getAssumptionsText() {
 		StringBuilder result = new StringBuilder();
 		int assumptions = 1;
-		for(String assumption : workItem.getAssumptions()){
+		for(String assumption : analyzer.getAssumptions()){
 			result.append((assumptions++) + ") " + assumption + "\n");
 		}
 		String text = result.toString().trim();

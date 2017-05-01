@@ -17,7 +17,7 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
  * 
  * @author Ben Holland
  */
-public class CyclomaticComplexity extends Analyzer {
+public class CyclomaticComplexity extends Property {
 
 	public static final String RESULT_PREFIX = "Complexity: ";
 	
