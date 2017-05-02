@@ -16,6 +16,7 @@ import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 import com.ensoftcorp.open.commons.subsystems.Subsystem;
 import com.ensoftcorp.open.commons.subsystems.Subsystems;
 import com.ensoftcorp.open.commons.ui.components.LabelFieldEditor;
+import com.ensoftcorp.open.commons.ui.components.SpacerFieldEditor;
 
 /**
  * UI for setting toolbox commons analysis preferences
@@ -62,6 +63,7 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 			for(Entry<String,String> taggingCategory : taggingCategories.entrySet()){
 				addField(new BooleanFieldEditor(taggingCategory.getKey(), "&" + ("Tag: " + taggingCategory.getValue()), getFieldEditorParent()));
 			}
+			// TODO: add analyzer caching preferences
 		}
 	}
 
