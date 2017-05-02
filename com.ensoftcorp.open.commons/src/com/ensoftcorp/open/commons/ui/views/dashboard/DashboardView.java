@@ -1,9 +1,9 @@
 package com.ensoftcorp.open.commons.ui.views.dashboard;
 
-import java.awt.Point;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -11,8 +11,11 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ExpandAdapter;
 import org.eclipse.swt.events.ExpandEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -28,6 +31,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.analyzers.Analyzer;
+import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 import com.ensoftcorp.open.commons.analyzers.Analyzers;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
@@ -50,6 +54,12 @@ public class DashboardView extends ViewPart {
 	private Button reviewedFilterCheckbox;
 	private Button unreviewedFilterCheckbox;
 	private ScrolledComposite workQueueScrolledComposite;
+	
+	private static boolean needsRefresh = false;
+	
+	public static void refreshRequired(){
+		needsRefresh = true;
+	}
 
 	@Override
 	public void createPartControl(final Composite parent) {
@@ -121,6 +131,12 @@ public class DashboardView extends ViewPart {
 			filterCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			filterCheckbox.setText(workItemType);
 			filterCheckbox.setSelection(true);
+			filterCheckbox.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					refreshWorkItems();
+				}
+			});
 			filterCheckboxes.add(filterCheckbox);
 		}
 		
@@ -135,11 +151,23 @@ public class DashboardView extends ViewPart {
 		emptyFilterCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		emptyFilterCheckbox.setText("Empty");
 		emptyFilterCheckbox.setSelection(false);
+		emptyFilterCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refreshWorkItems();
+			}
+		});
 		
 		nonEmptyFilterCheckbox = new Button(workItemContentsGroup, SWT.CHECK);
 		nonEmptyFilterCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		nonEmptyFilterCheckbox.setText("Non-Empty");
 		nonEmptyFilterCheckbox.setSelection(true);
+		nonEmptyFilterCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refreshWorkItems();
+			}
+		});
 		
 		final Group workItemStateGroup = new Group(controlPanelComposite, SWT.NONE);
 		workItemStateGroup.setLayout(new GridLayout(1, false));
@@ -152,11 +180,70 @@ public class DashboardView extends ViewPart {
 		reviewedFilterCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		reviewedFilterCheckbox.setText("Reviewed");
 		reviewedFilterCheckbox.setSelection(false);
+		reviewedFilterCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refreshWorkItems();
+			}
+		});
 		
 		unreviewedFilterCheckbox = new Button(workItemStateGroup, SWT.CHECK);
 		unreviewedFilterCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		unreviewedFilterCheckbox.setText("Unreviewed");
 		unreviewedFilterCheckbox.setSelection(true);
+		unreviewedFilterCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refreshWorkItems();
+			}
+		});
+		
+		searchBar.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent key) {
+				// don't update results for ctrl-keys
+				// such as ctrl-a for select all, consider command key for macs
+				if((key.stateMask & SWT.CTRL) == SWT.CTRL || (key.stateMask & SWT.COMMAND) == SWT.COMMAND){
+					return;
+				}
+				
+		        // refresh on returns
+		        if(key.character == '\r' || key.character == '\n'){
+					refreshWorkItems();
+				} 
+		        
+		        // if its a alphabetic character then update the search results
+		        // consider backspace or delete as updates as well
+		        else if(key.character == '\u0008' || key.character == '\u007F' || Character.isAlphabetic(key.character)){
+					// hide the list we are going to modify the values
+					searchBar.setListVisible(false); 
+					
+					// save the search text
+					String searchText = searchBar.getText();
+
+					// remove all items
+					// note: doing this the hard way because removeAll method also clears the text
+					for(String item : searchBar.getItems()){
+						searchBar.remove(item);
+					}
+					
+					for(WorkItem workItem : workItems){
+						if(workItem.getAnalyzer().getName().toLowerCase().contains(searchBar.getText().toLowerCase().trim())){
+							searchBar.add(workItem.getAnalyzer().getName());
+						}
+					}
+					
+					// for some reason the previous actions are clearing the search text on some OS's so restoring it now
+					searchBar.setText(searchText);
+					
+					// make sure the cursor selection is at the end
+					searchBar.setSelection(new Point(searchText.length(), searchText.length()));
+					
+					// refresh the work items with the search results
+					refreshWorkItems();
+				}
+			}
+		});
 		
 		searchCheckbox.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -192,6 +279,7 @@ public class DashboardView extends ViewPart {
 		sashForm.setWeights(new int[] {125, 450});
 		new Label(parent, SWT.NONE);
 		
+		// add the work items
 		refreshWorkItems();
 	}
 
@@ -202,14 +290,36 @@ public class DashboardView extends ViewPart {
 		
 		Composite workQueueComposite = new Composite(workQueueScrolledComposite, SWT.NONE);
 		workQueueComposite.setLayout(new GridLayout(1, false));
-		
-		for(Button filterCheckbox : filterCheckboxes){
-			if(filterCheckbox.getSelection()){
-				String type = filterCheckbox.getText();
-				Collection<WorkItem> workItems = workItemCategories.get(type);
+
+		if(searchCheckbox.getSelection()){
+			// show work items by search name
+			// but add them by categories to be consistent
+			for(Button filterCheckbox : filterCheckboxes){
+				String category = filterCheckbox.getText();
+				Collection<WorkItem> workItems = workItemCategories.get(category);
 				if(workItems != null){
 					for(WorkItem workItem : workItems){
-						addWorkItem(workItem, workQueueComposite);
+						if(workItem.getAnalyzer().getName().toLowerCase().contains(searchBar.getText().toLowerCase().trim())){
+							addWorkItem(workItem, workQueueComposite);
+						}
+					}
+				}
+			}
+		} else {
+			// show filtered search items
+			for(Button filterCheckbox : filterCheckboxes){
+				if(filterCheckbox.getSelection()){
+					String category = filterCheckbox.getText();
+					Collection<WorkItem> workItems = workItemCategories.get(category);
+					if(workItems != null){
+						for(WorkItem workItem : workItems){
+							// consider reviewed state
+							if((reviewedFilterCheckbox.getSelection() && workItem.isReviewed()) || (unreviewedFilterCheckbox.getSelection() && !workItem.isReviewed())){
+								if((emptyFilterCheckbox.getSelection() && workItem.isEmpty()) || (nonEmptyFilterCheckbox.getSelection() && !workItem.isEmpty())){
+									addWorkItem(workItem, workQueueComposite);
+								}
+							}
+						}
 					}
 				}
 			}
@@ -229,7 +339,7 @@ public class DashboardView extends ViewPart {
 		
 		ExpandItem workItemExpandBarItem = new ExpandItem(workItemExpandBar, SWT.NONE);
 		workItemExpandBarItem.setExpanded(workItem.isExpanded());
-		workItemExpandBarItem.setText(workItem.getAnalyzer().getName());
+		workItemExpandBarItem.setText(workItem.getAnalyzer().getCategory() + ": " + workItem.getAnalyzer().getName());
 		
 		Composite workItemComposite = new Composite(workItemExpandBar, SWT.NONE);
 		workItemExpandBarItem.setControl(workItemComposite);
@@ -256,6 +366,17 @@ public class DashboardView extends ViewPart {
 		Button workItemReviewedCheckbox = new Button(workItemComposite, SWT.CHECK);
 		workItemReviewedCheckbox.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, false, 1, 1));
 		workItemReviewedCheckbox.setText("Reviewed");
+		workItemReviewedCheckbox.setSelection(workItem.isReviewed());
+		workItemReviewedCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				workItem.setReviewed(workItemReviewedCheckbox.getSelection());
+				// since checking the reviewed box will end up hiding the
+				// content, lets go ahead and collapse the expand content
+				workItem.setContentExpanded(false);
+				refreshWorkItems();
+			}
+		});
 		
 		Composite workItemResultsComposite = new Composite(workItemComposite, SWT.NONE);
 		workItemResultsComposite.setLayout(new GridLayout(1, false));
@@ -268,7 +389,8 @@ public class DashboardView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(Analyzers.hasCachedResult(workItem.getAnalyzer())){
-					DisplayUtils.show(Common.toQ(Analyzers.getAllAnalyzerResults(workItem.getAnalyzer())), workItem.getAnalyzer().getName());
+					List<Result> results = Analyzers.getAnalyzerResults(workItem.getAnalyzer());
+					DisplayUtils.show(Analyzer.getAllResults(results), workItem.getAnalyzer().getName());
 				} else {
 					DisplayUtils.showError("Result has not been computed.");
 				}
@@ -295,5 +417,10 @@ public class DashboardView extends ViewPart {
 	}
 
 	@Override
-	public void setFocus() {}
+	public void setFocus() {
+		if(needsRefresh){
+			refreshWorkItems();
+			needsRefresh = false;
+		}
+	}
 }

@@ -54,5 +54,9 @@ public class WorkItem {
 	public void setContentExpanded(boolean expanded) {
 		this.expanded = expanded;
 	}
+
+	public void setReviewed(boolean reviewed) {
+		this.reviewed = reviewed;
+	}
 	
 }

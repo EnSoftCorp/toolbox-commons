@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.commons.analyzers;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.commons.log.Log;
+import com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView;
 
 public class Analyzers extends PrioritizedCodemapStage {
 
@@ -33,7 +35,6 @@ public class Analyzers extends PrioritizedCodemapStage {
 	
 	private static Set<Analyzer> ANALYZERS = Collections.synchronizedSet(new HashSet<Analyzer>());
 	private static Map<String, List<Result>> ANALYZER_RESULTS = new HashMap<String, List<Result>>();
-	private static Map<String, Graph> ANALYZER_ALL_RESULTS = new HashMap<String, Graph>();
 	
 	@Override
 	public String getDisplayName() {
@@ -47,7 +48,16 @@ public class Analyzers extends PrioritizedCodemapStage {
 
 	@Override
 	public String[] getCodemapStageDependencies() {
-		return new String[]{}; // no dependencies
+		loadAnalyzerContributions();
+		HashSet<String> dependencies = new HashSet<String>();
+		for(Analyzer analyzer : getRegisteredAnalyzers()){
+			for(String dependency : analyzer.getCodemapStageDependencies()){
+				dependencies.add(dependency);
+			}
+		}
+		String[] result = new String[dependencies.size()];
+		dependencies.toArray(result);
+		return result;
 	}
 
 	@Override
@@ -60,14 +70,7 @@ public class Analyzers extends PrioritizedCodemapStage {
 			// TODO: set context via preferences
 			List<Result> results = analyzer.getResults(Common.universe());
 			ANALYZER_RESULTS.put(analyzer.getName(), results);
-			AtlasSet<Node> nodes = new AtlasHashSet<Node>();
-			AtlasSet<Edge> edges = new AtlasHashSet<Edge>();
-			for(Result result : results){
-				Graph g = result.getQ().eval();
-				nodes.addAll(g.nodes());
-				edges.addAll(g.edges());
-			}
-			ANALYZER_ALL_RESULTS.put(analyzer.getName(), Common.toQ(edges).union(Common.toQ(nodes)).eval());
+			DashboardView.refreshRequired();
 		}
 	}
 	
@@ -76,15 +79,7 @@ public class Analyzers extends PrioritizedCodemapStage {
 	}
 	
 	public static boolean hasCachedResult(String analyzerName) {
-		return ANALYZER_ALL_RESULTS.containsKey(analyzerName);
-	}
-
-	public static Graph getAllAnalyzerResults(Analyzer analyzer){
-		return getAllAnalyzerResults(analyzer.getName()); 
-	}
-	
-	public static Graph getAllAnalyzerResults(String analyzerName){
-		return ANALYZER_ALL_RESULTS.get(analyzerName); 
+		return ANALYZER_RESULTS.containsKey(analyzerName);
 	}
 	
 	public static List<Result> getAnalyzerResults(Analyzer analyzer){

@@ -99,6 +99,14 @@ public abstract class Analyzer {
 	public abstract String getDescription();
 	
 	/**
+	 * Optionally specifies a set of code map stage dependencies 
+	 * @return
+	 */
+	public String[] getCodemapStageDependencies(){
+		return new String[]{};
+	}
+	
+	/**
 	 * Returns an array of assumptions made when writing the analyzer
 	 * @return
 	 */
@@ -130,10 +138,10 @@ public abstract class Analyzer {
 	 * Returns a union of all results
 	 * @return
 	 */
-	public Q getAllResults(Q context){
+	public static Q getAllResults(List<Result> results){
 		AtlasSet<Node> nodes = new AtlasHashSet<Node>();
 		AtlasSet<Edge> edges = new AtlasHashSet<Edge>();
-		for(Result result : getResults(context)){
+		for(Result result : results){
 			Graph g = result.getQ().eval();
 			nodes.addAll(g.nodes());
 			edges.addAll(g.edges());
