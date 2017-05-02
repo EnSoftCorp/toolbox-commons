@@ -821,6 +821,8 @@ public class FilterView extends ViewPart {
 				for(FilterableRootset rootset : FilterableRootsets.getRegisteredRootSets()){
 					try{
 						treeRoots.add(new FilterRootNode(rootset.getRootSet(), rootset.getName(), false, true));
+						String plurality = ((treeRoots.size() > 1 || treeRoots.size() == 1) ? "s" : "");
+						filterTreeLabel.setText("Filter Tree (" + treeRoots.size() + " root" + plurality + ")");
 						refreshFilterTree();
 					} catch (IllegalArgumentException e1){
 						Log.warning("Could not add filters: ", e1);
@@ -856,6 +858,7 @@ public class FilterView extends ViewPart {
 					root.delete();
 				}
 				treeRoots.clear();
+				filterTreeLabel.setText("Filter Tree (0 roots)");
 				refreshFilterTree();
 			}
 		});
