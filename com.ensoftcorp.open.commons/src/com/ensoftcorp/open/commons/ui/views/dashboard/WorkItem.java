@@ -20,29 +20,9 @@ public class WorkItem {
 	private boolean reviewed = false;
 	private boolean empty = false;
 	private Analyzer analyzer;
-	private List<Result> results = new LinkedList<Result>();
-	private Graph allResults = Common.empty().eval();
-	private boolean initialized = false;
 	
 	public WorkItem(Analyzer analyzer) {
 		this.analyzer = analyzer;
-	}
-	
-	public synchronized void initialize(Q context) throws InterruptedException {
-		Job job = new Job("Analyzing " + analyzer.getName()){
-			@Override
-			protected IStatus run(IProgressMonitor mon) {
-				results = analyzer.getResults(context);
-				allResults = analyzer.getAllResults(context).eval();
-				initialized = true;
-				return Status.OK_STATUS;
-			}
-		};
-		job.join(); // block until save is complete
-	}
-	
-	public boolean isInitialized(){
-		return initialized;
 	}
 
 	public boolean isExpanded() {
@@ -60,14 +40,6 @@ public class WorkItem {
 	public Analyzer getAnalyzer() {
 		return analyzer;
 	}
-	
-	public Graph getAllResults(){
-		return allResults;
-	}
-	
-	public List<Result> getResults(){
-		return results;
-	}
 
 	public String getAssumptionsText() {
 		StringBuilder result = new StringBuilder();
@@ -77,6 +49,10 @@ public class WorkItem {
 		}
 		String text = result.toString().trim();
 		return text.equals("") ? "No assumptions." : text;
+	}
+
+	public void setContentExpanded(boolean expanded) {
+		this.expanded = expanded;
 	}
 	
 }

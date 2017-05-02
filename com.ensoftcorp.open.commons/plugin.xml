@@ -163,6 +163,11 @@
    <extension point="com.ensoftcorp.open.commons.codemap">
       <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage"></codemap>
    </extension>
+   
+   <!-- adds the prioritized codemap stage for caching analyzer results -->
+   <extension point="com.ensoftcorp.open.commons.codemap">
+      <codemap class="com.ensoftcorp.open.commons.analyzers.Analyzers"></codemap>
+   </extension>
 
    <!-- adds analyzer definitions -->
    <extension point="com.ensoftcorp.open.commons.analyzer">

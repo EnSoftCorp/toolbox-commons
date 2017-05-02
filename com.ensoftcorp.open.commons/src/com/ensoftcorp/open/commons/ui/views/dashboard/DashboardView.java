@@ -1,14 +1,16 @@
 package com.ensoftcorp.open.commons.ui.views.dashboard;
 
+import java.awt.Point;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.ExpandAdapter;
+import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -17,7 +19,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
@@ -195,6 +196,10 @@ public class DashboardView extends ViewPart {
 	}
 
 	private void refreshWorkItems() {
+		// save the old scroll position and content origin
+		int scrollPosition = workQueueScrolledComposite.getVerticalBar().getSelection();
+		org.eclipse.swt.graphics.Point origin = workQueueScrolledComposite.getOrigin();
+		
 		Composite workQueueComposite = new Composite(workQueueScrolledComposite, SWT.NONE);
 		workQueueComposite.setLayout(new GridLayout(1, false));
 		
@@ -212,6 +217,10 @@ public class DashboardView extends ViewPart {
 		
 		workQueueScrolledComposite.setContent(workQueueComposite);
 		workQueueScrolledComposite.setMinSize(workQueueComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		// set the scroll position on redraw
+		workQueueScrolledComposite.getVerticalBar().setSelection(scrollPosition);
+		workQueueScrolledComposite.setOrigin(origin);
 	}
 
 	private void addWorkItem(WorkItem workItem, Composite workQueueComposite) {
@@ -219,7 +228,7 @@ public class DashboardView extends ViewPart {
 		workItemExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
 		ExpandItem workItemExpandBarItem = new ExpandItem(workItemExpandBar, SWT.NONE);
-		workItemExpandBarItem.setExpanded(true);
+		workItemExpandBarItem.setExpanded(workItem.isExpanded());
 		workItemExpandBarItem.setText(workItem.getAnalyzer().getName());
 		
 		Composite workItemComposite = new Composite(workItemExpandBar, SWT.NONE);
@@ -253,29 +262,36 @@ public class DashboardView extends ViewPart {
 		workItemResultsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		Button showResultsButton = new Button(workItemResultsComposite, SWT.NONE);
-		showResultsButton.setText("Show Results");
+		showResultsButton.setText("Show All Results");
 		
 		showResultsButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				Display.getDefault().asyncExec(new Runnable(){
-					@Override
-					public void run() {
-						if(!workItem.isInitialized()){
-							try {
-								// TODO: decide context
-								workItem.initialize(Common.universe());
-								DisplayUtils.show(Common.toQ(workItem.getAllResults()), workItem.getAnalyzer().getName());
-							} catch (InterruptedException e) {
-								DisplayUtils.showError(e, e.getMessage());
-							}
-						}
-					}
-				});
+				if(Analyzers.hasCachedResult(workItem.getAnalyzer())){
+					DisplayUtils.show(Common.toQ(Analyzers.getAllAnalyzerResults(workItem.getAnalyzer())), workItem.getAnalyzer().getName());
+				} else {
+					DisplayUtils.showError("Result has not been computed.");
+				}
 			}
 		});
 		
 		workItemExpandBarItem.setHeight(workItemExpandBarItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		
+		// tracking the expand state of the work items
+		final ExpandAdapter expandAdapter = new ExpandAdapter() {
+			@Override
+			public void itemCollapsed(ExpandEvent e) {
+				workItem.setContentExpanded(false);
+				refreshWorkItems();
+			}
+
+			@Override
+			public void itemExpanded(ExpandEvent e) {
+				workItem.setContentExpanded(true);
+				refreshWorkItems();
+			}
+		};
+		workItemExpandBar.addExpandListener(expandAdapter);
 	}
 
 	@Override
