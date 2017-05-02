@@ -144,7 +144,10 @@
    <extension
       point="org.eclipse.equinox.preferences.preferences">
 	   <initializer
-	         class="com.ensoftcorp.open.commons.preferences.CommonsPreferences">
+	         class="com.ensoftcorp.open.commons.preferences.SubsystemPreferences">
+	   </initializer>
+	   <initializer
+	         class="com.ensoftcorp.open.commons.preferences.AnalyzerPreferences">
 	   </initializer>
 	</extension>
 	
@@ -156,6 +159,18 @@
             id="com.ensoftcorp.open.commons.ui.preferences"
             name="Toolbox Commons"
             category="com.ensoftcorp.open.commons.ui.toolbox.preferences">
+      </page>
+      <page
+            class="com.ensoftcorp.open.commons.ui.SubsystemsPreferencesPage"
+            id="com.ensoftcorp.open.commons.ui.preferences.subystems"
+            name="Toolbox Commons (Subystems)"
+            category="com.ensoftcorp.open.commons.ui.preferences">
+      </page>
+      <page
+            class="com.ensoftcorp.open.commons.ui.AnalyzersPreferencesPage"
+            id="com.ensoftcorp.open.commons.ui.preferences.analyzers"
+            name="Toolbox Commons (Analyzers)"
+            category="com.ensoftcorp.open.commons.ui.preferences">
       </page>
    </extension>
    

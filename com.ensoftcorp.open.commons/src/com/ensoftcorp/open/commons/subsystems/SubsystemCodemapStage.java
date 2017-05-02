@@ -9,7 +9,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.commons.log.Log;
-import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
+import com.ensoftcorp.open.commons.preferences.SubsystemPreferences;
 
 /**
  * Runs the subsystem tagging as a post indexing process
@@ -47,7 +47,7 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 		
 		boolean hasEnabledSubystemCategory = false;
 		for(Subsystem subsystem : subsystems){
-			if(CommonsPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
+			if(SubsystemPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
 				hasEnabledSubystemCategory = true;
 				break;
 			}
@@ -60,7 +60,7 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 				if (monitor.isCanceled()) {
 					break;
 				} else {
-					if(CommonsPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
+					if(SubsystemPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
 						subsystem.tagSubsystem();
 					}
 				}
@@ -84,7 +84,7 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 		LinkedList<Subsystem> registrationWorklist = new LinkedList<Subsystem>();
 		
 		for(Subsystem subsystem : subsystems){
-			if(CommonsPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
+			if(SubsystemPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
 				registrationWorklist.add(subsystem);
 			}
 		}

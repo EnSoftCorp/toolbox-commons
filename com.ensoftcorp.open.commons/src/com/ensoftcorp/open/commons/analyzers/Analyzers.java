@@ -18,6 +18,7 @@ import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.commons.log.Log;
+import com.ensoftcorp.open.commons.preferences.AnalyzerPreferences;
 import com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView;
 
 public class Analyzers extends PrioritizedCodemapStage {
@@ -45,8 +46,10 @@ public class Analyzers extends PrioritizedCodemapStage {
 		loadAnalyzerContributions();
 		HashSet<String> dependencies = new HashSet<String>();
 		for(Analyzer analyzer : getRegisteredAnalyzers()){
-			for(String dependency : analyzer.getCodemapStageDependencies()){
-				dependencies.add(dependency);
+			if(AnalyzerPreferences.isAnalyzerCachingEnabled(analyzer.getName())){
+				for(String dependency : analyzer.getCodemapStageDependencies()){
+					dependencies.add(dependency);
+				}
 			}
 		}
 		String[] result = new String[dependencies.size()];
@@ -60,11 +63,13 @@ public class Analyzers extends PrioritizedCodemapStage {
 		Analyzers.loadAnalyzerContributions();
 		Set<Analyzer> analyzers = Analyzers.getRegisteredAnalyzers();
 		for(Analyzer analyzer : analyzers){
-			monitor.subTask("Analyzing " + analyzer.getName());
-			// TODO: set context via preferences
-			List<Result> results = analyzer.getResults(Common.universe());
-			ANALYZER_RESULTS.put(analyzer.getName(), results);
-			DashboardView.refreshRequired();
+			if(AnalyzerPreferences.isAnalyzerCachingEnabled(analyzer.getName())){
+				monitor.subTask("Analyzing " + analyzer.getName());
+				// TODO: set context via preferences
+				List<Result> results = analyzer.getResults(Common.universe());
+				ANALYZER_RESULTS.put(analyzer.getName(), results);
+				DashboardView.refreshRequired();
+			}
 		}
 	}
 	

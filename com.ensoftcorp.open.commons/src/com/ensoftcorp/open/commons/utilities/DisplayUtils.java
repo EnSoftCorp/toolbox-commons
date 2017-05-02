@@ -61,6 +61,43 @@ public class DisplayUtils {
 	    InputDialog prompt = new InputDialog(display.getActiveShell(), blocking, title, message);
 	    return prompt.open();
 	}
+	
+	/**
+	 * Returns a boolean (yes=true, no=false) entered by the user, returns null if the user canceled the prompt
+	 * @param title
+	 * @param message
+	 * @return
+	 */
+	public static Boolean promptBoolean(String title, String message) {
+		return promptBoolean(title, message, true);
+	}
+	
+	/**
+	 * Returns a boolean (yes=true, no=false) entered by the user, returns null if the user canceled the prompt
+	 * @param title
+	 * @param message
+	 * @param blocking blocking set to false if the dialog should be non-blocking
+	 * @return
+	 */
+	public static Boolean promptBoolean(String title, String message, boolean blocking) {
+		final Display display;
+		if(Display.getCurrent() != null){
+			display = Display.getCurrent();
+		} else {
+			display = Display.getDefault();
+		}
+		MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_QUESTION | SWT.NO | SWT.YES);
+		mb.setText(title);
+		mb.setMessage(message);
+		int response = mb.open();
+		if (response == SWT.YES) {
+			return new Boolean(true);
+		} else if(response == SWT.NO){
+			return new Boolean(false);
+		} else {
+			return null;
+		}
+	}
 
 	/**
 	 * Opens a display prompt alerting the user of the error 

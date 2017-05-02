@@ -2,9 +2,15 @@ package com.ensoftcorp.open.commons.ui.views.dashboard;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -22,6 +28,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
@@ -29,6 +36,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.ensoftcorp.atlas.core.log.Log;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.analyzers.Analyzer;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 import com.ensoftcorp.open.commons.analyzers.Analyzers;
@@ -43,8 +52,8 @@ public class DashboardView extends ViewPart {
 	
 	public DashboardView() {}
 	
-	private Collection<WorkItem> workItems = new LinkedList<WorkItem>();
-	private HashMap<String, Collection<WorkItem>> workItemCategories;
+	private Set<WorkItem> workItems = new HashSet<WorkItem>();
+	private HashMap<String, Set<WorkItem>> workItemCategories;
 	private LinkedList<Button> filterCheckboxes = new LinkedList<Button>();
 	private Button searchCheckbox;
 	private Combo searchBar;
@@ -52,6 +61,8 @@ public class DashboardView extends ViewPart {
 	private Button nonEmptyFilterCheckbox;
 	private Button reviewedFilterCheckbox;
 	private Button unreviewedFilterCheckbox;
+	private Button initializedFilterCheckbox;
+	private Button uninitializedFilterCheckbox;
 	private ScrolledComposite workQueueScrolledComposite;
 	
 	private static boolean needsRefresh = false;
@@ -100,15 +111,15 @@ public class DashboardView extends ViewPart {
 		}
 		
 		// sort the work items by type
-		workItemCategories = new HashMap<String,Collection<WorkItem>>();
+		workItemCategories = new HashMap<String,Set<WorkItem>>();
 		for(WorkItem workItem : workItems){
 			String category = workItem.getAnalyzer().getCategory();
-			Collection<WorkItem> types = workItemCategories.remove(category);
-			if(types == null){
-				types = new LinkedList<WorkItem>();
+			Set<WorkItem> categories = workItemCategories.remove(category);
+			if(categories == null){
+				categories = new HashSet<WorkItem>();
 			}
-			types.add(workItem);
-			workItemCategories.put(category, types);
+			categories.add(workItem);
+			workItemCategories.put(category, categories);
 		}
 		
 		Label workItemFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
@@ -197,6 +208,28 @@ public class DashboardView extends ViewPart {
 			}
 		});
 		
+		initializedFilterCheckbox = new Button(workItemStateGroup, SWT.CHECK);
+		initializedFilterCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		initializedFilterCheckbox.setText("Initialized");
+		initializedFilterCheckbox.setSelection(true);
+		initializedFilterCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refreshWorkItems();
+			}
+		});
+		
+		uninitializedFilterCheckbox = new Button(workItemStateGroup, SWT.CHECK);
+		uninitializedFilterCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		uninitializedFilterCheckbox.setText("Uninitialized");
+		uninitializedFilterCheckbox.setSelection(false);
+		uninitializedFilterCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refreshWorkItems();
+			}
+		});
+		
 		searchBar.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent key) {
@@ -272,6 +305,7 @@ public class DashboardView extends ViewPart {
 					searchBar.setText("");
 					searchBar.setEnabled(false);
 				}
+				refreshWorkItems();
 			}
 		});
 		
@@ -283,10 +317,39 @@ public class DashboardView extends ViewPart {
 	}
 
 	private void refreshWorkItems() {
+		// add new workitems if any are detected
+		Analyzers.loadAnalyzerContributions();
+		for(Analyzer analyzer : Analyzers.getRegisteredAnalyzers()){
+			workItems.add(new WorkItem(analyzer));
+		}
+		
+		// update the category sorting
+		for(WorkItem workItem : workItems){
+			String category = workItem.getAnalyzer().getCategory();
+			Set<WorkItem> categories = workItemCategories.remove(category);
+			if(categories == null){
+				categories = new HashSet<WorkItem>();
+			}
+			categories.add(workItem);
+			workItemCategories.put(category, categories);
+		}
+		
+		// mark any work items that are completed as initialized
+		for(WorkItem workItem : workItems){
+			if(!workItem.isInitialized()){
+				Analyzer analyzer = workItem.getAnalyzer();
+				if(Analyzers.hasCachedResult(analyzer)){
+					List<Result> results = Analyzers.getAnalyzerResults(analyzer);
+					workItem.initialize(results);
+				}
+			}
+		}
+		
 		// save the old scroll position and content origin
 		int scrollPosition = workQueueScrolledComposite.getVerticalBar().getSelection();
 		org.eclipse.swt.graphics.Point origin = workQueueScrolledComposite.getOrigin();
 		
+		// create a new composite to store the work items on
 		Composite workQueueComposite = new Composite(workQueueScrolledComposite, SWT.NONE);
 		workQueueComposite.setLayout(new GridLayout(1, false));
 
@@ -295,10 +358,11 @@ public class DashboardView extends ViewPart {
 			// but add them by categories to be consistent
 			for(Button filterCheckbox : filterCheckboxes){
 				String category = filterCheckbox.getText();
-				Collection<WorkItem> workItems = workItemCategories.get(category);
+				Set<WorkItem> workItems = workItemCategories.get(category);
 				if(workItems != null){
 					for(WorkItem workItem : workItems){
-						if(workItem.getAnalyzer().getName().toLowerCase().contains(searchBar.getText().toLowerCase().trim())){
+						Analyzer analyzer = workItem.getAnalyzer();
+						if(analyzer.getName().toLowerCase().contains(searchBar.getText().toLowerCase().trim())){
 							addWorkItem(workItem, workQueueComposite);
 						}
 					}
@@ -313,9 +377,11 @@ public class DashboardView extends ViewPart {
 					if(workItems != null){
 						for(WorkItem workItem : workItems){
 							// consider reviewed state
-							if((reviewedFilterCheckbox.getSelection() && workItem.isReviewed()) || (unreviewedFilterCheckbox.getSelection() && !workItem.isReviewed())){
-								if((emptyFilterCheckbox.getSelection() && workItem.isEmpty()) || (nonEmptyFilterCheckbox.getSelection() && !workItem.isEmpty())){
-									addWorkItem(workItem, workQueueComposite);
+							if((initializedFilterCheckbox.getSelection() && workItem.isInitialized()) || (uninitializedFilterCheckbox.getSelection() && !workItem.isInitialized())){
+								if((reviewedFilterCheckbox.getSelection() && workItem.isReviewed()) || (unreviewedFilterCheckbox.getSelection() && !workItem.isReviewed())){
+									if((emptyFilterCheckbox.getSelection() && workItem.isEmpty()) || (nonEmptyFilterCheckbox.getSelection() && !workItem.isEmpty())){
+										addWorkItem(workItem, workQueueComposite);
+									}
 								}
 							}
 						}
@@ -338,7 +404,11 @@ public class DashboardView extends ViewPart {
 		
 		ExpandItem workItemExpandBarItem = new ExpandItem(workItemExpandBar, SWT.NONE);
 		workItemExpandBarItem.setExpanded(workItem.isExpanded());
-		workItemExpandBarItem.setText(workItem.getAnalyzer().getCategory() + ": " + workItem.getAnalyzer().getName());
+		String initializedState = "";
+		if(!workItem.isInitialized()){
+			initializedState = " [RESULTS PENDING]";
+		}
+		workItemExpandBarItem.setText(workItem.getAnalyzer().getCategory() + ": " + workItem.getAnalyzer().getName() + initializedState);
 		
 		Composite workItemComposite = new Composite(workItemExpandBar, SWT.NONE);
 		workItemExpandBarItem.setControl(workItemComposite);
@@ -387,11 +457,30 @@ public class DashboardView extends ViewPart {
 		showResultsButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(Analyzers.hasCachedResult(workItem.getAnalyzer())){
-					List<Result> results = Analyzers.getAnalyzerResults(workItem.getAnalyzer());
-					DisplayUtils.show(Analyzer.getAllResults(results), workItem.getAnalyzer().getName());
+				Analyzer analyzer = workItem.getAnalyzer();
+				if(Analyzers.hasCachedResult(analyzer)){
+					List<Result> results = Analyzers.getAnalyzerResults(analyzer);
+					DisplayUtils.show(Analyzer.getAllResults(results), analyzer.getName());
 				} else {
-					DisplayUtils.showError("Result has not been computed.");
+					Boolean answer = DisplayUtils.promptBoolean("Result has not been computed.", "Would you like to compute it now?");
+					if(answer != null && answer.booleanValue() == true){
+						Job job = new Job("Analyzing: " + analyzer.getName()){
+							@Override
+							protected IStatus run(IProgressMonitor monitor) {
+								Log.info("Analyzing: " + analyzer.getName());
+								List<Result> results = analyzer.getResults(Common.universe()); // TODO: update context
+								workItem.initialize(results);
+								Display.getDefault().asyncExec(new Runnable(){
+									@Override
+									public void run() {
+										refreshWorkItems();
+									}
+								});
+								return Status.OK_STATUS;
+							}
+						};
+						job.schedule();
+					}
 				}
 			}
 		});

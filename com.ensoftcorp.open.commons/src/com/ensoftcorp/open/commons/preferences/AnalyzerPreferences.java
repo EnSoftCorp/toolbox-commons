@@ -7,34 +7,19 @@ import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.analyzers.Analyzer;
 import com.ensoftcorp.open.commons.analyzers.Analyzers;
 import com.ensoftcorp.open.commons.log.Log;
-import com.ensoftcorp.open.commons.subsystems.Subsystem;
-import com.ensoftcorp.open.commons.subsystems.Subsystems;
 
-public class CommonsPreferences extends AbstractPreferenceInitializer {
+public class AnalyzerPreferences extends AbstractPreferenceInitializer {
 
 	@SuppressWarnings("unused")
 	private static boolean initialized = false;
-	
+
 	/**
-	 * Enables or disables the subsystem category
+	 * Enables or disables the caching for analyzer
 	 * @param subsystemCategory
 	 * @param enabled
 	 */
-	public static void enableSubsystemCategory(String subsystemCategory, boolean enabled){
-		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		preferences.setValue(subsystemCategory, enabled);
-	}
-	
-	/**
-	 * Returns true if the subsystem category is enabled for tagging
-	 * 
-	 * @param subsystemCategory
-	 * @return
-	 */
-	public static boolean isSubsystemCategoryEnabled(String subsystemCategory){
-		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		Boolean result = preferences.getBoolean(subsystemCategory);
-		return result.booleanValue();
+	public static void enableAnalyzerCaching(Analyzer analyzer, boolean enabled){
+		enableAnalyzerCaching(analyzer.getName(), enabled);
 	}
 	
 	/**
@@ -62,11 +47,6 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		// disable subsystem tagging categories by default
-		Subsystems.loadSubsystemContributions();
-		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
-			preferences.setDefault(subsystem.getCategory(), false);
-		}
 		// disable analyzer result caching by default
 		Analyzers.loadAnalyzerContributions();
 		for(Analyzer analyzer : Analyzers.getRegisteredAnalyzers()){
@@ -79,11 +59,6 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	 */
 	public static void restoreDefaults(){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		// disable subsystem tagging categories by default
-		Subsystems.loadSubsystemContributions();
-		for(Subsystem subsystem : Subsystems.getRegisteredSubsystems()){
-			preferences.setValue(subsystem.getCategory(), false);
-		}
 		// disable analyzer result caching by default
 		Analyzers.loadAnalyzerContributions();
 		for(Analyzer analyzer : Analyzers.getRegisteredAnalyzers()){
@@ -99,7 +74,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		try {
 			Activator.getDefault().getPreferenceStore();
 		} catch (Exception e){
-			Log.warning("Error accessing commons preferences, using defaults...", e);
+			Log.warning("Error accessing commons analyzer preferences, using defaults...", e);
 		}
 		initialized = true;
 	}
