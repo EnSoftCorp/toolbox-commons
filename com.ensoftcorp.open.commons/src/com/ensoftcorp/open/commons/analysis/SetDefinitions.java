@@ -11,7 +11,8 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
  */
 public final class SetDefinitions {
 
-private SetDefinitions() {}
+	// hide constructor
+	private SetDefinitions() {}
 
 	/**
 	 * Types which represent arrays of other types
@@ -40,7 +41,7 @@ private SetDefinitions() {}
 	public static Q libraries() {
 		return Common.universe().nodesTaggedWithAny(XCSG.Library).contained();
 	}
-
+	
 	/**
 	 * Everything in the universe which is part of the app (not part of the
 	 * libraries, or any "floating" nodes).

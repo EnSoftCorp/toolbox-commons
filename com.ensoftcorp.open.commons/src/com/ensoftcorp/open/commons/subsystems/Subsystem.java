@@ -62,6 +62,9 @@ public abstract class Subsystem {
 	/**
 	 * The set of namespaces/folders that should be tagged in the subsystem
 	 * 
+	 * Format: "PackageName"
+	 * Example: "java.lang"
+	 * 
 	 * @return
 	 */
 	public String[] getNamespaces() {
@@ -75,9 +78,28 @@ public abstract class Subsystem {
 	 * a namespace. If the type is already covered by the namespace it is not
 	 * necessary to specify it here.
 	 * 
+	 * Format: "PackageName.TypeName"
+	 * Example: "java.lang.Math"
+	 * 
 	 * @return
 	 */
 	public String[] getTypes() {
+		return new String[] {};
+	}
+	
+	/**
+	 * The set of methods that should be tagged in the subsystem
+	 * 
+	 * Note: This finer grained resolution is for specifying individual methods in
+	 * a namespace. If the type is already covered by the namespace it is not
+	 * necessary to specify it here.
+	 * 
+	 * Format: "PackageName.TypeName MethodName"
+	 * Example: "java.lang.Math random"
+	 * 
+	 * @return
+	 */
+	public String[] getMethods() {
 		return new String[] {};
 	}
 
@@ -91,6 +113,27 @@ public abstract class Subsystem {
 			for (String pkg : pkgs) {
 				for (Node pkgNode : new AtlasHashSet<Node>(Common.pkg(pkg).eval().nodes())) {
 					pkgNode.tag(getTag());
+				}
+			}
+		}
+		String[] types = getTypes();
+		if (types != null) {
+			for (String type : types) {
+				String typePackage = type.substring(0, type.lastIndexOf("."));
+				String typeName = type.substring(type.lastIndexOf(".")+1);
+				for (Node typeNode : new AtlasHashSet<Node>(Common.typeSelect(typePackage, typeName).eval().nodes())) {
+					typeNode.tag(getTag());
+				}
+			}
+		}
+		String[] methods = getMethods();
+		if (methods != null) {
+			for (String method : methods) {
+				String typePackage = method.substring(0, method.lastIndexOf("."));
+				String typeName = method.substring(method.lastIndexOf(".")+1);
+				String methodName = method.split(" ")[1];
+				for (Node methodNode : new AtlasHashSet<Node>(Common.methodSelect(typePackage, typeName, methodName).eval().nodes())) {
+					methodNode.tag(getTag());
 				}
 			}
 		}
@@ -109,6 +152,27 @@ public abstract class Subsystem {
 				}
 			}
 		}
+		String[] types = getTypes();
+		if (types != null) {
+			for (String type : types) {
+				String typePackage = type.substring(0, type.lastIndexOf("."));
+				String typeName = type.substring(type.lastIndexOf("."));
+				for (Node typeNode : new AtlasHashSet<Node>(Common.typeSelect(typePackage, typeName).eval().nodes())) {
+					typeNode.tags().remove(getTag());
+				}
+			}
+		}
+		String[] methods = getMethods();
+		if (methods != null) {
+			for (String method : methods) {
+				String typePackage = method.substring(0, method.lastIndexOf("."));
+				String typeName = method.substring(method.lastIndexOf(".")+1);
+				String methodName = method.split(" ")[1];
+				for (Node methodNode : new AtlasHashSet<Node>(Common.methodSelect(typePackage, typeName, methodName).eval().nodes())) {
+					methodNode.tags().remove(getTag());
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -117,47 +181,42 @@ public abstract class Subsystem {
 	}
 
 	/**
-	 * Two subsystems are equivalent if they have the same tag and set of
-	 * namespaces/folders
+	 * Two subsystems are equivalent if they have the same tag, and set of parents
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-
-		String tag = getTag();
-		String[] namespaces = getNamespaces();
-
-		result = prime * result + Arrays.hashCode(namespaces);
-		result = prime * result + ((tag == null) ? 0 : tag.hashCode());
+		result = prime * result + ((getTag() == null) ? 0 : getTag().hashCode());
+		result = prime * result + Arrays.hashCode(getParentTags());
 		return result;
 	}
 
 	/**
-	 * Two subsystems are equivalent if they have the same tag and set of
-	 * namespaces/folders
+	 * Two subsystems are equivalent if they have the same tag, and set of parents
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj){
 			return true;
-		if (obj == null)
+		}
+		if (obj == null){
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()){
 			return false;
-
-		String tag = getTag();
-		String[] namespaces = getNamespaces();
-
+		}
 		Subsystem other = (Subsystem) obj;
-		if (!Arrays.equals(namespaces, other.getNamespaces()))
-			return false;
-		if (tag == null) {
-			if (other.getTag() != null)
+		if (getTag() == null) {
+			if (other.getTag() != null){
 				return false;
-		} else if (!tag.equals(other.getTag()))
+			}
+		} else if (!getTag().equals(other.getTag())){
 			return false;
+		}
+		if (!Arrays.equals(getParentTags(), other.getParentTags())){
+			return false;
+		}
 		return true;
 	}
-
 }
