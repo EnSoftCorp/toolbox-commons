@@ -19,10 +19,10 @@ import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.markup.MarkupFromH;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.atlas.core.script.CommonQueries;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.ui.viewer.graph.DisplayUtil;
 import com.ensoftcorp.atlas.ui.viewer.graph.SaveUtil;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.ui.components.InputDialog;
 
 /**

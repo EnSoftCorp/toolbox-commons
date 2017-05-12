@@ -17,7 +17,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.commons.analysis.CFG;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
 
 /**
  * Utilities for enumerating paths through a CFG
@@ -47,7 +47,7 @@ public class PathEnumerator {
 	 * @return
 	 */
 	public static List<List<Node>> getPaths(Node function){
-		return getPaths(CFG.cfg(function));
+		return getPaths(CommonQueries.cfg(function));
 	}
 	
 	/**

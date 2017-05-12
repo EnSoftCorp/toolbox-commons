@@ -14,8 +14,8 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.atlas.core.script.CommonQueries;
 import com.ensoftcorp.open.commons.Activator;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.log.Log;
 
 public class Subsystems {
