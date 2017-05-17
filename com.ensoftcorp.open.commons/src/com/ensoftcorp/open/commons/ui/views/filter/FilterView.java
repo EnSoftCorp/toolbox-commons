@@ -137,47 +137,32 @@ public class FilterView extends ViewPart {
 		filterComposite.setLayout(new GridLayout(1, false));
 		filterComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		ScrolledComposite filterContentScrolledComposite = new ScrolledComposite(filterComposite, SWT.V_SCROLL);
-		filterContentScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		filterContentScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		filterContentScrolledComposite.setExpandHorizontal(true);
-		filterContentScrolledComposite.setExpandVertical(true);
-		
-		Composite filterContentComposite = new Composite(filterContentScrolledComposite, SWT.NONE);
-		filterContentComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		filterContentComposite.setLayout(new GridLayout(1, false));
-		
-		Group grpFilterDescription = new Group(filterContentComposite, SWT.NONE);
-		grpFilterDescription.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		grpFilterDescription.setSize(276, 51);
+		Group grpFilterDescription = new Group(filterComposite, SWT.NONE);
 		grpFilterDescription.setLayout(new GridLayout(1, false));
+		grpFilterDescription.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		grpFilterDescription.setText("Filter Description");
 		
 		filterDescriptionText = new Label(grpFilterDescription, SWT.WRAP);
 		filterDescriptionText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		filterDescriptionText.setText("No filter selected.");
-		
-		Group filterParametersGroup = new Group(filterContentComposite, SWT.NONE);
-		filterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		filterParametersGroup.setSize(276, 153);
+
+		Group filterParametersGroup = new Group(filterComposite, SWT.NONE);
 		filterParametersGroup.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		filterParametersGroup.setText("Filter Parameters");
 		filterParametersGroup.setLayout(new GridLayout(1, false));
-		
+		filterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
 		filterParametersScrolledComposite = new ScrolledComposite(filterParametersGroup, SWT.H_SCROLL | SWT.V_SCROLL);
 		filterParametersScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		filterParametersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		filterParametersScrolledComposite.setExpandHorizontal(true);
-		filterParametersScrolledComposite.setExpandVertical(false);
-		
+		filterParametersScrolledComposite.setExpandVertical(true);
+
 		Label noSelectedFilterLabel = new Label(filterParametersScrolledComposite, SWT.NONE);
 		noSelectedFilterLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		noSelectedFilterLabel.setText("No filter selected.");
 		filterParametersScrolledComposite.setContent(noSelectedFilterLabel);
 		filterParametersScrolledComposite.setMinSize(noSelectedFilterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
-		filterContentScrolledComposite.setContent(filterContentComposite);
-		filterContentScrolledComposite.setMinSize(filterContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
 		Composite applyFilterComposite = new Composite(filterComposite, SWT.NONE);
 		applyFilterComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
