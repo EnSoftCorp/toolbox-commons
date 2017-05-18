@@ -20,12 +20,12 @@ public class ForwardDominanceTree {
 	 */
 	public static final String IMMEDIATE_FORWARD_DOMINANCE_EDGE = "ifdom";
 	
-	private UniqueEntryExitControlFlowGraph graph;
+	private UniqueEntryExitGraph graph;
 	
 	/** 
 	 * @param cfg a ControlFlowGraph (may include ExceptionalControlFlow_Edges)
 	 */
-	public ForwardDominanceTree(UniqueEntryExitControlFlowGraph graph) {
+	public ForwardDominanceTree(UniqueEntryExitGraph graph) {
 		this.graph = graph;
 	}
 	

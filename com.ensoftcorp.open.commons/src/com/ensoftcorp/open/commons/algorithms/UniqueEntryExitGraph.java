@@ -26,7 +26,15 @@ public interface UniqueEntryExitGraph {
 	 */
 	public Node getExitNode();
 
+	/**
+	 * The set of nodes in the graph
+	 * @return
+	 */
 	public AtlasSet<Node> nodes();
 
+	/**
+	 * The set of edges in the graph
+	 * @return
+	 */
 	public AtlasSet<Edge> edges();
 }
