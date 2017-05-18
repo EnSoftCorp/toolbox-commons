@@ -67,6 +67,8 @@ import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
 public class FilterView extends ViewPart {
 
+	private static final int FONT_SIZE = 11;
+	
 	private static LinkedList<FilterRootNode> treeRoots = new LinkedList<FilterRootNode>();
 	
 	private Tree filterTree;
@@ -101,10 +103,12 @@ public class FilterView extends ViewPart {
 		filterTreeComposite.setLayout(new GridLayout(1, false));
 		
 		filterTreeLabel = new Label(filterTreeComposite, SWT.NONE);
+		filterTreeLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 		filterTreeLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		filterTreeLabel.setText("Filter Tree (0 roots)");
 
 		filterTree = new Tree(filterTreeComposite, SWT.SINGLE | SWT.VIRTUAL | /* SWT.CHECK | */ SWT.BORDER);
+		filterTree.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 		filterTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		filterTree.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		
@@ -126,6 +130,7 @@ public class FilterView extends ViewPart {
 		label.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 
 		applicableFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
+		applicableFiltersLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 		applicableFiltersLabel.setText("(0/" + Filters.getRegisteredFilters().size() + ") Applicable Filters");
 
 		filterSearchBar = new Combo(controlPanelComposite, SWT.NONE);
@@ -138,15 +143,18 @@ public class FilterView extends ViewPart {
 		filterComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		Group grpFilterDescription = new Group(filterComposite, SWT.NONE);
+		grpFilterDescription.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 		grpFilterDescription.setLayout(new GridLayout(1, false));
 		grpFilterDescription.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		grpFilterDescription.setText("Filter Description");
 		
 		filterDescriptionText = new Label(grpFilterDescription, SWT.WRAP);
+		filterDescriptionText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 		filterDescriptionText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		filterDescriptionText.setText("No filter selected.");
 
 		Group filterParametersGroup = new Group(filterComposite, SWT.NONE);
+		filterParametersGroup.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 		filterParametersGroup.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		filterParametersGroup.setText("Filter Parameters");
 		filterParametersGroup.setLayout(new GridLayout(1, false));
@@ -159,6 +167,7 @@ public class FilterView extends ViewPart {
 		filterParametersScrolledComposite.setExpandVertical(true);
 
 		Label noSelectedFilterLabel = new Label(filterParametersScrolledComposite, SWT.NONE);
+		noSelectedFilterLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 		noSelectedFilterLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		noSelectedFilterLabel.setText("No filter selected.");
 		filterParametersScrolledComposite.setContent(noSelectedFilterLabel);
@@ -174,6 +183,7 @@ public class FilterView extends ViewPart {
 		errorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
 		applyFilterButton = new Button(applyFilterComposite, SWT.NONE);
+		applyFilterButton.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 		applyFilterButton.setEnabled(false);
 		applyFilterButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		applyFilterButton.setText("Apply Filter");
@@ -422,6 +432,7 @@ public class FilterView extends ViewPart {
 
 				Label requiredFieldsLabel = new Label(inputComposite, SWT.NONE);
 				requiredFieldsLabel.setText("*Indicates required fields.");
+				requiredFieldsLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 				
 				// add the parameters in alphabetical order for UI consistency
 				LinkedList<String> parameterNames = new LinkedList<String>(filter.getPossibleParameters().keySet());
@@ -440,8 +451,10 @@ public class FilterView extends ViewPart {
 						final Button enableBooleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
 						enableBooleanInputCheckbox.setEnabled(!requiredParameter);
 						enableBooleanInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						enableBooleanInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 
 						final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
+						booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
 						if(filter.getPossibleFlags().contains(parameterName)){	
 							booleanInputLabel.setText(parameterName);
@@ -505,15 +518,18 @@ public class FilterView extends ViewPart {
 						final Button enableStringInputCheckbox = new Button(stringInputComposite, SWT.CHECK);
 						enableStringInputCheckbox.setEnabled(!requiredParameter);
 						enableStringInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						enableStringInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 
 						final Label stringInputLabel = new Label(stringInputComposite, SWT.NONE);
 						stringInputLabel.setEnabled(requiredParameter);
 						stringInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
 						stringInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						stringInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 
 						final Text stringInputText = new Text(stringInputComposite, SWT.BORDER);
 						stringInputText.setEnabled(requiredParameter);
 						stringInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						stringInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 
 						enableStringInputCheckbox.addSelectionListener(new SelectionAdapter() {
 							@Override
@@ -559,15 +575,18 @@ public class FilterView extends ViewPart {
 						final Button enableIntegerInputCheckbox = new Button(integerInputComposite, SWT.CHECK);
 						enableIntegerInputCheckbox.setEnabled(!requiredParameter);
 						enableIntegerInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						enableIntegerInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
 						final Label integerInputLabel = new Label(integerInputComposite, SWT.NONE);
 						integerInputLabel.setEnabled(requiredParameter);
 						integerInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
 						integerInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						integerInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
 						final Text integerInputText = new Text(integerInputComposite, SWT.BORDER);
 						integerInputText.setEnabled(requiredParameter);
 						integerInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						integerInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 
 						enableIntegerInputCheckbox.addSelectionListener(new SelectionAdapter() {
 							@Override
@@ -611,16 +630,19 @@ public class FilterView extends ViewPart {
 						final Button enableDoubleInputCheckbox = new Button(doubleInputComposite, SWT.CHECK);
 						enableDoubleInputCheckbox.setEnabled(!requiredParameter);
 						enableDoubleInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						enableDoubleInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
 						final Label doubleInputLabel = new Label(doubleInputComposite, SWT.NONE);
 						doubleInputLabel.setEnabled(requiredParameter);
 						doubleInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
 						doubleInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						doubleInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
 						final Text doubleInputText = new Text(doubleInputComposite, SWT.BORDER);
 						doubleInputText.setEnabled(requiredParameter);
 						doubleInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-
+						doubleInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
 						enableDoubleInputCheckbox.addSelectionListener(new SelectionAdapter() {
 							@Override
 							public void widgetSelected(SelectionEvent e) {
