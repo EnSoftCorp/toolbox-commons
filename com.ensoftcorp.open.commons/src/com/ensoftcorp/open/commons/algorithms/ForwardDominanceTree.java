@@ -6,7 +6,7 @@ import java.util.Set;
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
+import com.ensoftcorp.atlas.core.db.set.AtlasEdgeHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
@@ -31,22 +31,22 @@ public class ForwardDominanceTree {
 	
 	public Graph getForwardDominanceTree(){
 		DominanceAnalysis dominanceAnalysis = new DominanceAnalysis(graph, true);
-		Multimap<Node> dominanceFrontier = dominanceAnalysis.getDominatorTree();
-		AtlasSet<Node> dominanceTree = new AtlasHashSet<Node>();
-		for(Entry<Node, Set<Node>> entry : dominanceFrontier.entrySet()){
+		Multimap<Node> dominanceTree = dominanceAnalysis.getDominatorTree();
+		AtlasSet<Edge> dominanceEdges = new AtlasEdgeHashSet();
+		for(Entry<Node, Set<Node>> entry : dominanceTree.entrySet()){
 			Node fromNode = entry.getKey();
 			for(Node toNode : entry.getValue()){
 				Q forwardDominanceEdges = Common.universe().edgesTaggedWithAny(IMMEDIATE_FORWARD_DOMINANCE_EDGE);
-				Edge forwardDominanceEdge = forwardDominanceEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().getFirst();
+				Edge forwardDominanceEdge = forwardDominanceEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().one();
 				if(forwardDominanceEdge == null){
 					forwardDominanceEdge = Graph.U.createEdge(fromNode, toNode);
 					forwardDominanceEdge.tag(IMMEDIATE_FORWARD_DOMINANCE_EDGE);
 					forwardDominanceEdge.putAttr(XCSG.name, IMMEDIATE_FORWARD_DOMINANCE_EDGE);
 				}
-				dominanceTree.add(forwardDominanceEdge);
+				dominanceEdges.add(forwardDominanceEdge);
 			}
 		}
-		return Common.toQ(dominanceTree).eval();
+		return Common.toQ(dominanceEdges).eval();
 	}
 
 }
