@@ -8,8 +8,8 @@ import java.util.Set;
 public abstract class SandboxGraphElement {
 
 	private final int sandboxInstanceID;
-	private final String address;
-	private final boolean mirror;
+	private String address;
+	private boolean mirror;
 
 	private final Set<String> tags;
 	private final Map<String, Object> attributes;
@@ -53,6 +53,17 @@ public abstract class SandboxGraphElement {
 		return mirror;
 	}
 
+	/**
+	 * Updates the sandbox's temporary address with the flushed address
+	 * @param address
+	 */
+	public void flush(String address){
+		if(!isMirror()){
+			this.address = address;
+			this.mirror = true;
+		}
+	}
+	
 	/**
 	 * Returns the set of tags currently applied to this sandbox graph element
 	 * 

@@ -1,11 +1,16 @@
 package com.ensoftcorp.open.commons.sandbox;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
+import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
+import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 
 public class Sandbox {
@@ -27,6 +32,9 @@ public class Sandbox {
 	 */
 	public SandboxGraph U;
 	
+	/**
+	 * Constructs a new sandbox where changes are isolated from the Atlas graph
+	 */
 	public Sandbox(){
 		sandboxInstanceID = (sandboxInstanceCounter++);
 		addresses = new HashMap<String,SandboxGraphElement>();
@@ -72,7 +80,9 @@ public class Sandbox {
 	 */
 	public void addNodes(AtlasSet<Node> nodes) {
 		for(Node node : nodes){
-			U.nodes().add(new SandboxNode(sandboxInstanceID, node));
+			SandboxNode sandboxNode = new SandboxNode(sandboxInstanceID, node);
+			U.nodes().add(sandboxNode);
+			addresses.put(node.address().toAddressString(), sandboxNode);
 		}
 	}
 
@@ -82,9 +92,17 @@ public class Sandbox {
 	 */
 	public void addEdges(AtlasSet<Edge> edges) {
 		for(Edge edge : edges){
-			U.nodes().add(new SandboxNode(sandboxInstanceID, edge.from()));
-			U.nodes().add(new SandboxNode(sandboxInstanceID, edge.to()));
-			U.edges().add(new SandboxEdge(sandboxInstanceID, edge));
+			SandboxNode fromSandboxNode = new SandboxNode(sandboxInstanceID, edge.from());
+			U.nodes().add(fromSandboxNode);
+			addresses.put(edge.from().address().toAddressString(), fromSandboxNode);
+			
+			SandboxNode toSandboxNode = new SandboxNode(sandboxInstanceID, edge.to());
+			U.nodes().add(toSandboxNode);
+			addresses.put(edge.to().address().toAddressString(), toSandboxNode);
+			
+			SandboxEdge sandboxEdge = new SandboxEdge(sandboxInstanceID, edge);
+			U.edges().add(sandboxEdge);
+			addresses.put(edge.address().toAddressString(), sandboxEdge);
 		}
 	}
 	
@@ -96,6 +114,7 @@ public class Sandbox {
 	public SandboxNode createNode(){
 		SandboxNode node = new SandboxNode(sandboxInstanceID, getUniqueSandboxGraphElementAddress());
 		U.nodes().add(node);
+		addresses.put(node.getAddress(), node);
 		return node;
 	}
 
@@ -109,7 +128,25 @@ public class Sandbox {
 	public SandboxEdge createEdge(SandboxNode fromNode, SandboxNode toNode){
 		SandboxEdge edge = new SandboxEdge(sandboxInstanceID, getUniqueSandboxGraphElementAddress(), fromNode, toNode);
 		U.edges().add(edge);
+		addresses.put(edge.getAddress(), edge);
 		return edge;
+	}
+	
+	/**
+	 * Removes the given sandbox graph element from the sandbox universe
+	 * @param graphElement
+	 */
+	public void delete(SandboxGraphElement graphElement){
+		if(graphElement instanceof SandboxNode){
+			SandboxNode node = (SandboxNode) graphElement;
+			U.nodes().remove(node);
+		} else if(graphElement instanceof SandboxEdge){
+			SandboxEdge edge = (SandboxEdge) graphElement;
+			U.nodes().remove(edge.from());
+			U.nodes().remove(edge.to());
+			U.edges().remove(edge);
+		}
+		addresses.remove(graphElement.getAddress());
 	}
 
 	/**
@@ -121,6 +158,128 @@ public class Sandbox {
 	 */
 	public SandboxGraphElement getAt(String address){
 		return addresses.get(address);
+	}
+	
+	/**
+	 * Flushes the changes made in the sandbox universe to the Atlas graph
+	 * 
+	 * @return The serialized Atlas graph version of the sandbox
+	 */
+	public Graph flush(){
+		// flushing the universe ;)
+		return flush(U);
+	}
+	
+	/**
+	 * Flushes the changes made in the sandbox that are restricted to the nodes
+	 * and edges in the given graph to the Atlas graph
+	 * 
+	 * This methods does the following:
+	 * 
+	 * 1) Adds nodes/edges that are not mirrored to the Atlas graph with the
+	 * current tags/attributes
+	 * 
+	 * 2) Updates (adds/removes) tags and attributes from the corresponding
+	 * Atlas graph element's to match the current sandbox tags/attributes for
+	 * each node/edge in the sandbox.
+	 * 
+	 * @param graph the graph containing the set of nodes and edges to flush
+	 * 
+	 * @return The serialized Atlas graph version of the sandbox
+	 */
+	public Graph flush(SandboxGraph graph){
+		AtlasSet<Node> nodes = new AtlasHashSet<Node>();
+		for(SandboxNode node : graph.nodes()){
+			nodes.add((Node) flush(node));
+		}
+		AtlasSet<Edge> edges = new AtlasHashSet<Edge>();
+		for(SandboxEdge edge : graph.edges()){
+			edges.add((Edge) flush(edge));
+		}
+		return new UncheckedGraph(nodes, edges);
+	}
+	
+	private GraphElement flush(SandboxGraphElement ge) {
+		if(ge.isMirror()){
+			if(ge instanceof SandboxNode){
+				Node node = Graph.U.createNode();
+				// add all the sandbox tags
+				for(String tag : ge.tags()){
+					node.tag(tag);
+				}
+				// add all new sandbox attributes
+				for(String key : ge.attr().keySet()){
+					node.putAttr(key, ge.attr().get(key));
+				}
+				addresses.remove(ge.getAddress());
+				ge.flush(node.address().toAddressString());
+				addresses.put(ge.getAddress(), ge);
+				return node;
+			} else if(ge instanceof SandboxEdge){
+				SandboxEdge sandboxEdge = (SandboxEdge) ge;
+				// assert: nodes will all have been flushed by the time we are flushing edges
+				Node from = (Node) getGraphElementByAddress(sandboxEdge.from().getAddress());
+				Node to = (Node) getGraphElementByAddress(sandboxEdge.to().getAddress());
+				Edge edge = Graph.U.createEdge(from, to);
+				// add all the sandbox tags
+				for(String tag : ge.tags()){
+					edge.tag(tag);
+				}
+				// add all new sandbox attributes
+				for(String key : ge.attr().keySet()){
+					edge.putAttr(key, ge.attr().get(key));
+				}
+				addresses.remove(ge.getAddress());
+				ge.flush(edge.address().toAddressString());
+				addresses.put(ge.getAddress(), ge);
+				return edge;
+			} else {
+				throw new RuntimeException("Unknown sandbox graph element type.");
+			}
+		} else {
+			GraphElement age = getGraphElementByAddress(ge.getAddress());
+			
+			// purge all old tags
+			Set<String> tagsToRemove = new HashSet<String>();
+			for(String tag : age.tags()){
+				tagsToRemove.add(tag);
+			}
+			for(String tag : tagsToRemove){
+				age.tags().remove(tag);
+			}
+			
+			// add all the sandbox tags
+			for(String tag : ge.tags()){
+				age.tag(tag);
+			}
+			
+			// purge all old attributes
+			Set<String> keysToRemove = new HashSet<String>();
+			for(String key : age.attr().keys()){
+				keysToRemove.add(key);
+			}
+			for(String key : keysToRemove){
+				age.attr().remove(key);
+			}
+			
+			// add all new sandbox attributes
+			for(String key : ge.attr().keySet()){
+				age.putAttr(key, ge.attr().get(key));
+			}
+			
+			return age;
+		}
+	}
+
+	/**
+	 * Helper method to select the Atlas graph element given a serialized graph element address
+	 * @param address
+	 * @return
+	 */
+	private GraphElement getGraphElementByAddress(String address){
+		int hexAddress = Integer.parseInt(address, 16);
+		GraphElement ge = Graph.U.getAt(hexAddress);
+		return ge;
 	}
 	
 	/**
