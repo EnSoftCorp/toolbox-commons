@@ -3,7 +3,6 @@ package com.ensoftcorp.open.commons.algorithms;
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
-import com.ensoftcorp.atlas.core.db.notification.NotificationHashMap;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -199,7 +198,7 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	}
 	
 	private Edge getOrCreateEdge(Node masterEntryNode, Node root) {
-		AtlasSet<Edge> betweenEdges = Common.universe().edges(this.UniqueEntryExitCFG_Edge).betweenStep(Common.toQ(masterEntryNode), Common.toQ(root)).eval().edges();
+		AtlasSet<Edge> betweenEdges = Common.universe().edges(UniqueEntryExitCFG_Edge).betweenStep(Common.toQ(masterEntryNode), Common.toQ(root)).eval().edges();
 		if (!betweenEdges.isEmpty()) {
 			return betweenEdges.one();
 		} else {

@@ -646,7 +646,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionParameter(Q context, Q functions, Integer... index){
-		return functionParameter(context, functions).selectNode(XCSG.parameterIndex, index);
+		return functionParameter(context, functions).selectNode(XCSG.parameterIndex, (Object[]) index);
 	}
 	
 	/**

@@ -3,15 +3,9 @@ package com.ensoftcorp.open.commons.algorithms;
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
-import com.ensoftcorp.atlas.core.db.notification.NotificationHashMap;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.commons.analysis.CommonQueries;
-import com.ensoftcorp.open.commons.log.Log;
-import com.ensoftcorp.open.commons.xcsg.XCSG_Extension;
 
 public class UniqueEntryExitCustomGraph implements UniqueEntryExitGraph {
 
