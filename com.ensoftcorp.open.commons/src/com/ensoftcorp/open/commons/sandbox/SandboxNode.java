@@ -4,8 +4,8 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 
 public class SandboxNode extends SandboxGraphElement {
 
-	public SandboxNode(Node node) {
-		super(node.address().toAddressString(), true);
+	public SandboxNode(int sandboxInstanceID, Node node) {
+		super(sandboxInstanceID, node.address().toAddressString(), true);
 		for(String tag : node.tags()){
 			tags().add(tag);
 		}
@@ -14,8 +14,8 @@ public class SandboxNode extends SandboxGraphElement {
 		}
 	}
 
-	public SandboxNode(String address) {
-		super(address, false);
+	public SandboxNode(int sandboxInstanceID, String address) {
+		super(sandboxInstanceID, address, false);
 	}
 
 }

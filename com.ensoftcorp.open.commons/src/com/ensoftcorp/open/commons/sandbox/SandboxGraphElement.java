@@ -7,23 +7,33 @@ import java.util.Set;
 
 public abstract class SandboxGraphElement {
 
-	private String address;
-	private boolean mirror;
+	private final int sandboxInstanceID;
+	private final String address;
+	private final boolean mirror;
 
-	private Set<String> tags;
-	private Map<String, Object> attributes;
+	private final Set<String> tags;
+	private final Map<String, Object> attributes;
 
-	protected SandboxGraphElement(String address, boolean mirror) {
-		this(address, mirror, new HashSet<String>(), new HashMap<String, Object>());
+	protected SandboxGraphElement(int sandboxInstanceID, String address, boolean mirror) {
+		this(sandboxInstanceID, address, mirror, new HashSet<String>(), new HashMap<String, Object>());
 	}
 
-	protected SandboxGraphElement(String address, boolean mirror, Set<String> tags, Map<String, Object> attributes) {
+	protected SandboxGraphElement(int sandboxInstanceID, String address, boolean mirror, Set<String> tags, Map<String, Object> attributes) {
+		this.sandboxInstanceID = sandboxInstanceID;
 		this.address = address;
 		this.mirror = mirror;
 		this.tags = tags;
 		this.attributes = attributes;
 	}
 
+	/**
+	 * Returns the sandbox instance this graph element belongs to
+	 * @return
+	 */
+	public int getSandboxInstanceID(){
+		return sandboxInstanceID;
+	}
+	
 	/**
 	 * Returns the address of this sandbox graph element
 	 * 
@@ -60,6 +70,20 @@ public abstract class SandboxGraphElement {
 	 */
 	public Map<String, Object> attr() {
 		return attributes;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder tagsToString = new StringBuilder();
+		for(String tag : tags){
+			tagsToString.append(tag + "\n");
+		}
+		StringBuilder atrributesToString = new StringBuilder();
+		for(String key : attributes.keySet()){
+			atrributesToString.append(key + ": " + attributes.get(key).toString() + "\n");
+		}
+		return "Sandbox=" + sandboxInstanceID + ", Address=" + address + ", Mirror=" + mirror + "]"
+				+ "\nTags: {" + tagsToString.toString().trim() + "}\nAttributes: {" + atrributesToString.toString().trim() + "}";
 	}
 
 	/**

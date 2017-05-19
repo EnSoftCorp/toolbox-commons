@@ -11,8 +11,8 @@ public class SandboxEdge extends SandboxGraphElement {
 	 * Constructs a mirrored sandbox edge of the given Atlas edge
 	 * @param edge
 	 */
-	public SandboxEdge(Edge edge) {
-		this(edge.address().toAddressString(), true, new SandboxNode(edge.from()), new SandboxNode(edge.to()));
+	public SandboxEdge(int sandboxInstanceID, Edge edge) {
+		this(sandboxInstanceID, edge.address().toAddressString(), true, new SandboxNode(sandboxInstanceID, edge.from()), new SandboxNode(sandboxInstanceID, edge.to()));
 		for(String tag : edge.tags()){
 			tags().add(tag);
 		}
@@ -26,8 +26,8 @@ public class SandboxEdge extends SandboxGraphElement {
 	 * @param from
 	 * @param to
 	 */
-	public SandboxEdge(String address, SandboxNode from, SandboxNode to) {
-		this(address, false, from, to);
+	public SandboxEdge(int sandboxInstanceID, String address, SandboxNode from, SandboxNode to) {
+		this(sandboxInstanceID, address, false, from, to);
 	}
 	
 	/**
@@ -35,8 +35,8 @@ public class SandboxEdge extends SandboxGraphElement {
 	 * @param from
 	 * @param to
 	 */
-	private SandboxEdge(String address, boolean mirror, SandboxNode from, SandboxNode to) {
-		super(address, mirror);
+	private SandboxEdge(int sandboxInstanceID, String address, boolean mirror, SandboxNode from, SandboxNode to) {
+		super(sandboxInstanceID, address, mirror);
 		FROM = from;
 		TO = to;
 	}

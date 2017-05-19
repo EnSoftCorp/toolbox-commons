@@ -1,58 +1,31 @@
 package com.ensoftcorp.open.commons.sandbox;
 
-import java.util.HashSet;
 import java.util.Set;
 
-import com.ensoftcorp.atlas.core.db.graph.Edge;
-import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
-import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 
 public class SandboxGraph {
 
+	private final int sandboxInstanceID;
 	private Set<SandboxNode> nodes;
 	private Set<SandboxEdge> edges;
 	
 	/**
 	 * Creates an empty sandbox graph
 	 */
-	public SandboxGraph() {
-		this(new HashSet<SandboxNode>(), new HashSet<SandboxEdge>());
-	}
-	
-	/**
-	 * Creates a sandbox mirror from an Atlas graph
-	 * @param graph
-	 */
-	public SandboxGraph(Graph graph){
-		this(graph.nodes(), graph.edges());
-	}
-	
-	/**
-	 * Creates a sandbox mirror from a set of Atlas nodes and edges
-	 * Use this constructor if the graph has disconnected nodes
-	 * @param edges
-	 */
-	public SandboxGraph(AtlasSet<Node> nodes, AtlasSet<Edge> edges){
-		for(Node node : nodes){
-			this.nodes.add(new SandboxNode(node));
-		}
-		for(Edge edge : edges){
-			this.nodes.add(new SandboxNode(edge.from()));
-			this.nodes.add(new SandboxNode(edge.to()));
-			this.edges.add(new SandboxEdge(edge));
-		}
+	protected SandboxGraph(int sandboxInstanceID) {
+		this(sandboxInstanceID, new SandboxHashSet<SandboxNode>(sandboxInstanceID), new SandboxHashSet<SandboxEdge>(sandboxInstanceID));
 	}
 	
 	/**
 	 * Constructs a new graph from a set of sandbox nodes and edges
 	 * @param edges
 	 */
-	public SandboxGraph(Set<SandboxNode> nodes, Set<SandboxEdge> edges) {
-		for(SandboxNode node : nodes){
-			this.nodes.add(node);
-		}
+	protected SandboxGraph(int sandboxInstanceID, Set<SandboxNode> nodes, Set<SandboxEdge> edges) {
+		this.sandboxInstanceID = sandboxInstanceID;
+		this.nodes = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		this.edges = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		this.nodes.addAll(nodes);
 		for(SandboxEdge edge : edges){
 			this.nodes.add(edge.from());
 			this.nodes.add(edge.to());
@@ -61,11 +34,19 @@ public class SandboxGraph {
 	}
 
 	/**
+	 * Returns the sandbox instance this graph belongs to
+	 * @return
+	 */
+	public int getSandboxInstanceID(){
+		return sandboxInstanceID;
+	}
+	
+	/**
 	 * Returns the nodes of this graph
 	 * @return
 	 */
 	public Set<SandboxNode> nodes() {
-		return new HashSet<SandboxNode>(nodes);
+		return nodes;
 	}
 
 	/**
@@ -73,7 +54,7 @@ public class SandboxGraph {
 	 * @return
 	 */
 	public Set<SandboxEdge> edges() {
-		return new HashSet<SandboxEdge>(edges);
+		return edges;
 	}
 	
 	/**
@@ -83,7 +64,7 @@ public class SandboxGraph {
 	 * @return
 	 */
 	public Set<SandboxEdge> edges(SandboxNode node, NodeDirection direction){
-		Set<SandboxEdge> result = new HashSet<SandboxEdge>();
+		Set<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
 		for(SandboxEdge edge : edges){
 			if(direction == NodeDirection.IN){
 				if(edge.to().equals(node)){
@@ -104,7 +85,7 @@ public class SandboxGraph {
 	 * @return
 	 */
 	public Set<SandboxNode> limit(NodeDirection direction){
-		Set<SandboxNode> result = new HashSet<SandboxNode>();
+		Set<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
 		for(SandboxNode node : nodes()){
 			Set<SandboxEdge> connections = edges(node, direction);
 			if(connections.isEmpty()){

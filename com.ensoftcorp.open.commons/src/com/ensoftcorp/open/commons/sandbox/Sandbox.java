@@ -22,12 +22,15 @@ public class Sandbox {
 	private int sandboxInstanceID;
 	private Map<String,SandboxGraphElement> addresses;
 	
+	/**
+	 * The sandbox universe graph
+	 */
 	public SandboxGraph U;
 	
 	public Sandbox(){
 		sandboxInstanceID = (sandboxInstanceCounter++);
 		addresses = new HashMap<String,SandboxGraphElement>();
-		U = new SandboxGraph();
+		U = new SandboxGraph(sandboxInstanceID);
 	}
 	
 	/**
@@ -42,8 +45,8 @@ public class Sandbox {
 	 * Returns an empty sandbox graph
 	 * @return
 	 */
-	public static SandboxGraph empty(){
-		return new SandboxGraph();
+	public SandboxGraph empty(){
+		return new SandboxGraph(sandboxInstanceID);
 	}
 	
 	/**
@@ -69,7 +72,7 @@ public class Sandbox {
 	 */
 	public void addNodes(AtlasSet<Node> nodes) {
 		for(Node node : nodes){
-			U.nodes().add(new SandboxNode(node));
+			U.nodes().add(new SandboxNode(sandboxInstanceID, node));
 		}
 	}
 
@@ -79,9 +82,9 @@ public class Sandbox {
 	 */
 	public void addEdges(AtlasSet<Edge> edges) {
 		for(Edge edge : edges){
-			U.nodes().add(new SandboxNode(edge.from()));
-			U.nodes().add(new SandboxNode(edge.to()));
-			U.edges().add(new SandboxEdge(edge));
+			U.nodes().add(new SandboxNode(sandboxInstanceID, edge.from()));
+			U.nodes().add(new SandboxNode(sandboxInstanceID, edge.to()));
+			U.edges().add(new SandboxEdge(sandboxInstanceID, edge));
 		}
 	}
 	
@@ -91,7 +94,7 @@ public class Sandbox {
 	 * @return
 	 */
 	public SandboxNode createNode(){
-		SandboxNode node = new SandboxNode(getUniqueSandboxGraphElementAddress());
+		SandboxNode node = new SandboxNode(sandboxInstanceID, getUniqueSandboxGraphElementAddress());
 		U.nodes().add(node);
 		return node;
 	}
@@ -104,7 +107,7 @@ public class Sandbox {
 	 * @return
 	 */
 	public SandboxEdge createEdge(SandboxNode fromNode, SandboxNode toNode){
-		SandboxEdge edge = new SandboxEdge(getUniqueSandboxGraphElementAddress(), fromNode, toNode);
+		SandboxEdge edge = new SandboxEdge(sandboxInstanceID, getUniqueSandboxGraphElementAddress(), fromNode, toNode);
 		U.edges().add(edge);
 		return edge;
 	}
