@@ -144,6 +144,9 @@
    <extension
       point="org.eclipse.equinox.preferences.preferences">
 	   <initializer
+	         class="com.ensoftcorp.open.commons.preferences.CommonsPreferences">
+	   </initializer>
+	   <initializer
 	         class="com.ensoftcorp.open.commons.preferences.SubsystemPreferences">
 	   </initializer>
 	   <initializer
@@ -172,6 +175,11 @@
             name="Toolbox Commons (Analyzers)"
             category="com.ensoftcorp.open.commons.ui.preferences">
       </page>
+   </extension>
+   
+   <!-- adds the prioritized codemap stage for computing control flow graph dominance trees -->
+   <extension point="com.ensoftcorp.open.commons.codemap">
+      <codemap class="com.ensoftcorp.open.commons.algorithms.ForwardDominanceTree"></codemap>
    </extension>
    
    <!-- adds the prioritized codemap stage for subystems tagging -->

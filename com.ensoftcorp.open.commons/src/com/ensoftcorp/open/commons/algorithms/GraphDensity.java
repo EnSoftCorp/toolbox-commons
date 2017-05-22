@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.utilities;
+package com.ensoftcorp.open.commons.algorithms;
 
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
@@ -78,8 +78,8 @@ public class GraphDensity {
 	 * @return See getDensity method for details
 	 */
 	public static double getDensity(Q graph, boolean directed, String[] nodeTypes, String[] edgeTypes) {
-		Q nodes = nodeTypes != null ? graph.nodesTaggedWithAny(nodeTypes).retainNodes() : graph.retainNodes();
-		Q edges = edgeTypes != null ? graph.edgesTaggedWithAll(edgeTypes).retainEdges() : graph.retainEdges();
+		Q nodes = nodeTypes != null ? graph.nodes(nodeTypes).retainNodes() : graph.retainNodes();
+		Q edges = edgeTypes != null ? graph.edges(edgeTypes).retainEdges() : graph.retainEdges();
 		graph = nodes.union(edges);
 		return getDensity(graph, directed);
 	}

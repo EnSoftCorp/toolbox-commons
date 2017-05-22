@@ -32,6 +32,8 @@ import com.ensoftcorp.open.commons.ui.components.InputDialog;
  */
 public class DisplayUtils {
 
+	private DisplayUtils(){}
+	
 	private final static long LARGE_GRAPH_WARNING = 100;
 
 	/**
