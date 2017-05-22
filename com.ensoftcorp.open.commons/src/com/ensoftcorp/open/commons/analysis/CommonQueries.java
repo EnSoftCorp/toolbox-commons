@@ -29,61 +29,6 @@ public final class CommonQueries {
 	// begin wrapper queries
 	
 	/**
-	 * Produces a call graph. Traverses call edges in the given direction(s)
-	 * from the origin.
-	 * 
-	 * Equivalent to call(index(), origin, direction).
-	 * 
-	 * @param origin
-	 * @param direction
-	 * @return the query expression
-	 */
-	public static Q call(Q origin, TraversalDirection direction){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.call(origin, direction);
-	}
-	
-	/**
-	 * Produces a call graph. Traverses call edges in the given direction(s)
-	 * from the origin. Uses only the given context for the traversal.
-	 * 
-	 * @param context
-	 * @param origin
-	 * @param direction
-	 * @return the query expression
-	 */
-	public static Q call(Q context, Q origin, TraversalDirection direction){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.call(context, origin, direction);
-	}
-	
-	/**
-	 * Produces a call graph. Traverses call edges in the given direction(s)
-	 * from the origin. Traverses one step only. 
-	 * 
-	 * Equivalent to callStep(index(), origin, direction).
-	 * 
-	 * @param origin
-	 * @param direction
-	 * @return the query expression
-	 */
-	public static Q callStep(Q origin, TraversalDirection direction){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.callStep(origin, direction);
-	}
-	
-	/**
-	 * Produces a call graph. Traverses call edges in the given direction(s)
-	 * from the origin. Traverses one step only. Uses only the given context for
-	 * the traversal.
-	 * 
-	 * @param context
-	 * @param origin
-	 * @param direction
-	 * @return the query expression
-	 */
-	public static Q callStep(Q context, Q origin, TraversalDirection direction){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.callStep(context, origin, direction);
-	}
-	
-	/**
 	 * Returns all references to class literals (Type.class) for the given
 	 * types. 
 	 * 
@@ -580,23 +525,6 @@ public final class CommonQueries {
 		return com.ensoftcorp.atlas.core.script.CommonQueries.isEmpty(test);
 	}
 	
-//	/**
-//	 * 
-//	 * @param context
-//	 * @param origin
-//	 * @param direction
-//	 * @param pathLength
-//	 * 
-//	 * @return
-//	 */
-//	public static List<PartialGraph> shortestPaths(Graph context, AtlasSet<Node> origin, TraversalDirection direction, int pathLength){
-//		AtlasSet<GraphElement> graphElements = new AtlasHashSet<GraphElement>();
-//		graphElements.addAll(origin);
-//		// TODO: the Atlas API should really be AtlasSet<Node> instead of AtlasSet<GraphElement> types for origin
-//		// TODO: Atlas documentation for this function is missing...removing from the CommonQueries wrapper since this functionality is accounted for in the JGraphT library wrappers
-//		return com.ensoftcorp.atlas.core.script.CommonQueries.shortestPaths(context, graphElements, direction, pathLength);
-//	}
-	
 	// begin toolbox commons queries
 	
 	/**
@@ -633,7 +561,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionParameter(Q context, Q functions){
-		return traverseStep(context, functions, TraversalDirection.FORWARD, XCSG.Contains).nodesTaggedWithAny(new String[] { XCSG.Parameter });
+		return traverseStep(context, functions, TraversalDirection.FORWARD, XCSG.Contains).nodes(XCSG.Parameter);
 	}
 	
 	/**
@@ -668,7 +596,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionReturn(Q context, Q functions){
-		return context.edgesTaggedWithAny(XCSG.Contains).successors(functions).nodesTaggedWithAny(new String[] { XCSG.ReturnValue });
+		return context.edgesTaggedWithAny(XCSG.Contains).successors(functions).nodes(XCSG.ReturnValue);
 	}
 	
 	/**
@@ -691,7 +619,16 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionsOf(Q context, Q types){
-		return traverseStep(context, types.nodesTaggedWithAny(new String[] { XCSG.Type }), TraversalDirection.FORWARD, XCSG.Contains).nodesTaggedWithAny(new String[] { XCSG.Function });
+		return traverseStep(context, types.nodes(XCSG.Type), TraversalDirection.FORWARD, XCSG.Contains).nodes(XCSG.Function);
+	}
+	
+	/**
+	 * 
+	 * @param functions
+	 * @return the data flow graph under the function
+	 */
+	public static Q dfg(Q functions) {
+		return localDeclarations(functions).nodes(XCSG.DataFlow_Node).induce(Common.edges(XCSG.DataFlow_Edge));
 	}
 	
 	/**
@@ -700,7 +637,7 @@ public final class CommonQueries {
 	 * @return the control flow graph under the function
 	 */
 	public static Q cfg(Q functions) {
-		return functions.contained().nodesTaggedWithAll(XCSG.ControlFlow_Node).induce(Common.edges(XCSG.ControlFlow_Edge));
+		return localDeclarations(functions).nodes(XCSG.ControlFlow_Node).induce(Common.edges(XCSG.ControlFlow_Edge));
 	}
 	
 	/**
@@ -709,7 +646,7 @@ public final class CommonQueries {
 	 * @return the control flow graph under the function
 	 */
 	public static Q cfg(Node function) {
-		return Common.toQ(function).contained().nodesTaggedWithAll(XCSG.ControlFlow_Node).induce(Common.edges(XCSG.ControlFlow_Edge));
+		return cfg(Common.toQ(function));
 	}
 	
 	/**
@@ -718,7 +655,7 @@ public final class CommonQueries {
 	 * @return the control flow graph (including exceptional control flow) under the function
 	 */
 	public static Q excfg(Q functions) {
-		return functions.contained().nodesTaggedWithAll(XCSG.ControlFlow_Node).induce(Common.edges(XCSG.ControlFlow_Edge, XCSG.ExceptionalControlFlow_Edge));
+		return localDeclarations(functions).nodes(XCSG.ControlFlow_Node).induce(Common.edges(XCSG.ControlFlow_Edge, XCSG.ExceptionalControlFlow_Edge));
 	}
 	
 	/**
@@ -727,7 +664,7 @@ public final class CommonQueries {
 	 * @return the control flow graph (including exceptional control flow) under the function
 	 */
 	public static Q excfg(Node function) {
-		return Common.toQ(function).contained().nodesTaggedWithAll(XCSG.ControlFlow_Node).induce(Common.edges(XCSG.ControlFlow_Edge, XCSG.ExceptionalControlFlow_Edge));
+		return excfg(Common.toQ(function));
 	}
 	
 	/**
@@ -739,7 +676,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q localDeclarations(Q origin) {
-		return localDeclarations(Common.universe(), origin);
+		return localDeclarations(Common.index(), origin);
 	}
 
 	/**
@@ -752,9 +689,9 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q localDeclarations(Q context, Q origin) {
-		Q dec = context.edgesTaggedWithAny(XCSG.Contains);
-		dec = dec.differenceEdges(dec.reverseStep(dec.nodesTaggedWithAny(XCSG.Type)));
-		return dec.forward(origin);
+		Q declarations = context.edges(XCSG.Contains);
+		declarations = declarations.differenceEdges(declarations.reverseStep(declarations.nodes(XCSG.Type)));
+		return declarations.forward(origin);
 	}
 
 	/**
@@ -766,7 +703,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q callers(Q origin) {
-		return callers(Common.universe(), origin);
+		return callers(Common.index(), origin);
 	}
 
 	/**
@@ -779,7 +716,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q callers(Q context, Q origin) {
-		return callStep(context, origin, TraversalDirection.REVERSE).retainEdges().roots();
+		return context.edges(XCSG.Call).predecessors(origin);
 	}
 
 	/**
@@ -791,7 +728,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q called(Q origin) {
-		return called(Common.universe(), origin);
+		return called(Common.index(), origin);
 	}
 
 	/**
@@ -803,7 +740,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q called(Q context, Q origin) {
-		return callStep(context, origin, TraversalDirection.REVERSE).retainEdges().leaves();
+		return context.edges(XCSG.Call).successors(origin);
 	}
 
 	/**
@@ -816,7 +753,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q calledBy(Q callers, Q called) {
-		return calledBy(Common.universe(), callers, called);
+		return calledBy(Common.index(), callers, called);
 	}
 
 	/**
@@ -843,7 +780,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q firstDeclarator(Q declared, String... declaratorTypes) {
-		return firstDeclarator(Common.universe(), declared, declaratorTypes);
+		return firstDeclarator(Common.index(), declared, declaratorTypes);
 	}
 
 	/**
@@ -858,8 +795,8 @@ public final class CommonQueries {
 	 */
 	public static Q firstDeclarator(Q context, Q declared, String... declaratorTypes) {
 		Q subContext = declarations(context, declared, TraversalDirection.REVERSE);
-		subContext = subContext.differenceEdges(subContext.reverseStep(subContext.nodesTaggedWithAny(declaratorTypes)));
-		return subContext.reverse(declared).nodesTaggedWithAny(declaratorTypes);
+		subContext = subContext.differenceEdges(subContext.reverseStep(subContext.nodes(declaratorTypes)));
+		return subContext.reverse(declared).nodes(declaratorTypes);
 	}
 
 	/**
@@ -874,7 +811,7 @@ public final class CommonQueries {
 	 */
 	public static Q advancedIntersection(Q first, Q second, String[] nodeTags, String[] edgeTags) {
 		Q plainIntersection = first.intersection(second);
-		return plainIntersection.nodesTaggedWithAny(nodeTags).induce(plainIntersection.edgesTaggedWithAny(edgeTags));
+		return plainIntersection.nodes(nodeTags).induce(plainIntersection.edgesTaggedWithAny(edgeTags));
 	}
 
 	/**
@@ -886,7 +823,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q readersOf(Q origin) {
-		return readersOf(Common.universe(), origin);
+		return readersOf(Common.index(), origin);
 	}
 
 	/**
@@ -911,7 +848,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q writersOf(Q origin) {
-		return writersOf(Common.universe(), origin);
+		return writersOf(Common.index(), origin);
 	}
 
 	/**
@@ -936,7 +873,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q readBy(Q origin) {
-		return readBy(Common.universe(), origin);
+		return readBy(Common.index(), origin);
 	}
 
 	/**
@@ -961,7 +898,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q writtenBy(Q origin) {
-		return writtenBy(Common.universe(), origin);
+		return writtenBy(Common.index(), origin);
 	}
 
 	/**
@@ -1071,7 +1008,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q conditionsAbove(Q origin) {
-		return conditionsAbove(Common.universe(), origin);
+		return conditionsAbove(Common.index(), origin);
 	}
 
 	/**
@@ -1085,7 +1022,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q conditionsAbove(Q context, Q origin) {
-		Q conditionNodes = context.nodesTaggedWithAny(XCSG.ControlFlowCondition);
+		Q conditionNodes = context.nodes(XCSG.ControlFlowCondition);
 		return context.edgesTaggedWithAny(XCSG.ControlFlow_Edge).between(conditionNodes, origin);
 	}
 
@@ -1099,7 +1036,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q mutators(Q origin) {
-		return mutators(Common.universe(), origin);
+		return mutators(Common.index(), origin);
 	}
 
 	/**
@@ -1145,7 +1082,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q mutatedBy(Q mutators, Q origin) {
-		return mutatedBy(Common.universe(), mutators, origin);
+		return mutatedBy(Common.index(), mutators, origin);
 	}
 
 	/**
