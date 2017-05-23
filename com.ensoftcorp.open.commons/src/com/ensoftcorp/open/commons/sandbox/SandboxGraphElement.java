@@ -72,6 +72,15 @@ public abstract class SandboxGraphElement {
 	public Set<String> tags() {
 		return tags;
 	}
+	
+	/**
+	 * Adds the tag.
+	 * @param tag
+	 * @return
+	 */
+	public boolean tag(String tag){
+		return tags().add(tag);
+	}
 
 	/**
 	 * Returns the attribute map currently associated to this sandbox graph
@@ -81,6 +90,24 @@ public abstract class SandboxGraphElement {
 	 */
 	public Map<String, Object> attr() {
 		return attributes;
+	}
+	
+	/**
+	 * Adds the attribute value.
+	 * @param tag
+	 * @return
+	 */
+	public Object putAttr(String key, Object value){
+		return attr().put(key, value);
+	}
+	
+	/**
+	 * Returns true if the attribute key is present
+	 * @param tag
+	 * @return
+	 */
+	public boolean hasAttr(String key){
+		return attr().containsKey(key);
 	}
 	
 	@Override

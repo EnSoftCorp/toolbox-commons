@@ -179,7 +179,7 @@
    
    <!-- adds the prioritized codemap stage for computing control flow graph dominance trees -->
    <extension point="com.ensoftcorp.open.commons.codemap">
-      <codemap class="com.ensoftcorp.open.commons.algorithms.ForwardDominanceTree"></codemap>
+      <codemap class="com.ensoftcorp.open.commons.algorithms.DominanceAnalysis"></codemap>
    </extension>
    
    <!-- adds the prioritized codemap stage for subystems tagging -->

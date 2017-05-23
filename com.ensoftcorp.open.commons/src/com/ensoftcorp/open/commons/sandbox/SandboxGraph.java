@@ -2,13 +2,14 @@ package com.ensoftcorp.open.commons.sandbox;
 
 import java.util.Set;
 
+import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 
 public class SandboxGraph {
 
 	private final int sandboxInstanceID;
-	private Set<SandboxNode> nodes;
-	private Set<SandboxEdge> edges;
+	private SandboxHashSet<SandboxNode> nodes;
+	private SandboxHashSet<SandboxEdge> edges;
 	
 	/**
 	 * Creates an empty sandbox graph
@@ -45,7 +46,7 @@ public class SandboxGraph {
 	 * Returns the nodes of this graph
 	 * @return
 	 */
-	public Set<SandboxNode> nodes() {
+	public SandboxHashSet<SandboxNode> nodes() {
 		return nodes;
 	}
 
@@ -53,7 +54,7 @@ public class SandboxGraph {
 	 * Returns the edges of this graph
 	 * @return
 	 */
-	public Set<SandboxEdge> edges() {
+	public SandboxHashSet<SandboxEdge> edges() {
 		return edges;
 	}
 	
@@ -63,8 +64,8 @@ public class SandboxGraph {
 	 * @param direction
 	 * @return
 	 */
-	public Set<SandboxEdge> edges(SandboxNode node, NodeDirection direction){
-		Set<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+	public SandboxHashSet<SandboxEdge> edges(SandboxNode node, NodeDirection direction){
+		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
 		for(SandboxEdge edge : edges){
 			if(direction == NodeDirection.IN){
 				if(edge.to().equals(node)){
@@ -84,8 +85,8 @@ public class SandboxGraph {
 	 * @param direction
 	 * @return
 	 */
-	public Set<SandboxNode> limit(NodeDirection direction){
-		Set<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+	public SandboxHashSet<SandboxNode> limit(NodeDirection direction){
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
 		for(SandboxNode node : nodes()){
 			Set<SandboxEdge> connections = edges(node, direction);
 			if(connections.isEmpty()){
@@ -101,7 +102,7 @@ public class SandboxGraph {
 	 * Convenience for limit(NodeDirection.OUT)
 	 * @return
 	 */
-	public Set<SandboxNode> leaves(){
+	public SandboxHashSet<SandboxNode> leaves(){
 		return limit(NodeDirection.OUT);
 	}
 	
@@ -111,7 +112,309 @@ public class SandboxGraph {
 	 * Convenience for limit(NodeDirection.IN)
 	 * @return
 	 */
-	public Set<SandboxNode> roots(){
+	public SandboxHashSet<SandboxNode> roots(){
 		return limit(NodeDirection.IN);
+	}
+	
+	/**
+	 * A convenience method for nodesTaggedWithAny(String... tags)
+	 * 
+	 * @param tags
+	 * @return
+	 */
+	public SandboxHashSet<SandboxNode> nodes(String... tags){
+		return nodesTaggedWithAny(tags);
+	}
+	
+	/**
+	 * Returns the set of nodes from this graph that are tagged with all of the
+	 * given tags
+	 * 
+	 * @param tags
+	 * @return
+	 */
+	public SandboxHashSet<SandboxNode> nodesTaggedWithAny(String... tags){
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		for(SandboxNode node : nodes){
+			for(String tag : tags){
+				if(node.tags().contains(tag)){
+					result.add(node);
+					break;
+				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the set of nodes from this graph that are tagged with any of the
+	 * given tags
+	 * 
+	 * @param tags
+	 * @return
+	 */
+	public SandboxHashSet<SandboxNode> nodesTaggedWithAll(String... tags){
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		for(SandboxNode node : nodes){
+			boolean add = true;
+			for(String tag : tags){
+				if(!node.tags().contains(tag)){
+					add = false;
+					break;
+				}
+			}
+			if(add){
+				result.add(node);
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * A convenience method for edgesTaggedWithAny(String... tags)
+	 * @param tags
+	 * @return
+	 */
+	public SandboxHashSet<SandboxEdge> edges(String... tags){
+		return edgesTaggedWithAny(tags);
+	}
+	
+	/**
+	 * Returns the set of edges from this graph that are tagged with any of the
+	 * given tags
+	 * 
+	 * @param tags
+	 * @return
+	 */
+	public SandboxHashSet<SandboxEdge> edgesTaggedWithAny(String... tags){
+		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		for(SandboxEdge edge : edges){
+			for(String tag : tags){
+				if(edge.tags().contains(tag)){
+					result.add(edge);
+					break;
+				}
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns the set of edges from this graph that are tagged with all of the
+	 * given tags
+	 * 
+	 * @param tags
+	 * @return
+	 */
+	public SandboxHashSet<SandboxEdge> edgesTaggedWithAll(String... tags){
+		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		for(SandboxEdge edge : edges){
+			boolean add = true;
+			for(String tag : tags){
+				if(!edge.tags().contains(tag)){
+					add = false;
+					break;
+				}
+			}
+			if(add){
+				result.add(edge);
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * Gets the predecessor nodes of the given node for this graph's edges
+	 * @param node
+	 * @return The set of incoming edges to the given node
+	 */
+	public SandboxHashSet<SandboxNode> predecessors(SandboxNode node){
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		for(SandboxEdge edge : edges){
+			if(edge.getNode(EdgeDirection.TO).equals(node)){
+				result.add(edge.getNode(EdgeDirection.FROM));
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * Gets the successor nodes of the given node for this graph's edges
+	 * @param node
+	 * @return The set of out-coming edges from the given node
+	 */
+	public SandboxHashSet<SandboxNode> successors(SandboxNode node){
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		for(SandboxEdge edge : edges){
+			if(edge.getNode(EdgeDirection.FROM).equals(node)){
+				result.add(edge.getNode(EdgeDirection.TO));
+			}
+		}
+		return result;
+	}
+	
+	public SandboxGraph forwardStep(SandboxNode origin){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		SandboxHashSet<SandboxEdge> outEdges = getOutEdgesFromNode(origin);
+		for(SandboxEdge edge : outEdges){
+			result.nodes().add(edge.from());
+			result.nodes().add(edge.to());
+			result.edges().add(edge);
+		}
+		return result;
+	}
+	
+	public SandboxGraph reverseStep(SandboxNode origin){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		SandboxHashSet<SandboxEdge> inEdges = getInEdgesToNode(origin);
+		for(SandboxEdge edge : inEdges){
+			result.nodes().add(edge.from());
+			result.nodes().add(edge.to());
+			result.edges().add(edge);
+		}
+		return result;
+	}
+	
+	/**
+	 * Yields the union of this graph and the given graphs. That is, the
+	 * resulting graph's nodes are the union of all nodes, and likewise for
+	 * edges.
+	 * 
+	 * @param a
+	 * @param graphs
+	 * @return
+	 */
+	public SandboxGraph union(SandboxGraph... graphs){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		SandboxHashSet<SandboxNode> nodes = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		nodes.addAll(nodes());
+		SandboxHashSet<SandboxEdge> edges = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		edges.addAll(edges());
+		for(SandboxGraph graph : graphs){
+			nodes.addAll(graph.nodes());
+			edges.addAll(graph.edges());
+		}
+		result.nodes().addAll(nodes);
+		result.edges().addAll(edges);
+		return result;
+	}
+	
+	/**
+	 * Select this graph, excluding the graphs g. Note that, because
+	 * an edge is only in a graph if it's nodes are in a graph, removing an edge
+	 * will necessarily remove the nodes it connects as well. Removing either
+	 * node would remove the edge as well.
+	 * 
+	 * This behavior may seem counter-intuitive if one is thinking in terms of
+	 * removing a single edge from a graph. Consider the graphs: - g1: a -> b ->
+	 * c - g2: a -> b g1.remove(g2) yields the graph containing only node c:
+	 * because b is removed, so b -> c is also removed. In general, this
+	 * operation is useful for removing nodes from a graph, but may not be as
+	 * useful for operating on edges.
+	 * 
+	 * 
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public SandboxGraph difference(SandboxGraph... graphs){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		SandboxHashSet<SandboxNode> nodes = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		nodes.addAll(nodes());
+		SandboxHashSet<SandboxEdge> edges = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		edges.addAll(edges());
+		for(SandboxGraph graph : graphs){
+			nodes.removeAll(graph.nodes());
+			edges.removeAll(graph.edges());
+		}
+		result.nodes().addAll(nodes);
+		result.edges().addAll(edges);
+		return result;
+	}
+	
+	/**
+	 * Select this graph, excluding the edges from the given graphs. 
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public SandboxGraph differenceEdges(SandboxGraph... graphs){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		SandboxHashSet<SandboxNode> nodes = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		nodes.addAll(nodes());
+		SandboxHashSet<SandboxEdge> edges = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		edges.addAll(edges());
+		for(SandboxGraph graph : graphs){
+			edges.retainAll(graph.edges());
+		}
+		result.nodes().addAll(nodes);
+		result.edges().addAll(edges);
+		return result;
+	}
+	
+	/**
+	 * Yields the intersection of this graph and the given graphs. That is, the
+	 * resulting graph's nodes are the intersection of all node sets, and
+	 * likewise for edges.
+	 * 
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public SandboxGraph intersection(SandboxGraph... graphs){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		SandboxHashSet<SandboxNode> nodes = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		nodes.addAll(nodes());
+		SandboxHashSet<SandboxEdge> edges = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		edges.addAll(edges());
+		for(SandboxGraph graph : graphs){
+			nodes.retainAll(graph.nodes());
+			edges.retainAll(graph.edges());
+		}
+		result.nodes().addAll(nodes);
+		result.edges().addAll(edges);
+		return result;
+	}
+	
+	/**
+	 * From this graph, selects the subgraph such that the given nodes in to are
+	 * reachable from the nodes in from in a single step
+	 * 
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public SandboxGraph betweenStep(SandboxNode from, SandboxNode to){
+		return forwardStep(from).intersection(reverseStep(to));
+	}
+	
+	/**
+	 * Gets incoming edges to node
+	 * @param node
+	 * @return The set of incoming edges to the given node
+	 */
+	private SandboxHashSet<SandboxEdge> getInEdgesToNode(SandboxNode node){
+		SandboxHashSet<SandboxEdge> inEdges = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		for(SandboxEdge edge : edges){
+			if(edge.getNode(EdgeDirection.TO).equals(node)){
+				inEdges.add(edge);
+			}
+		}
+		return inEdges;
+	}
+	
+	/**
+	 * Gets out-coming edges from node
+	 * @param node
+	 * @return The set of out-coming edges from the given node
+	 */
+	private SandboxHashSet<SandboxEdge> getOutEdgesFromNode(SandboxNode node){
+		SandboxHashSet<SandboxEdge> outEdges = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		for(SandboxEdge edge : edges){
+			if(edge.getNode(EdgeDirection.FROM).equals(node)){
+				outEdges.add(edge);
+			}
+		}
+		return outEdges;
 	}
 }

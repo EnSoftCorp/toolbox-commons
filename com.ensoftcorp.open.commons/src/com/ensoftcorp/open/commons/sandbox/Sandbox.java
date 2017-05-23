@@ -58,11 +58,115 @@ public class Sandbox {
 	}
 	
 	/**
+	 * Returns an empty sandbox node set
+	 * @return
+	 */
+	public SandboxHashSet<SandboxNode> emptyNodeSet(){
+		return new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+	}
+	
+	/**
+	 * Returns an empty sandbox edge set
+	 * @return
+	 */
+	public SandboxHashSet<SandboxEdge> emptyEdgeSet(){
+		return new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+	}
+	
+	/**
 	 * Returns the current sandbox universe graph
 	 * @return
 	 */
 	public SandboxGraph universe(){
 		return U;
+	}
+	
+	/**
+	 * Converts the given graph elements into a sandbox graph
+	 * @param graphElements
+	 * @return
+	 */
+	public SandboxGraph toGraph(SandboxHashSet<? extends SandboxGraphElement> graphElements){
+		SandboxGraph graph = empty();
+		for(SandboxGraphElement graphElement : graphElements){
+			if(graphElement instanceof SandboxNode){
+				graph.nodes().add((SandboxNode) graphElement);
+			} else if(graphElement instanceof SandboxEdge){
+				graph.nodes().add(((SandboxEdge) graphElement).from());
+				graph.nodes().add(((SandboxEdge) graphElement).to());
+				graph.edges().add(((SandboxEdge) graphElement));
+			}
+		}
+		return graph;
+	}
+	
+	/**
+	 * Converts the given graph elements into a sandbox graph
+	 * @param graphElements
+	 * @return
+	 */
+	public SandboxGraph toGraph(SandboxGraphElement... graphElements){
+		SandboxGraph graph = empty();
+		for(SandboxGraphElement graphElement : graphElements){
+			if(graphElement instanceof SandboxNode){
+				graph.nodes().add((SandboxNode) graphElement);
+			} else if(graphElement instanceof SandboxEdge){
+				graph.nodes().add(((SandboxEdge) graphElement).from());
+				graph.nodes().add(((SandboxEdge) graphElement).to());
+				graph.edges().add(((SandboxEdge) graphElement));
+			}
+		}
+		return graph;
+	}
+	
+	/**
+	 * Returns a sandbox graph contained in the sandbox universe referenced in
+	 * the given set of the Atlas graph
+	 * 
+	 * @param nodes
+	 * @return
+	 */
+	public SandboxGraph graph(Graph graph){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		result.nodes().addAll(nodes(graph.nodes()));
+		result.edges().addAll(edges(graph.edges()));
+		return result;
+	}
+	
+	/**
+	 * Returns a sandbox set of nodes contained in the sandbox universe
+	 * referenced in the given set of the Atlas graph nodes
+	 * 
+	 * @param tags
+	 * @return
+	 */
+	public SandboxHashSet<SandboxNode> nodes(AtlasSet<Node> nodes){
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		for(Node node : nodes){
+			SandboxGraphElement ge = this.getAt(node.address().toAddressString());
+			if(ge != null && ge instanceof SandboxNode){
+				result.add((SandboxNode) ge);
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns a sandbox set of edges contained in the sandbox universe
+	 * referenced in the given set of the Atlas graph edges
+	 * 
+	 * @param edges
+	 * @return
+	 */
+	public SandboxHashSet<SandboxEdge> edges(AtlasSet<Edge> edges){
+		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		for(Edge edge : edges){
+			SandboxGraphElement ge = this.getAt(edge.address().toAddressString());
+			if(ge != null && ge instanceof SandboxEdge){
+				result.add((SandboxEdge) ge);
+			}
+		}
+		return result;
 	}
 	
 	/**

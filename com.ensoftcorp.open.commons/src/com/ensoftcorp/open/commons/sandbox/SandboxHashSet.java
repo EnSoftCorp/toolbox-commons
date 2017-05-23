@@ -30,4 +30,15 @@ public class SandboxHashSet<T extends SandboxGraphElement> extends HashSet<T> {
 		return false;
 	}
 	
+	/**
+	 * Returns one item from the set
+	 * @return
+	 */
+	public T one(){
+		for(T t : this){
+			return t;
+		}
+		return null;
+	}
+	
 }

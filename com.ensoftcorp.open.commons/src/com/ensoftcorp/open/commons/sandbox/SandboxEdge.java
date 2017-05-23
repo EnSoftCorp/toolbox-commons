@@ -1,6 +1,7 @@
 package com.ensoftcorp.open.commons.sandbox;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
+import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 
 public class SandboxEdge extends SandboxGraphElement {
 
@@ -55,6 +56,19 @@ public class SandboxEdge extends SandboxGraphElement {
 	 */
 	public SandboxNode to(){
 		return TO;
+	}
+	
+	/**
+	 * Returns the node corresponding to the given direction
+	 * @param direction
+	 * @return
+	 */
+	public SandboxNode getNode(EdgeDirection direction){
+		if(direction == EdgeDirection.FROM){
+			return FROM;
+		} else {
+			return TO;
+		}
 	}
 	
 }
