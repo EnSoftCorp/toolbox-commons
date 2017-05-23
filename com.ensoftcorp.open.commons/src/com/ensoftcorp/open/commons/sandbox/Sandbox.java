@@ -17,7 +17,7 @@ public class Sandbox {
 	
 	private static int sandboxInstanceCounter = 0;
 	
-	private static final String SANDBOX_ADDRESS_PREFIX = "SANDBOX_";
+	public static final String SANDBOX_ADDRESS_PREFIX = "SANDBOX_";
 	private static int sandboxAddressCounter = 0;
 
 	private String getUniqueSandboxGraphElementAddress(){
@@ -79,6 +79,24 @@ public class Sandbox {
 	 */
 	public SandboxGraph universe(){
 		return U;
+	}
+	
+	/**
+	 * Converts the given graph elements into a sandbox graph
+	 * @param graphElements
+	 * @return
+	 */
+	public SandboxGraph toGraph(SandboxHashSet<SandboxNode> nodes, SandboxHashSet<SandboxEdge> edges){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		for(SandboxNode node : nodes){
+			result.nodes().add(node);
+		}
+		for(SandboxEdge edge : edges){
+			result.nodes().add(edge.from());
+			result.nodes().add(edge.to());
+			result.edges().add(edge);
+		}
+		return result;
 	}
 	
 	/**

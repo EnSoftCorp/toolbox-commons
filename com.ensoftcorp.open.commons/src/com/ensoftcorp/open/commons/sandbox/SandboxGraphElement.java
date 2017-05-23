@@ -9,19 +9,17 @@ public abstract class SandboxGraphElement {
 
 	private final int sandboxInstanceID;
 	private String address;
-	private boolean mirror;
 
 	private final Set<String> tags;
 	private final Map<String, Object> attributes;
 
-	protected SandboxGraphElement(int sandboxInstanceID, String address, boolean mirror) {
-		this(sandboxInstanceID, address, mirror, new HashSet<String>(), new HashMap<String, Object>());
+	protected SandboxGraphElement(int sandboxInstanceID, String address) {
+		this(sandboxInstanceID, address, new HashSet<String>(), new HashMap<String, Object>());
 	}
 
-	protected SandboxGraphElement(int sandboxInstanceID, String address, boolean mirror, Set<String> tags, Map<String, Object> attributes) {
+	protected SandboxGraphElement(int sandboxInstanceID, String address, Set<String> tags, Map<String, Object> attributes) {
 		this.sandboxInstanceID = sandboxInstanceID;
 		this.address = address;
-		this.mirror = mirror;
 		this.tags = tags;
 		this.attributes = attributes;
 	}
@@ -50,7 +48,7 @@ public abstract class SandboxGraphElement {
 	 * @return
 	 */
 	public boolean isMirror() {
-		return mirror;
+		return address.startsWith(Sandbox.SANDBOX_ADDRESS_PREFIX);
 	}
 
 	/**
@@ -60,7 +58,6 @@ public abstract class SandboxGraphElement {
 	public void flush(String address){
 		if(!isMirror()){
 			this.address = address;
-			this.mirror = true;
 		}
 	}
 	
@@ -120,7 +117,7 @@ public abstract class SandboxGraphElement {
 		for(String key : attributes.keySet()){
 			atrributesToString.append(key + ": " + attributes.get(key).toString() + "\n");
 		}
-		return "Sandbox=" + sandboxInstanceID + ", Address=" + address + ", Mirror=" + mirror + "]"
+		return "Sandbox=" + sandboxInstanceID + ", Address=" + address + ", Mirror=" + isMirror() + "]"
 				+ "\nTags: {" + tagsToString.toString().trim() + "}\nAttributes: {" + atrributesToString.toString().trim() + "}";
 	}
 
@@ -133,7 +130,7 @@ public abstract class SandboxGraphElement {
 		int result = 1;
 		result = prime * result + ((address == null) ? 0 : address.hashCode());
 		result = prime * result + ((attributes == null) ? 0 : attributes.hashCode());
-		result = prime * result + (mirror ? 1231 : 1237);
+		result = prime * result + (isMirror() ? 1231 : 1237);
 		result = prime * result + ((tags == null) ? 0 : tags.hashCode());
 		return result;
 	}
@@ -160,7 +157,7 @@ public abstract class SandboxGraphElement {
 				return false;
 		} else if (!attributes.equals(other.attributes))
 			return false;
-		if (mirror != other.mirror)
+		if (isMirror() != other.isMirror())
 			return false;
 		if (tags == null) {
 			if (other.tags != null)

@@ -5,7 +5,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 public class SandboxNode extends SandboxGraphElement {
 
 	public SandboxNode(int sandboxInstanceID, Node node) {
-		super(sandboxInstanceID, node.address().toAddressString(), true);
+		super(sandboxInstanceID, node.address().toAddressString());
 		for(String tag : node.tags()){
 			tags().add(tag);
 		}
@@ -15,7 +15,7 @@ public class SandboxNode extends SandboxGraphElement {
 	}
 
 	public SandboxNode(int sandboxInstanceID, String address) {
-		super(sandboxInstanceID, address, false);
+		super(sandboxInstanceID, address);
 	}
 
 }

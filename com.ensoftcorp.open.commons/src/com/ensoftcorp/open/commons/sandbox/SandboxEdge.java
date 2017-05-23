@@ -13,7 +13,7 @@ public class SandboxEdge extends SandboxGraphElement {
 	 * @param edge
 	 */
 	public SandboxEdge(int sandboxInstanceID, Edge edge) {
-		this(sandboxInstanceID, edge.address().toAddressString(), true, new SandboxNode(sandboxInstanceID, edge.from()), new SandboxNode(sandboxInstanceID, edge.to()));
+		this(sandboxInstanceID, edge.address().toAddressString(), new SandboxNode(sandboxInstanceID, edge.from()), new SandboxNode(sandboxInstanceID, edge.to()));
 		for(String tag : edge.tags()){
 			tags().add(tag);
 		}
@@ -28,16 +28,7 @@ public class SandboxEdge extends SandboxGraphElement {
 	 * @param to
 	 */
 	public SandboxEdge(int sandboxInstanceID, String address, SandboxNode from, SandboxNode to) {
-		this(sandboxInstanceID, address, false, from, to);
-	}
-	
-	/**
-	 * Constructs a new SandboxEdge directed from the "from" node to the "to" node
-	 * @param from
-	 * @param to
-	 */
-	private SandboxEdge(int sandboxInstanceID, String address, boolean mirror, SandboxNode from, SandboxNode to) {
-		super(sandboxInstanceID, address, mirror);
+		super(sandboxInstanceID, address);
 		FROM = from;
 		TO = to;
 	}

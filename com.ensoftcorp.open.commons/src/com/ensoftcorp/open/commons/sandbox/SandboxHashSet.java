@@ -41,4 +41,14 @@ public class SandboxHashSet<T extends SandboxGraphElement> extends HashSet<T> {
 		return null;
 	}
 	
+	public SandboxHashSet<T> filter(String attr, Object value){
+		SandboxHashSet<T> result = new SandboxHashSet<T>(sandboxInstanceID);
+		for(T t : this){
+			if(t.hasAttr(attr) && t.attr().get(attr).equals(value)){
+				result.add(t);
+			}
+		}
+		return result;
+	}
+	
 }
