@@ -321,6 +321,13 @@ public class Sandbox {
 		return new UncheckedGraph(nodes, edges);
 	}
 	
+	/**
+	 * Flushes the changes made or creation of a sandbox graph element to the
+	 * Atlas graph
+	 * 
+	 * @param ge
+	 * @return
+	 */
 	private GraphElement flush(SandboxGraphElement ge) {
 		if(ge.isMirror()){
 			if(ge instanceof SandboxNode){

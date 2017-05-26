@@ -253,6 +253,16 @@ public class SandboxGraph {
 		return result;
 	}
 	
+	/**
+	 * From this graph, selects the subgraph reachable from the given nodes
+	 * along a path length of 1 in the forward direction.
+	 * 
+	 * The final result includes the given nodes, the traversed edges, and the
+	 * reachable nodes.
+	 * 
+	 * @param origin
+	 * @return
+	 */
 	public SandboxGraph forwardStep(SandboxNode origin){
 		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
 		SandboxHashSet<SandboxEdge> outEdges = getOutEdgesFromNode(origin);
@@ -264,6 +274,16 @@ public class SandboxGraph {
 		return result;
 	}
 	
+	/**
+	 * From this graph, selects the subgraph reachable from the given nodes
+	 * along a path length of 1 in the reverse direction.
+	 * 
+	 * The final result includes the given nodes, the traversed edges, and the
+	 * reachable nodes.
+	 * 
+	 * @param origin
+	 * @return
+	 */
 	public SandboxGraph reverseStep(SandboxNode origin){
 		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
 		SandboxHashSet<SandboxEdge> inEdges = getInEdgesToNode(origin);
