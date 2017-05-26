@@ -528,6 +528,55 @@ public final class CommonQueries {
 	// begin toolbox commons queries
 	
 	/**
+	 * Selects the Atlas graph element given a serialized graph
+	 * element address
+	 * 
+	 * Returns null if the address does not correspond to a graph element
+	 * 
+	 * @param address
+	 * @return
+	 */
+	public static GraphElement getGraphElementByAddress(String address){
+		int hexAddress = Integer.parseInt(address, 16);
+		GraphElement ge = Graph.U.getAt(hexAddress);
+		return ge;
+	}
+	
+	/**
+	 * Selects the Atlas node graph element given a serialized graph
+	 * element address
+	 * 
+	 * Returns null if the address does not correspond to a node
+	 * 
+	 * @param address
+	 * @return
+	 */
+	public static Node getNodeByAddress(String address){
+		GraphElement ge = getGraphElementByAddress(address);
+		if(ge != null && ge instanceof Node){
+			return (Node) ge;
+		}
+		return null;
+	}
+	
+	/**
+	 * Selects the Atlas edge graph element given a serialized graph
+	 * element address
+	 * 
+	 * Returns null if the address does not correspond to a edge
+	 * 
+	 * @param address
+	 * @return
+	 */
+	public static Edge getEdgeByAddress(String address){
+		GraphElement ge = getGraphElementByAddress(address);
+		if(ge != null && ge instanceof Edge){
+			return (Edge) ge;
+		}
+		return null;
+	}
+	
+	/**
 	 * Returns the parameters of the given functions. 
 	 * 
 	 * Equivalent to functionParameter(index(), functions)

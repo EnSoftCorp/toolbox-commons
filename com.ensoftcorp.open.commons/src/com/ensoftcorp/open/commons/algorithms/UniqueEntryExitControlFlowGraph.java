@@ -45,6 +45,9 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	@XCSG_Extension
 	public static final String UniqueEntryExitCFG_Edge = "UniqueEntryExitCFG_Edge";
 	
+	/**
+	 * The control flow graph
+	 */
 	private Graph cfg;
 	
 	/**
@@ -82,13 +85,27 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	 */
 	private Node function;
 	
-	/** 
-	 * @param cfg a ControlFlowGraph (may include ExceptionalControlFlow_Edges)
+	/**
+	 * Constructs a new unique entry/exit control flow graph. Assumes the entry
+	 * is tagged with XCSG.controlFlowRoot and the exits are tagged with
+	 * XCSG.controlFlowExitPoint
+	 * 
+	 * @param cfg
+	 *            a control flow graph
 	 */
 	public UniqueEntryExitControlFlowGraph(Graph cfg) {
 		this(cfg, Common.toQ(cfg).nodes(XCSG.controlFlowRoot).eval().nodes(), Common.toQ(cfg).nodes(XCSG.controlFlowExitPoint).eval().nodes());
 	}
 	
+	/**
+	 * Constructs a new unique entry/exit control flow graph with the specified
+	 * entry and exit points.
+	 * 
+	 * @param cfg
+	 *            a control flow graph
+	 * @param roots
+	 * @param exits
+	 */
 	public UniqueEntryExitControlFlowGraph(Graph cfg, AtlasSet<Node> roots, AtlasSet<Node> exits) {
 		AtlasSet<Node> functions = CommonQueries.getContainingFunctions(Common.toQ(cfg)).eval().nodes();
 		if(functions.isEmpty()){
