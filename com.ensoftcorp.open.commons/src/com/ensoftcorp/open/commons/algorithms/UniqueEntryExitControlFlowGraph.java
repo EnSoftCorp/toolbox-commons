@@ -94,7 +94,21 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	 *            a control flow graph
 	 */
 	public UniqueEntryExitControlFlowGraph(Graph cfg) {
-		this(cfg, Common.toQ(cfg).nodes(XCSG.controlFlowRoot).eval().nodes(), Common.toQ(cfg).nodes(XCSG.controlFlowExitPoint).eval().nodes());
+		this(cfg, Common.toQ(cfg).nodes(XCSG.controlFlowRoot).eval().nodes(), Common.toQ(cfg).nodes(XCSG.controlFlowExitPoint).eval().nodes(), false);
+	}
+	
+	/**
+	 * Constructs a new unique entry/exit control flow graph. Assumes the entry
+	 * is tagged with XCSG.controlFlowRoot and the exits are tagged with
+	 * XCSG.controlFlowExitPoint
+	 * 
+	 * Optionally, containment edges can be added for display purposes
+	 * 
+	 * @param cfg
+	 * @param addContains
+	 */
+	public UniqueEntryExitControlFlowGraph(Graph cfg, boolean addContains) {
+		this(cfg, Common.toQ(cfg).nodes(XCSG.controlFlowRoot).eval().nodes(), Common.toQ(cfg).nodes(XCSG.controlFlowExitPoint).eval().nodes(), addContains);
 	}
 	
 	/**
@@ -107,6 +121,20 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	 * @param exits
 	 */
 	public UniqueEntryExitControlFlowGraph(Graph cfg, AtlasSet<Node> roots, AtlasSet<Node> exits) {
+		this(cfg, roots, exits, false);
+	}
+	
+	/**
+	 * Constructs a new unique entry/exit control flow graph with the specified
+	 * entry and exit points.
+	 * 
+	 * @param cfg
+	 *            a control flow graph
+	 * @param roots
+	 * @param exits
+	 * @param addContains
+	 */
+	public UniqueEntryExitControlFlowGraph(Graph cfg, AtlasSet<Node> roots, AtlasSet<Node> exits, boolean addContains) {
 		AtlasSet<Node> functions = CommonQueries.getContainingFunctions(Common.toQ(cfg)).eval().nodes();
 		if(functions.isEmpty()){
 			String message = "CFG is empty or is not contained within a function!";
@@ -141,8 +169,8 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 				throw e;
 			}
 			
-			this.masterEntry = setupMasterEntryNode(this.roots);
-			this.masterExit = setupMasterExitNode(this.exits);
+			this.masterEntry = setupMasterEntryNode(this.roots, addContains);
+			this.masterExit = setupMasterExitNode(this.exits, addContains);
 		}
 	}
 	
@@ -150,14 +178,23 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	 * Creates the nodes and edges for setting up the master entry node
 	 * @param roots nodes to consider as control flow roots (entry points) in the graph
 	 */
-	private Node setupMasterEntryNode(AtlasSet<Node> roots){
+	private Node setupMasterEntryNode(AtlasSet<Node> roots, boolean addContains){
 		// search if the function has a master entry node created previously
-		// note we are reusing master entry nodes so the search should be from
-		// the entire function cfg not just the specified roots
-		Node masterEntryNode = Common.universe()
-				.predecessors(CommonQueries.cfg(function))
-				.nodes(UniqueEntryExitCFG_Master_Entry)
-				.eval().nodes().one();
+		Node masterEntryNode;
+		if(addContains){
+			// note we are reusing master entry nodes so the search should be from
+			// as a child of the function
+			masterEntryNode = Common.toQ(function).children()
+					.nodes(UniqueEntryExitCFG_Master_Entry)
+					.eval().nodes().one();
+		} else {
+			// note we are reusing master entry nodes so the search should be from
+			// the entire function cfg not just the specified roots
+			masterEntryNode = Common.universe()
+					.predecessors(CommonQueries.cfg(function))
+					.nodes(UniqueEntryExitCFG_Master_Entry)
+					.eval().nodes().one();
+		}
 		
 		// if master entry node has not been created previously, then we need to
 		// create one now
@@ -165,6 +202,10 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 			masterEntryNode = Graph.U.createNode();
 			masterEntryNode.attr().put(XCSG.name, UniqueEntryExitCFG_Master_Entry_Name);
 			masterEntryNode.tag(UniqueEntryExitCFG_Master_Entry);
+			if(addContains){
+				Edge containsEdge = Graph.U.createEdge(function, masterEntryNode);
+				containsEdge.tag(XCSG.Contains);
+			}
 		}
 		
 		// add the master entry node
@@ -184,15 +225,23 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	 * @param exits nodes to consider as control flow exits (exit points) in the graph
 	 * @return
 	 */
-	private Node setupMasterExitNode(AtlasSet<Node> exits) {
-		// search if the function has a master exit node for any previously
-		// created PCG
-		// note we are reusing master exit nodes so the search should be from
-		// the entire function cfg not just the specified exits
-		Node masterExitNode = Common.universe()
-				.successors(CommonQueries.cfg(function))
-				.nodes(UniqueEntryExitCFG_Master_Exit)
-				.eval().nodes().one();
+	private Node setupMasterExitNode(AtlasSet<Node> exits, boolean addContains) {
+		// search if the function has a master entry node created previously
+		Node masterExitNode;
+		if(addContains){
+			// note we are reusing master entry nodes so the search should be from
+			// as a child of the function
+			masterExitNode = Common.toQ(function).children()
+					.nodes(UniqueEntryExitCFG_Master_Exit)
+					.eval().nodes().one();
+		} else {
+			// note we are reusing master entry nodes so the search should be from
+			// the entire function cfg not just the specified roots
+			masterExitNode = Common.universe()
+					.successors(CommonQueries.cfg(function))
+					.nodes(UniqueEntryExitCFG_Master_Exit)
+					.eval().nodes().one();
+		}
 		
 		// if master exit node has not been created previously, then we need to
 		// create one now
@@ -200,6 +249,10 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 			masterExitNode = Graph.U.createNode();
 			masterExitNode.attr().put(XCSG.name, UniqueEntryExitCFG_Master_Exit_Name);
 			masterExitNode.tag(UniqueEntryExitCFG_Master_Exit);
+			if(addContains){
+				Edge containsEdge = Graph.U.createEdge(function, masterExitNode);
+				containsEdge.tag(XCSG.Contains);
+			}
 		}
 		
 		// add the master exit node to the pcg

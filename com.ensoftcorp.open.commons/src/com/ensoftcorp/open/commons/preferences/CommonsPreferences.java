@@ -56,11 +56,35 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		return computeExceptionalControlFlowGraphDominanceTreesValue;
 	}
 	
+	/**
+	 * Enable/disable adding master entry/exit containment relationships
+	 */
+	public static final String ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS = "ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS";
+	public static final Boolean ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT = true;
+	private static boolean addMasterEntryExitContainmentRelationships = ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT;
+	
+	/**
+	 * Configures inference rule logging
+	 */
+	public static void enableMasterEntryExitContainmentRelationships(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, enabled);
+		loadPreferences();
+	}
+	
+	public static boolean isMasterEntryExitContainmentRelationshipsEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return addMasterEntryExitContainmentRelationships;
+	}
+	
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
+		preferences.setDefault(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
 	}
 	
 	/**
@@ -69,6 +93,8 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	public static void restoreDefaults(){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
+		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
+		preferences.setValue(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
 		loadPreferences();
 	}
 	
@@ -80,6 +106,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 			computeControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			computeExceptionalControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
+			addMasterEntryExitContainmentRelationships = preferences.getBoolean(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS);
 		} catch (Exception e){
 			Log.warning("Error accessing commons preferences, using defaults...", e);
 		}

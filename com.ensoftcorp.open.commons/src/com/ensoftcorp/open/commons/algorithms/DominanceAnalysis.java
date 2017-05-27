@@ -115,7 +115,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 					continue;
 				} else {
 					try {
-						UniqueEntryExitGraph uexg = new UniqueEntryExitControlFlowGraph(g, roots, exits);
+						UniqueEntryExitGraph uexg = new UniqueEntryExitControlFlowGraph(g, roots, exits, CommonsPreferences.isMasterEntryExitContainmentRelationshipsEnabled());
 						computeDominance(uexg);
 					} catch (Exception e){
 						Log.error("Error computing control flow graph dominance tree", e);

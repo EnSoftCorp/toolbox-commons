@@ -409,6 +409,71 @@ public class SandboxGraph {
 	}
 	
 	/**
+	 * From this graph, selects the subgraph reachable from the given nodes
+	 * using forward transitive traversal.
+	 * 
+	 * @param origin
+	 * @return
+	 */
+	public SandboxGraph forward(SandboxNode origin){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		result.nodes().add(origin);
+		SandboxHashSet<SandboxNode> frontier = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		frontier.add(origin);
+		while(!frontier.isEmpty()){
+			SandboxNode next = frontier.one();
+			frontier.remove(next);
+			for(SandboxEdge edge : forwardStep(next).edges()){
+				if(result.nodes().add(edge.to())){
+					frontier.add(edge.to());
+				}
+				result.edges().add(edge);
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * From this graph, selects the subgraph reachable from the given nodes
+	 * using reverse transitive traversal.
+	 * 
+	 * @param origin
+	 * @return
+	 */
+	public SandboxGraph reverse(SandboxNode origin){
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		result.nodes().add(origin);
+		SandboxHashSet<SandboxNode> frontier = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		frontier.add(origin);
+		while(!frontier.isEmpty()){
+			SandboxNode next = frontier.one();
+			frontier.remove(next);
+			for(SandboxEdge edge : reverseStep(next).edges()){
+				if(result.nodes().add(edge.to())){
+					frontier.add(edge.to());
+				}
+				result.edges().add(edge);
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * From this graph, selects the subgraph such that the given nodes in to are
+	 * reachable from the nodes in from using forward traversal.
+	 * 
+	 * Logically equivalent to
+	 * graph.forward(from).intersection(graph.reverse(to)) .
+	 * 
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public SandboxGraph between(SandboxNode from, SandboxNode to) {
+		return forward(from).intersection(reverse(to));
+	}
+	
+	/**
 	 * Gets incoming edges to node
 	 * @param node
 	 * @return The set of incoming edges to the given node
@@ -437,4 +502,5 @@ public class SandboxGraph {
 		}
 		return outEdges;
 	}
+
 }
