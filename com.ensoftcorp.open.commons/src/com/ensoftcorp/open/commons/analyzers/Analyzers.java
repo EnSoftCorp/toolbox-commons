@@ -65,7 +65,8 @@ public class Analyzers extends PrioritizedCodemapStage {
 		for(Analyzer analyzer : analyzers){
 			if(AnalyzerPreferences.isAnalyzerCachingEnabled(analyzer.getName())){
 				monitor.subTask("Analyzing " + analyzer.getName());
-				// TODO: set context via preferences
+				Log.info("Analyzing " + analyzer.getName());
+				// TODO: how to set analyzer context? via preferences maybe?
 				List<Result> results = analyzer.getResults(Common.universe());
 				ANALYZER_RESULTS.put(analyzer.getName(), results);
 				DashboardView.refreshRequired();
