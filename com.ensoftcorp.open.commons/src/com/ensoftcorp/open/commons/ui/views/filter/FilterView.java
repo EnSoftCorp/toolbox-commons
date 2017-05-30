@@ -62,6 +62,7 @@ import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootset;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootsets;
+import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
@@ -211,7 +212,8 @@ public class FilterView extends ViewPart {
 				if(filterTree.getSelectionCount() == 1){
 					TreeItem treeItem = filterTree.getSelection()[0];
 					FilterTreeNode node = (FilterTreeNode) treeItem.getData();
-					DisplayUtils.show(Common.toQ(node.getOutput()), node.getName());
+					boolean extend = CommonsPreferences.isDisplayFilterViewResultContainersEnabled();
+					DisplayUtils.show(Common.toQ(node.getOutput()), extend, node.getName());
 				}
 			}
 		});

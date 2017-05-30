@@ -65,7 +65,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	 * strictly dominate n. It is the set of nodes where d's dominance stops.
 	 */
 	@XCSG_Extension
-	public static final String DOMINANCE_FRONTIER_EDGE = "domfontier";
+	public static final String DOMINANCE_FRONTIER_EDGE = "domfrontier";
 	
 	public DominanceAnalysis() {}
 	

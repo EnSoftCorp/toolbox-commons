@@ -79,12 +79,36 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		return addMasterEntryExitContainmentRelationships;
 	}
 	
+	/**
+	 * Enable/disable displaying filter view result containers
+	 */
+	public static final String DISPLAY_FILTER_VIEW_RESULT_CONTAINERS = "DISPLAY_FILTER_VIEW_RESULT_CONTAINERS";
+	public static final Boolean DISPLAY_FILTER_VIEW_RESULT_CONTAINERS_DEFAULT = false;
+	private static boolean displayFilterViewResultContainersValue = DISPLAY_FILTER_VIEW_RESULT_CONTAINERS_DEFAULT;
+
+	/**
+	 * Configures displaying filter view result containers
+	 */
+	public static void enableDisplayFilterViewResultContainers(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(DISPLAY_FILTER_VIEW_RESULT_CONTAINERS, enabled);
+		loadPreferences();
+	}
+
+	public static boolean isDisplayFilterViewResultContainersEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return displayFilterViewResultContainersValue;
+	}
+	
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
+		preferences.setDefault(DISPLAY_FILTER_VIEW_RESULT_CONTAINERS, DISPLAY_FILTER_VIEW_RESULT_CONTAINERS_DEFAULT);
 	}
 	
 	/**
@@ -95,6 +119,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
+		preferences.setValue(DISPLAY_FILTER_VIEW_RESULT_CONTAINERS, DISPLAY_FILTER_VIEW_RESULT_CONTAINERS_DEFAULT);
 		loadPreferences();
 	}
 	
@@ -107,6 +132,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 			computeControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			computeExceptionalControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			addMasterEntryExitContainmentRelationships = preferences.getBoolean(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS);
+			displayFilterViewResultContainersValue = preferences.getBoolean(DISPLAY_FILTER_VIEW_RESULT_CONTAINERS);
 		} catch (Exception e){
 			Log.warning("Error accessing commons preferences, using defaults...", e);
 		}

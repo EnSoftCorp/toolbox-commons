@@ -20,6 +20,7 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 	private static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DESCRIPTION = "Compute control flow graph dominance trees";
 	private static final String COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DESCRIPTION = "Compute exceptional control flow graph dominance trees";
 	private static final String ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DESCRIPTION = "Add master entry/exit containment relationships";
+	private static final String DISPLAY_FILTER_VIEW_RESULT_CONTAINERS_DESCRIPTION = "Enables displaying the container relationships in filter view results";
 	
 	private static boolean changeListenerAdded = false;
 	
@@ -50,6 +51,7 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 		addField(new BooleanFieldEditor(CommonsPreferences.COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, "&" + COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(CommonsPreferences.COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, "&" + COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(CommonsPreferences.ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, "&" + ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DESCRIPTION, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(CommonsPreferences.DISPLAY_FILTER_VIEW_RESULT_CONTAINERS, "&" + DISPLAY_FILTER_VIEW_RESULT_CONTAINERS_DESCRIPTION, getFieldEditorParent()));
 	}
 	
 }
