@@ -6,12 +6,17 @@ com.ensoftcorp.open.commons.codemap
 com.ensoftcorp.open.commons.filters
 com.ensoftcorp.open.commons.filters.rootset
 com.ensoftcorp.open.commons.handlers
+com.ensoftcorp.open.commons.highlighter
+com.ensoftcorp.open.commons.language
 com.ensoftcorp.open.commons.log
 com.ensoftcorp.open.commons.preferences
+com.ensoftcorp.open.commons.sandbox
 com.ensoftcorp.open.commons.subsystems
 com.ensoftcorp.open.commons.ui
 com.ensoftcorp.open.commons.ui.components
 com.ensoftcorp.open.commons.ui.smart
+com.ensoftcorp.open.commons.ui.views.dashboard
 com.ensoftcorp.open.commons.ui.views.filter
 com.ensoftcorp.open.commons.utilities
+com.ensoftcorp.open.commons.xcsg
 org.eclipse.wb.swt
