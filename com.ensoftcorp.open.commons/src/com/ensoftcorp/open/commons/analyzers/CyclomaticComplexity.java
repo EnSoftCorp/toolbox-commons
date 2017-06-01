@@ -53,7 +53,7 @@ public class CyclomaticComplexity extends Property {
 		Q controlFlowEdges = Common.universe().edgesTaggedWithAny(XCSG.ControlFlow_Edge);
 		Q declarations = Common.toQ(method).contained();
 		Q controlFlowRoot = declarations.nodesTaggedWithAny(XCSG.controlFlowRoot);
-		Graph methodCFG = CommonQueries.traverse(controlFlowEdges, controlFlowRoot, TraversalDirection.FORWARD).eval();
+		Graph methodCFG = controlFlowEdges.forward(controlFlowRoot).eval();
 		long edgesCount = methodCFG.edges().size();
 		long nodesConut = methodCFG.nodes().size();
 		long numExitPoints = methodCFG.nodes().taggedWithAny(XCSG.controlFlowExitPoint).size();
