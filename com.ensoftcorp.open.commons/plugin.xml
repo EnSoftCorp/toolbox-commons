@@ -131,6 +131,7 @@
    		 id="com.ensoftcorp.open.commons.analyzer"
    		 name="Analyzer"
    		 schema="schema/com.ensoftcorp.open.commons.analyzer.exsd"/>
+   <extension-point id="com.ensoftcorp.open.commons.language.analysis" name="LanguageSpecificAnalysis" schema="schema/com.ensoftcorp.open.commons.language.analysis.exsd"/>
    
    <!-- adds a post code map hook for running registered prioritized codemap stages -->
    <extension

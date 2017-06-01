@@ -22,6 +22,10 @@ public class Subsystems {
 
 	private static Set<Subsystem> SUBSYSTEMS = Collections.synchronizedSet(new HashSet<Subsystem>());
 
+	static {
+		loadSubsystemContributions();
+	}
+	
 	/**
 	 * Returns a copy of the currently registered subsystems
 	 * 
