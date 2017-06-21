@@ -203,6 +203,9 @@
       <filter class="com.ensoftcorp.open.commons.filters.CyclomaticComplexityFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.SubsystemInteractionFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.LoopChildFilter"></filter>
+      <filter class="com.ensoftcorp.open.commons.filters.ExceptionalTryChildFilter"></filter>
+      <filter class="com.ensoftcorp.open.commons.filters.ExceptionalCatchChildFilter"></filter>
+      <filter class="com.ensoftcorp.open.commons.filters.ExceptionalFinallyChildFilter"></filter>
    </extension>
    
    <!-- adds filter rootset definitions -->
