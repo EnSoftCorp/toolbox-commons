@@ -62,7 +62,6 @@ public class CallSiteAnalysis {
 	 * @return
 	 */
 	public static AtlasSet<Node> getTargets(Node callSite){
-		AtlasSet<Node> targets = new AtlasHashSet<Node>();
 		String language = getRequestedLanguage(callSite);
 		LanguageSpecificCallSiteAnalysis analysis = getLanguageSpecificCallSiteAnalysis(language);
 		return analysis.getTargets(callSite);
@@ -96,7 +95,6 @@ public class CallSiteAnalysis {
 	 * @return
 	 */
 	public static AtlasSet<Node> getCallSites(Node function){
-		AtlasSet<Node> callsites = new AtlasHashSet<Node>();
 		String language = getRequestedLanguage(function);
 		LanguageSpecificCallSiteAnalysis analysis = getLanguageSpecificCallSiteAnalysis(language);
 		return analysis.getCallSites(function);
@@ -118,6 +116,7 @@ public class CallSiteAnalysis {
 		if(analysisMap.containsKey(language)){
 			return analysisMap.get(language);
 		}
+		@SuppressWarnings("unchecked")
 		Set<LanguageSpecificCallSiteAnalysis> callSiteAnalyses = (Set<LanguageSpecificCallSiteAnalysis>) 
 				LanguageSpecificAnalysis.getRegisteredAnalyses(language, LanguageSpecificCallSiteAnalysis.class);
 		if(callSiteAnalyses.isEmpty()){
