@@ -129,9 +129,6 @@ public abstract class SandboxGraphElement {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((address == null) ? 0 : address.hashCode());
-		result = prime * result + ((attributes == null) ? 0 : attributes.hashCode());
-		result = prime * result + (isMirror() ? 1231 : 1237);
-		result = prime * result + ((tags == null) ? 0 : tags.hashCode());
 		return result;
 	}
 
@@ -151,18 +148,6 @@ public abstract class SandboxGraphElement {
 			if (other.address != null)
 				return false;
 		} else if (!address.equals(other.address))
-			return false;
-		if (attributes == null) {
-			if (other.attributes != null)
-				return false;
-		} else if (!attributes.equals(other.attributes))
-			return false;
-		if (isMirror() != other.isMirror())
-			return false;
-		if (tags == null) {
-			if (other.tags != null)
-				return false;
-		} else if (!tags.equals(other.tags))
 			return false;
 		return true;
 	}
