@@ -5,15 +5,16 @@ import java.util.Map;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
+import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 
 public class Sandbox {
 	
-	private static int sandboxInstanceCounter = 0;
+	private static volatile int sandboxInstanceCounter = 0;
 	
-	public static final String SANDBOX_ADDRESS_PREFIX = "SANDBOX_";
-	private static int sandboxAddressCounter = 0;
+	public static final String SANDBOX_ADDRESS_PREFIX = "SANDBOX_"; //$NON-NLS-1$
+	private static volatile int sandboxAddressCounter = 0;
 
 	private String getUniqueSandboxGraphElementAddress(){
 		return SANDBOX_ADDRESS_PREFIX + (sandboxAddressCounter++);
@@ -160,21 +161,33 @@ public class Sandbox {
 	}
 	
 	/**
-	 * Returns a sandbox set of nodes contained in the sandbox universe
-	 * referenced in the given set of the Atlas graph nodes
+	 * Returns a set of sandbox nodes contained in the sandbox universe
+	 * corresponding to the given set Atlas graph nodes.
+	 * Does not instantiate nodes in the sandbox.
 	 * 
 	 * @param tags
-	 * @return
+	 * @return the sandbox nodes
 	 */
 	public SandboxHashSet<SandboxNode> nodes(AtlasSet<Node> nodes){
 		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
 		for(Node node : nodes){
-			SandboxGraphElement ge = this.getAt(node.address().toAddressString());
+			SandboxGraphElement ge = node(node);
 			if(ge != null && ge instanceof SandboxNode){
 				result.add((SandboxNode) ge);
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Returns a node from the sandbox corresponding to the Atlas node,
+	 * if it already exists in the sandbox.
+	 * @param node
+	 * @return the sandbox node, else null
+	 */
+	public SandboxNode node(Node node) {
+		SandboxNode ge = (SandboxNode) this.getAt(addrStr(node));
+		return ge;
 	}
 	
 	/**
@@ -187,53 +200,86 @@ public class Sandbox {
 	public SandboxHashSet<SandboxEdge> edges(AtlasSet<Edge> edges){
 		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
 		for(Edge edge : edges){
-			SandboxGraphElement ge = this.getAt(edge.address().toAddressString());
+			SandboxEdge ge = edge(edge);
 			if(ge != null && ge instanceof SandboxEdge){
 				result.add((SandboxEdge) ge);
 			}
 		}
 		return result;
 	}
+
+	/**
+	 * Returns an edge from the sandbox corresponding to the Atlas edge,
+	 * if it already exists in the sandbox.
+	 * @param edge
+	 * @return the sandbox edge, else null
+	 */
+	private SandboxEdge edge(Edge edge) {
+		SandboxEdge ge = (SandboxEdge) this.getAt(addrStr(edge));
+		return ge;
+	}
 	
 	/**
 	 * Adds the current state of the Atlas nodes and edges from the given Atlas graph to the sandbox
 	 * @param graph
 	 */
-	public void addGraph(Graph graph) {
-		addNodes(graph.nodes());
-		addEdges(graph.edges());
+	public SandboxGraph addGraph(Graph graph) {
+		SandboxGraph result = new SandboxGraph(sandboxInstanceID, 
+				addNodes(graph.nodes()), 
+				addEdges(graph.edges()));
+		return result;
 	}
 
 	/**
 	 * Adds the current state of the given nodes in the Atlas graph to the sandbox
 	 * @param nodes
 	 */
-	public void addNodes(AtlasSet<Node> nodes) {
+	public SandboxHashSet<SandboxNode> addNodes(AtlasSet<Node> nodes) {
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
 		for(Node node : nodes){
-			SandboxNode sandboxNode = new SandboxNode(sandboxInstanceID, node);
-			U.nodes().add(sandboxNode);
-			addresses.put(node.address().toAddressString(), sandboxNode);
+			result.add(addNode(node));
 		}
+		return result;
+	}
+
+	private SandboxNode addNode(Node node) {
+		SandboxNode sandboxNode = new SandboxNode(sandboxInstanceID, node);
+		U.nodes().add(sandboxNode);
+		addresses.put(addrStr(node), sandboxNode);
+		return sandboxNode;
 	}
 
 	/**
 	 * Adds the current state of the given edges in the Atlas graph to the sandbox
 	 * @param edges
 	 */
-	public void addEdges(AtlasSet<Edge> edges) {
+	public SandboxHashSet<SandboxEdge> addEdges(AtlasSet<Edge> edges) {
+		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
 		for(Edge edge : edges){
-			SandboxNode fromSandboxNode = new SandboxNode(sandboxInstanceID, edge.from());
-			U.nodes().add(fromSandboxNode);
-			addresses.put(edge.from().address().toAddressString(), fromSandboxNode);
-			
-			SandboxNode toSandboxNode = new SandboxNode(sandboxInstanceID, edge.to());
-			U.nodes().add(toSandboxNode);
-			addresses.put(edge.to().address().toAddressString(), toSandboxNode);
-			
-			SandboxEdge sandboxEdge = new SandboxEdge(sandboxInstanceID, edge);
-			U.edges().add(sandboxEdge);
-			addresses.put(edge.address().toAddressString(), sandboxEdge);
+			result.add(addEdge(edge));
 		}
+		return result;
+	}
+
+	private SandboxEdge addEdge(Edge edge) {
+		SandboxNode from = node(edge.from()); 
+		if (from == null) {
+			from = addNode(edge.from());
+		}
+		
+		SandboxNode to = node(edge.to()); 
+		if (to == null) {
+			to = addNode(edge.to());
+		}
+		
+		SandboxEdge sandboxEdge = new SandboxEdge(sandboxInstanceID, edge, from, to);
+		U.edges().add(sandboxEdge);
+		addresses.put(addrStr(edge), sandboxEdge);
+		return sandboxEdge;
+	}
+
+	/*package*/static String addrStr(GraphElement ge) {
+		return ge.address().toAddressString();
 	}
 	
 	/**
@@ -272,8 +318,6 @@ public class Sandbox {
 			U.nodes().remove(node);
 		} else if(graphElement instanceof SandboxEdge){
 			SandboxEdge edge = (SandboxEdge) graphElement;
-			U.nodes().remove(edge.from());
-			U.nodes().remove(edge.to());
 			U.edges().remove(edge);
 		}
 		addresses.remove(graphElement.getAddress());
@@ -286,7 +330,7 @@ public class Sandbox {
 	 * @param address
 	 * @return
 	 */
-	public SandboxGraphElement getAt(String address){
+	private SandboxGraphElement getAt(String address){
 		return addresses.get(address);
 	}
 	
@@ -348,4 +392,5 @@ public class Sandbox {
 			return false;
 		return true;
 	}
+
 }

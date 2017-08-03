@@ -12,8 +12,8 @@ public class SandboxEdge extends SandboxGraphElement {
 	 * Constructs a mirrored sandbox edge of the given Atlas edge
 	 * @param edge
 	 */
-	public SandboxEdge(int sandboxInstanceID, Edge edge) {
-		this(sandboxInstanceID, edge.address().toAddressString(), new SandboxNode(sandboxInstanceID, edge.from()), new SandboxNode(sandboxInstanceID, edge.to()));
+	public SandboxEdge(int sandboxInstanceID, Edge edge, SandboxNode from, SandboxNode to) {
+		this(sandboxInstanceID, Sandbox.addrStr(edge), from, to);
 		for(String tag : edge.tags()){
 			tags().add(tag);
 		}

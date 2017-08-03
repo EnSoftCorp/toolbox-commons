@@ -479,7 +479,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 		 *            - the node of interest.
 		 * @return "If v is the root of a tree in the forest, return v. Otherwise,
 		 *         let r be the root of the tree which contains v. Return any vertex
-		 *         u != r of miniumum semi(u) on the path r-*v."
+		 *         u != r of minimum semi(u) on the path r-*v."
 		 */
 		private Node eval(Node v) {
 			// This version of Lengauer-Tarjan implements
