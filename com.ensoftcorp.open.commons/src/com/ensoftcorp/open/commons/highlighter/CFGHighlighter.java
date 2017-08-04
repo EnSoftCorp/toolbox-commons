@@ -23,13 +23,13 @@ public class CFGHighlighter {
 	 * @param m
 	 */
 	public static void applyHighlightsForCFEdges(Markup m) {
-		Q cfEdge = Common.universe().edgesTaggedWithAny(XCSG.ControlFlow_Edge);
+		Q cfEdge = Common.universe().edges(XCSG.ControlFlow_Edge);
 		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
 		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, Boolean.TRUE, "true");
 		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, Boolean.FALSE, "false");
 		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, cfgTrue);
 		m.setEdge(cvFalse, MarkupProperty.EDGE_COLOR, cfgFalse);
-		m.setEdge(Common.universe().edgesTaggedWithAny(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
+		m.setEdge(Common.universe().edges(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
 	}
 
 	/**
