@@ -14,7 +14,8 @@ public class SandboxGraph {
 	/**
 	 * Creates an empty sandbox graph
 	 */
-	protected SandboxGraph(int sandboxInstanceID) {
+	// clients should not instantiate, use Sandbox to get an instance
+	/*package*/SandboxGraph(int sandboxInstanceID) {
 		this(sandboxInstanceID, new SandboxHashSet<SandboxNode>(sandboxInstanceID), new SandboxHashSet<SandboxEdge>(sandboxInstanceID));
 	}
 	
@@ -22,7 +23,8 @@ public class SandboxGraph {
 	 * Constructs a new graph from a set of sandbox nodes and edges
 	 * @param edges
 	 */
-	protected SandboxGraph(int sandboxInstanceID, Set<SandboxNode> nodes, Set<SandboxEdge> edges) {
+	// clients should not instantiate, use Sandbox to get an instance
+	/*package*/SandboxGraph(int sandboxInstanceID, Set<SandboxNode> nodes, Set<SandboxEdge> edges) {
 		this.sandboxInstanceID = sandboxInstanceID;
 		this.nodes = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
 		this.edges = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
