@@ -5,7 +5,6 @@ import com.ensoftcorp.atlas.core.indexing.IIndexListener;
 public class CodeMapChangeListener implements IIndexListener {
 
 	private boolean indexHasChanged = false;
-	private boolean indexIsChanging = false;
 	
 	public boolean hasIndexChanged(){
 		return indexHasChanged;
