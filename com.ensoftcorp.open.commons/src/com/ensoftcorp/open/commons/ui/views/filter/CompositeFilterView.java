@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.commons.ui.views.filter;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -7,6 +8,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -16,6 +21,7 @@ import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
@@ -23,11 +29,6 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootsets;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.ModifyEvent;
 
 public class CompositeFilterView extends ViewPart {
 	
@@ -50,9 +51,18 @@ public class CompositeFilterView extends ViewPart {
 	private Set<Filter> selectedFilters = new HashSet<Filter>();
 	private Set<Filter> applicableFilters = new HashSet<Filter>();
 	
+	private Comparator<Filter> filterComparator = new FilterNameComparator();
+	
 	private ScrolledComposite selectedFiltersScrolledComposite;
 	private ScrolledComposite applicableFiltersScrolledComposite;
 
+	private static class FilterNameComparator implements Comparator<Filter> {
+		@Override
+		public int compare(Filter a, Filter b) {
+			return a.getName().compareTo(b.getName());
+		}
+	}
+	
 	@Override
 	public void createPartControl(Composite composite) {
 		composite.setLayout(new GridLayout(1, false));
