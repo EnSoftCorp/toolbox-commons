@@ -98,8 +98,20 @@
             category="com.ensoftcorp.open.commons.views.categories.toolbox"
             class="com.ensoftcorp.open.commons.ui.views.filter.FilterView"
             icon="icons/funnel.gif"
-            id="com.ensoftcorp.open.commons.ui.views.filter"
+            id="com.ensoftcorp.open.commons.ui.views.filterview"
             name="Filter View">
+      </view>
+   </extension>
+   
+   <!-- extension for Composite Filter View view -->
+	<extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.filter.CompositeFilterView"
+            icon="icons/funnel.gif"
+            id="com.ensoftcorp.open.commons.ui.views.compositefilterview"
+            name="Composite Filter View">
       </view>
    </extension>
    
