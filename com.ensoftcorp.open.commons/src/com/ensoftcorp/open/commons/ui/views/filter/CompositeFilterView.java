@@ -1,13 +1,22 @@
 package com.ensoftcorp.open.commons.ui.views.filter;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.ExpandAdapter;
+import org.eclipse.swt.events.ExpandEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -26,8 +35,11 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.ensoftcorp.atlas.core.db.graph.Graph;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
+import com.ensoftcorp.open.commons.filters.rootset.FilterableRootset;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootsets;
 
 public class CompositeFilterView extends ViewPart {
@@ -48,20 +60,23 @@ public class CompositeFilterView extends ViewPart {
 	
 	private static final int FONT_SIZE = 11;
 	
-	private Set<Filter> selectedFilters = new HashSet<Filter>();
-	private Set<Filter> applicableFilters = new HashSet<Filter>();
+	private Graph selectedRootset;
+	private Set<SelectedFilterState> selectedFilters = new HashSet<SelectedFilterState>();
+	private Set<ApplicableFilterState> applicableFilters = new HashSet<ApplicableFilterState>();
 	
-	private Comparator<Filter> filterComparator = new FilterNameComparator();
+	private Comparator<FilterState> selectedFilterComparator = new FilterNameComparator();
+	private Comparator<FilterState> applicableFilterComparator = new FilterNameComparator();
+
+	private static class FilterNameComparator implements Comparator<FilterState> {
+		@Override
+		public int compare(FilterState a, FilterState b) {
+			return a.getFilter().getName().compareTo(b.getFilter().getName());
+		}
+	}
 	
 	private ScrolledComposite selectedFiltersScrolledComposite;
 	private ScrolledComposite applicableFiltersScrolledComposite;
-
-	private static class FilterNameComparator implements Comparator<Filter> {
-		@Override
-		public int compare(Filter a, Filter b) {
-			return a.getName().compareTo(b.getName());
-		}
-	}
+	private Group rootsetGroup;
 	
 	@Override
 	public void createPartControl(Composite composite) {
@@ -73,10 +88,10 @@ public class CompositeFilterView extends ViewPart {
 		Composite controlsComposite = new Composite(compositeFiltersSashForm, SWT.NONE);
 		controlsComposite.setLayout(new GridLayout(1, false));
 		
-		Group rootsetGroup = new Group(controlsComposite, SWT.NONE);
+		rootsetGroup = new Group(controlsComposite, SWT.NONE);
 		rootsetGroup.setLayout(new GridLayout(1, false));
 		rootsetGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		rootsetGroup.setText("Rootset: (xx nodes, yy edges)");
+		rootsetGroup.setText("Rootset: (empty)");
 		
 		Button showRootsetButton = new Button(rootsetGroup, SWT.NONE);
 		showRootsetButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -131,6 +146,19 @@ public class CompositeFilterView extends ViewPart {
 		
 		Combo predefinedRootsetSearchBar = new Combo(rootsetSelectionGroup, SWT.NONE);
 		predefinedRootsetSearchBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		for(FilterableRootset rootset : FilterableRootsets.getRegisteredRootSets()){
+			predefinedRootsetSearchBar.add(rootset.getName());
+			predefinedRootsetSearchBar.setData(rootset.getName(), rootset);
+		}
+		
+		predefinedRootsetSearchBar.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectedRootset = ((FilterableRootset) predefinedRootsetSearchBar.getData(predefinedRootsetSearchBar.getText())).getRootSet().eval();
+				refreshRootset();
+			}
+		});
 		
 		Button taggedRootsetRadio = new Button(rootsetSelectionGroup, SWT.RADIO);
 		taggedRootsetRadio.setText("Tagged Rootset: ");
@@ -296,84 +324,726 @@ public class CompositeFilterView extends ViewPart {
 		refreshApplicableFilters();
 	}
 	
+	private void refreshRootset() {
+		applicableFilters.clear();
+		selectedFilters.clear();
+		
+		for(Filter filter : Filters.getApplicableFilters(Common.toQ(selectedRootset))){
+			applicableFilters.add(new ApplicableFilterState(filter, false));
+		}
+		
+		rootsetGroup.setText("Rootset: (" + selectedRootset.nodes().size() + " nodes, " + selectedRootset.edges().size() + " edges)");
+		
+		refreshSelectedFilters();
+		refreshApplicableFilters();
+	}
+	
 	private void refreshApplicableFilters() {
+		// save the old scroll position and content origin
+		int scrollPosition = applicableFiltersScrolledComposite.getVerticalBar().getSelection();
+		org.eclipse.swt.graphics.Point origin = applicableFiltersScrolledComposite.getOrigin();
+		
 		Composite applicableFiltersContentComposite = new Composite(applicableFiltersScrolledComposite, SWT.NONE);
 		applicableFiltersContentComposite.setLayout(new GridLayout(1, false));
 		
-		ExpandBar applicableFilterExpandBar = new ExpandBar(applicableFiltersContentComposite, SWT.NONE);
-		applicableFilterExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		List<ApplicableFilterState> sortedApplicableFilters = new ArrayList<ApplicableFilterState>(applicableFilters);
+		Collections.sort(sortedApplicableFilters, applicableFilterComparator);
 		
-		ExpandItem applicableFilterExpandBarItem = new ExpandItem(applicableFilterExpandBar, SWT.NONE);
-		applicableFilterExpandBarItem.setExpanded(true);
-		applicableFilterExpandBarItem.setText("Filter: TODO");
+		for(ApplicableFilterState applicableFilterState : sortedApplicableFilters){
+			Filter filter = applicableFilterState.getFilter();
+			
+			ExpandBar applicableFilterExpandBar = new ExpandBar(applicableFiltersContentComposite, SWT.NONE);
+			applicableFilterExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			
+			ExpandItem applicableFilterExpandBarItem = new ExpandItem(applicableFilterExpandBar, SWT.NONE);
+			applicableFilterExpandBarItem.setExpanded(applicableFilterState.isExpanded());
+			applicableFilterExpandBarItem.setText("Filter: " + filter.getName());
+			
+			Composite applicableFilterComposite = new Composite(applicableFilterExpandBar, SWT.NONE);
+			applicableFilterExpandBarItem.setControl(applicableFilterComposite);
+			applicableFilterComposite.setLayout(new GridLayout(1, false));
+			
+			Group applicableFilterDescriptionGroup = new Group(applicableFilterComposite, SWT.NONE);
+			applicableFilterDescriptionGroup.setLayout(new GridLayout(1, false));
+			applicableFilterDescriptionGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			applicableFilterDescriptionGroup.setText("Description");
+			
+			StyledText applicableFilterDescription = new StyledText(applicableFilterDescriptionGroup, SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.READ_ONLY | SWT.WRAP);
+			applicableFilterDescription.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+			applicableFilterDescription.setEditable(false);
+			applicableFilterDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			applicableFilterDescription.setText(filter.getDescription());
+			
+			Group applicableFilterParametersGroup = new Group(applicableFilterComposite, SWT.NONE);
+			applicableFilterParametersGroup.setText("Filter Parameters");
+			applicableFilterParametersGroup.setLayout(new GridLayout(1, false));
+			applicableFilterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			
+			ScrolledComposite parametersScrolledComposite = new ScrolledComposite(applicableFilterParametersGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+			parametersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			parametersScrolledComposite.setExpandHorizontal(true);
+			parametersScrolledComposite.setExpandVertical(true); 
+
+			if(filter.getPossibleParameters().isEmpty()){
+				Label noParamsLabel = new Label(parametersScrolledComposite, SWT.NONE);
+				noParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				noParamsLabel.setAlignment(SWT.CENTER);
+				noParamsLabel.setText("No parameters available for this filter.");
+				parametersScrolledComposite.setContent(noParamsLabel);
+				parametersScrolledComposite.setMinSize(noParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			} else {
+				Composite inputComposite = new Composite(parametersScrolledComposite, SWT.NONE);
+				inputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				inputComposite.setLayout(new GridLayout(1, false));
+
+				// add the parameters in alphabetical order for UI consistency
+				LinkedList<String> parameterNames = new LinkedList<String>(filter.getPossibleParameters().keySet());
+				Collections.sort(parameterNames);
+				
+				for(String parameterName : parameterNames){
+					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
+					if(requiredParameter){
+						Label requiredFieldsLabel = new Label(inputComposite, SWT.NONE);
+						requiredFieldsLabel.setText("*Indicates required fields.");
+						requiredFieldsLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						break;
+					}
+				}
+				
+				for(String parameterName : parameterNames){
+					final Class<? extends Object> parameterType = filter.getPossibleParameters().get(parameterName);
+					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
+					
+					if(parameterType == Boolean.class){
+						Composite booleanInputComposite = new Composite(inputComposite, SWT.NONE);
+						booleanInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						booleanInputComposite.setLayout(new GridLayout(2, false));
+						booleanInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
+						final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
+						booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						if(filter.getPossibleFlags().contains(parameterName)){	
+							booleanInputLabel.setText(parameterName);
+							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						} else {
+							booleanInputLabel.setEnabled(requiredParameter);
+							booleanInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+							
+							final Button booleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
+							booleanInputCheckbox.setEnabled(requiredParameter);
+							booleanInputCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							booleanInputCheckbox.setEnabled(false);
+						}
+					} else if(parameterType == String.class){
+						Composite stringInputComposite = new Composite(inputComposite, SWT.NONE);
+						stringInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						stringInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						stringInputComposite.setLayout(new GridLayout(2, false));
+						
+						final Label stringInputLabel = new Label(stringInputComposite, SWT.NONE);
+						stringInputLabel.setEnabled(requiredParameter);
+						stringInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+						stringInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						stringInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+
+						final Text stringInputText = new Text(stringInputComposite, SWT.BORDER);
+						stringInputText.setEnabled(requiredParameter);
+						stringInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						stringInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						stringInputText.setEnabled(false);
+					} else if(parameterType == Integer.class){
+						Composite integerInputComposite = new Composite(inputComposite, SWT.NONE);
+						integerInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						integerInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						integerInputComposite.setLayout(new GridLayout(2, false));
+						
+						final Label integerInputLabel = new Label(integerInputComposite, SWT.NONE);
+						integerInputLabel.setEnabled(requiredParameter);
+						integerInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+						integerInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						integerInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Text integerInputText = new Text(integerInputComposite, SWT.BORDER);
+						integerInputText.setEnabled(requiredParameter);
+						integerInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						integerInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						integerInputText.setEnabled(false);
+					} else if(parameterType == Double.class){
+						Composite doubleInputComposite = new Composite(inputComposite, SWT.NONE);
+						doubleInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						doubleInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						doubleInputComposite.setLayout(new GridLayout(2, false));
+
+						final Label doubleInputLabel = new Label(doubleInputComposite, SWT.NONE);
+						doubleInputLabel.setEnabled(requiredParameter);
+						doubleInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+						doubleInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						doubleInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Text doubleInputText = new Text(doubleInputComposite, SWT.BORDER);
+						doubleInputText.setEnabled(requiredParameter);
+						doubleInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						doubleInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						doubleInputText.setEnabled(false);
+					} else {
+						Label unsupportedParamsLabel = new Label(parametersScrolledComposite, SWT.NONE);
+						unsupportedParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						unsupportedParamsLabel.setAlignment(SWT.CENTER);
+						unsupportedParamsLabel.setText("This filter has unsupported parameter types!");
+						parametersScrolledComposite.setContent(unsupportedParamsLabel);
+						parametersScrolledComposite.setMinSize(unsupportedParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+					}
+				}
+				
+				parametersScrolledComposite.setContent(inputComposite);
+				parametersScrolledComposite.setMinSize(inputComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			}
+			
+			Button addFilterButton = new Button(applicableFilterComposite, SWT.NONE);
+			addFilterButton.setText("\u2190 Add Filter");
+
+			addFilterButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					selectedFilters.add(new SelectedFilterState(filter, true, Common.toQ(selectedRootset), true));
+					refreshSelectedFilters();
+					refreshApplicableFilters();
+				}
+			});
+			
+			// disable the add button if the filter is already selected
+			for(SelectedFilterState selectedFilter : selectedFilters){
+				if(selectedFilter.getFilter().getName().equals(filter.getName())){
+					addFilterButton.setEnabled(false);
+					break;
+				}
+			}
+			
+			applicableFilterExpandBarItem.setExpanded(applicableFilterState.isExpanded());
+			applicableFilterExpandBarItem.setHeight(applicableFilterExpandBarItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+			
+			// tracking the expand state of the expanded items
+			final ExpandAdapter expandAdapter = new ExpandAdapter() {
+				@Override
+				public void itemCollapsed(ExpandEvent e) {
+					applicableFilterState.setExpanded(false);
+					refreshApplicableFilters();
+				}
+
+				@Override
+				public void itemExpanded(ExpandEvent e) {
+					applicableFilterState.setExpanded(true);
+					refreshApplicableFilters();
+				}
+			};
+			applicableFilterExpandBar.addExpandListener(expandAdapter);
+		}
 		
-		Composite applicableFilterComposite = new Composite(applicableFilterExpandBar, SWT.NONE);
-		applicableFilterExpandBarItem.setControl(applicableFilterComposite);
-		applicableFilterComposite.setLayout(new GridLayout(1, false));
-		
-		Group applicableFilterDescriptionGroup = new Group(applicableFilterComposite, SWT.NONE);
-		applicableFilterDescriptionGroup.setLayout(new GridLayout(1, false));
-		applicableFilterDescriptionGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		applicableFilterDescriptionGroup.setText("Description");
-		
-		StyledText applicableFilterDescription = new StyledText(applicableFilterDescriptionGroup, SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.READ_ONLY | SWT.WRAP);
-		applicableFilterDescription.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		applicableFilterDescription.setEditable(false);
-		applicableFilterDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		Group applicableFilterParametersGroup = new Group(applicableFilterComposite, SWT.NONE);
-		applicableFilterParametersGroup.setText("Filter Parameters");
-		applicableFilterParametersGroup.setLayout(new GridLayout(1, false));
-		applicableFilterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Button addFilterButton = new Button(applicableFilterComposite, SWT.NONE);
-		addFilterButton.setText("\u2190 Add Filter");
-		
-		applicableFilterExpandBarItem.setHeight(applicableFilterExpandBarItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-		
+		// update the content
 		applicableFiltersScrolledComposite.setContent(applicableFiltersContentComposite);
 		applicableFiltersScrolledComposite.setMinSize(applicableFiltersContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		// set the scroll position on redraw
+		applicableFiltersScrolledComposite.getVerticalBar().setSelection(scrollPosition);
+		applicableFiltersScrolledComposite.setOrigin(origin);
 	}
 
 	private void refreshSelectedFilters() {
+		// save the old scroll position and content origin
+		int scrollPosition = selectedFiltersScrolledComposite.getVerticalBar().getSelection();
+		org.eclipse.swt.graphics.Point origin = selectedFiltersScrolledComposite.getOrigin();
+		
 		Composite selectedFiltersContentComposite = new Composite(selectedFiltersScrolledComposite, SWT.NONE);
 		selectedFiltersContentComposite.setLayout(new GridLayout(1, false));
 		
-		ExpandBar selectedFilterExpandBar = new ExpandBar(selectedFiltersContentComposite, SWT.NONE);
-		selectedFilterExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		List<SelectedFilterState> sortedSelectedFilters = new ArrayList<SelectedFilterState>(selectedFilters);
+		Collections.sort(sortedSelectedFilters, selectedFilterComparator);
 		
-		ExpandItem selectedFilterExpandBarItem = new ExpandItem(selectedFilterExpandBar, SWT.NONE);
-		selectedFilterExpandBarItem.setExpanded(true);
-		selectedFilterExpandBarItem.setText("[Disabled] Filter: TODO");
-		
-		Composite selectedFilterComposite = new Composite(selectedFilterExpandBar, SWT.NONE);
-		selectedFilterExpandBarItem.setControl(selectedFilterComposite);
-		selectedFilterComposite.setLayout(new GridLayout(1, false));
-		
-		Group selectedFilterParametersGroup = new Group(selectedFilterComposite, SWT.NONE);
-		selectedFilterParametersGroup.setText("Filter Parameters");
-		selectedFilterParametersGroup.setLayout(new GridLayout(1, false));
-		selectedFilterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Group selectedFilterImpactGroup = new Group(selectedFilterComposite, SWT.NONE);
-		selectedFilterImpactGroup.setLayout(new GridLayout(3, false));
-		selectedFilterImpactGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		selectedFilterImpactGroup.setText("Filter Impact: filtered xx nodes (xx %), yy edges (yy %)");
-		
-		Button toggleFilterActivationButton = new Button(selectedFilterImpactGroup, SWT.NONE);
-		toggleFilterActivationButton.setText("Enable Filter");
-		
-		Button deleteFilterButton = new Button(selectedFilterImpactGroup, SWT.NONE);
-		deleteFilterButton.setText("Delete Filter");
-		
-		Button showSelectedFilterResultButton = new Button(selectedFilterImpactGroup, SWT.NONE);
-		showSelectedFilterResultButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
-		showSelectedFilterResultButton.setText("Show Result");
-		
-		selectedFilterExpandBarItem.setHeight(selectedFilterExpandBarItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		for(SelectedFilterState selectedFilterState : sortedSelectedFilters){
+			Filter filter = selectedFilterState.getFilter();
+			
+			// force the filter to be disabled if parameters are not configured
+			try {
+				filter.checkParameters(selectedFilterState.filterParameters);
+			} catch (Exception e){
+				selectedFilterState.setEnabled(false);
+			}
+			
+			ExpandBar selectedFilterExpandBar = new ExpandBar(selectedFiltersContentComposite, SWT.NONE);
+			selectedFilterExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+			
+			ExpandItem selectedFilterExpandBarItem = new ExpandItem(selectedFilterExpandBar, SWT.NONE);
+			selectedFilterExpandBarItem.setExpanded(selectedFilterState.isExpanded());
+			if(selectedFilterState.isEnabled()){
+				selectedFilterExpandBarItem.setText("Filter: " + filter.getName());
+			} else {
+				selectedFilterExpandBarItem.setText("[Disabled] Filter: " + filter.getName());
+			}
+			
+			Composite selectedFilterComposite = new Composite(selectedFilterExpandBar, SWT.NONE);
+			selectedFilterExpandBarItem.setControl(selectedFilterComposite);
+			selectedFilterComposite.setLayout(new GridLayout(1, false));
+			
+			Group selectedFilterParametersGroup = new Group(selectedFilterComposite, SWT.NONE);
+			selectedFilterParametersGroup.setText("Filter Parameters");
+			selectedFilterParametersGroup.setLayout(new GridLayout(1, false));
+			selectedFilterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			
+			ScrolledComposite parametersScrolledComposite = new ScrolledComposite(selectedFilterParametersGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+			parametersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			parametersScrolledComposite.setExpandHorizontal(true);
+			parametersScrolledComposite.setExpandVertical(true); 
 
+			if(filter.getPossibleParameters().isEmpty()){
+				Label noParamsLabel = new Label(parametersScrolledComposite, SWT.NONE);
+				noParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				noParamsLabel.setAlignment(SWT.CENTER);
+				noParamsLabel.setText("No parameters available for this filter.");
+				parametersScrolledComposite.setContent(noParamsLabel);
+				parametersScrolledComposite.setMinSize(noParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			} else {
+				Composite inputComposite = new Composite(parametersScrolledComposite, SWT.NONE);
+				inputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				inputComposite.setLayout(new GridLayout(1, false));
+
+				// add the parameters in alphabetical order for UI consistency
+				LinkedList<String> parameterNames = new LinkedList<String>(filter.getPossibleParameters().keySet());
+				Collections.sort(parameterNames);
+				
+				for(String parameterName : parameterNames){
+					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
+					if(requiredParameter){
+						Label requiredFieldsLabel = new Label(inputComposite, SWT.NONE);
+						requiredFieldsLabel.setText("*Indicates required fields.");
+						requiredFieldsLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						break;
+					}
+				}
+				
+				Label validationLabel = new Label(inputComposite, SWT.NONE);
+				validationLabel.setText("");
+				validationLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+				validationLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
+				validationLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
+				for(String parameterName : parameterNames){
+					final Class<? extends Object> parameterType = filter.getPossibleParameters().get(parameterName);
+					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
+					
+					if(parameterType == Boolean.class){
+						Composite booleanInputComposite = new Composite(inputComposite, SWT.NONE);
+						booleanInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						booleanInputComposite.setLayout(new GridLayout(3, false));
+						booleanInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
+						final Button enableBooleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
+						enableBooleanInputCheckbox.setEnabled(!requiredParameter);
+						enableBooleanInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						enableBooleanInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						// restore saved state
+						enableBooleanInputCheckbox.setSelection(selectedFilterState.filterParameters.containsKey(parameterName));
+						
+						final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
+						booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						if(filter.getPossibleFlags().contains(parameterName)){	
+							booleanInputLabel.setText(parameterName);
+							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+							
+							enableBooleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									boolean enabled = enableBooleanInputCheckbox.getSelection();
+									booleanInputLabel.setEnabled(enabled);
+									if(enabled){
+										selectedFilterState.filterParameters.put(parameterName, true);
+										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									} else {
+										selectedFilterState.filterParameters.remove(parameterName);
+										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									}
+								}
+							});
+						} else {
+							booleanInputLabel.setEnabled(requiredParameter);
+							booleanInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+							
+							final Button booleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
+							booleanInputCheckbox.setEnabled(requiredParameter);
+							booleanInputCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							
+							// restore saved state
+							if(selectedFilterState.filterParameters.containsKey(parameterName)){
+								booleanInputCheckbox.setSelection(true);
+							}
+							
+							booleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									selectedFilterState.filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
+									validateFilterParameters(selectedFilterState, filter, validationLabel);
+								}
+							});
+							
+							enableBooleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									boolean enabled = enableBooleanInputCheckbox.getSelection();
+									booleanInputLabel.setEnabled(enabled);
+									booleanInputCheckbox.setEnabled(enabled);
+									if(enabled){
+										selectedFilterState.filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
+										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									} else {
+										selectedFilterState.filterParameters.remove(parameterName);
+										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									}
+								}
+							});
+						}
+					} else if(parameterType == String.class){
+						Composite stringInputComposite = new Composite(inputComposite, SWT.NONE);
+						stringInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						stringInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						stringInputComposite.setLayout(new GridLayout(3, false));
+
+						final Button enableStringInputCheckbox = new Button(stringInputComposite, SWT.CHECK);
+						enableStringInputCheckbox.setEnabled(!requiredParameter);
+						enableStringInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						enableStringInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+		
+						final Label stringInputLabel = new Label(stringInputComposite, SWT.NONE);
+						stringInputLabel.setEnabled(requiredParameter);
+						stringInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+						stringInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						stringInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+
+						final Text stringInputText = new Text(stringInputComposite, SWT.BORDER);
+						stringInputText.setEnabled(requiredParameter);
+						stringInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						stringInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+
+						// restore saved state
+						if(selectedFilterState.filterParameters.containsKey(parameterName)){
+							enableStringInputCheckbox.setSelection(true);
+							if(selectedFilterState.filterParameters.get(parameterName) != null){
+								stringInputText.setText(selectedFilterState.filterParameters.get(parameterName).toString());
+							}
+						}
+						
+						enableStringInputCheckbox.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {
+								boolean enabled = enableStringInputCheckbox.getSelection();
+								
+								// save enabled state
+								if(enabled){
+									selectedFilterState.filterParameters.put(parameterName, null);
+								} else {
+									selectedFilterState.filterParameters.remove(parameterName);
+								}
+								
+								stringInputLabel.setEnabled(enabled);
+								stringInputText.setEnabled(enabled);
+								if(enabled){
+									String text = stringInputText.getText();
+									if(!text.equals("")){
+										selectedFilterState.filterParameters.put(parameterName, text);
+										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									} else {
+										validationLabel.setText(parameterName + " must be an non-empty string.");
+										if(selectedFilterState.isEnabled()){
+											selectedFilterState.setEnabled(false);
+											refreshSelectedFilters();
+										}
+									}
+								} else {
+									selectedFilterState.filterParameters.remove(parameterName);
+									validateFilterParameters(selectedFilterState, filter, validationLabel);
+								}
+							}
+						});
+
+						stringInputText.addKeyListener(new KeyAdapter() {
+							@Override
+							public void keyReleased(KeyEvent e) {
+								String text = stringInputText.getText();
+								if(!text.equals("")){
+									selectedFilterState.filterParameters.put(parameterName, text);
+									validateFilterParameters(selectedFilterState, filter, validationLabel);
+								} else {
+									validationLabel.setText(parameterName + " must be an non-empty string.");
+									if(selectedFilterState.isEnabled()){
+										selectedFilterState.setEnabled(false);
+										refreshSelectedFilters();
+									}
+								}
+							}
+						});
+					} else if(parameterType == Integer.class){
+						Composite integerInputComposite = new Composite(inputComposite, SWT.NONE);
+						integerInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						integerInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						integerInputComposite.setLayout(new GridLayout(3, false));
+
+						final Button enableIntegerInputCheckbox = new Button(integerInputComposite, SWT.CHECK);
+						enableIntegerInputCheckbox.setEnabled(!requiredParameter);
+						enableIntegerInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						enableIntegerInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Label integerInputLabel = new Label(integerInputComposite, SWT.NONE);
+						integerInputLabel.setEnabled(requiredParameter);
+						integerInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+						integerInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						integerInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Text integerInputText = new Text(integerInputComposite, SWT.BORDER);
+						integerInputText.setEnabled(requiredParameter);
+						integerInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						integerInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+
+						// restore saved state
+						if(selectedFilterState.filterParameters.containsKey(parameterName)){
+							enableIntegerInputCheckbox.setSelection(true);
+							if(selectedFilterState.filterParameters.get(parameterName) != null){
+								integerInputText.setText(selectedFilterState.filterParameters.get(parameterName).toString());
+							}
+						}
+						
+						enableIntegerInputCheckbox.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {
+								boolean enabled = enableIntegerInputCheckbox.getSelection();
+								
+								// save enabled state
+								if(enabled){
+									selectedFilterState.filterParameters.put(parameterName, null);
+								} else {
+									selectedFilterState.filterParameters.remove(parameterName);
+								}
+								
+								integerInputLabel.setEnabled(enabled);
+								integerInputText.setEnabled(enabled);
+								if(enabled){
+									try {
+										selectedFilterState.filterParameters.put(parameterName, Integer.parseInt(integerInputText.getText()));
+										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									} catch (Exception ex){
+										validationLabel.setText(parameterName + " must be an integer.");
+										if(selectedFilterState.isEnabled()){
+											selectedFilterState.setEnabled(false);
+											refreshSelectedFilters();
+										}
+									}
+								} else {
+									selectedFilterState.filterParameters.remove(parameterName);
+									validateFilterParameters(selectedFilterState, filter, validationLabel);
+								}
+							}
+						});
+
+						integerInputText.addKeyListener(new KeyAdapter() {
+							@Override
+							public void keyReleased(KeyEvent e) {
+								try {
+									selectedFilterState.filterParameters.put(parameterName, Integer.parseInt(integerInputText.getText()));
+									validateFilterParameters(selectedFilterState, filter, validationLabel);
+								} catch (Exception ex){
+									validationLabel.setText(parameterName + " must be an integer.");
+									if(selectedFilterState.isEnabled()){
+										selectedFilterState.setEnabled(false);
+										refreshSelectedFilters();
+									}
+								}
+							}
+						});
+					} else if(parameterType == Double.class){
+						Composite doubleInputComposite = new Composite(inputComposite, SWT.NONE);
+						doubleInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						doubleInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						doubleInputComposite.setLayout(new GridLayout(3, false));
+
+						final Button enableDoubleInputCheckbox = new Button(doubleInputComposite, SWT.CHECK);
+						enableDoubleInputCheckbox.setEnabled(!requiredParameter);
+						enableDoubleInputCheckbox.setToolTipText(filter.getParameterDescription(parameterName));
+						enableDoubleInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Label doubleInputLabel = new Label(doubleInputComposite, SWT.NONE);
+						doubleInputLabel.setEnabled(requiredParameter);
+						doubleInputLabel.setText((requiredParameter ? "*" : "") + parameterName + ":");
+						doubleInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
+						doubleInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Text doubleInputText = new Text(doubleInputComposite, SWT.BORDER);
+						doubleInputText.setEnabled(requiredParameter);
+						doubleInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						doubleInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						// restore saved state
+						if(selectedFilterState.filterParameters.containsKey(parameterName)){
+							enableDoubleInputCheckbox.setSelection(true);
+							if(selectedFilterState.filterParameters.get(parameterName) != null){
+								doubleInputText.setText(selectedFilterState.filterParameters.get(parameterName).toString());
+							}
+						}
+						
+						enableDoubleInputCheckbox.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {
+								boolean enabled = enableDoubleInputCheckbox.getSelection();
+								
+								// save enabled state
+								if(enabled){
+									selectedFilterState.filterParameters.put(parameterName, null);
+								} else {
+									selectedFilterState.filterParameters.remove(parameterName);
+								}
+								
+								doubleInputLabel.setEnabled(enabled);
+								doubleInputText.setEnabled(enabled);
+								if(enabled){
+									try {
+										selectedFilterState.filterParameters.put(parameterName, Double.parseDouble(doubleInputText.getText()));
+										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									} catch (Exception ex){
+										validationLabel.setText(parameterName + " must be a double.");
+										if(selectedFilterState.isEnabled()){
+											selectedFilterState.setEnabled(false);
+											refreshSelectedFilters();
+										}
+									}
+								} else {
+									selectedFilterState.filterParameters.remove(parameterName);
+									validateFilterParameters(selectedFilterState, filter, validationLabel);
+								}
+							}
+						});
+
+						doubleInputText.addKeyListener(new KeyAdapter() {
+							@Override
+							public void keyReleased(KeyEvent e) {
+								try {
+									selectedFilterState.filterParameters.put(parameterName, Double.parseDouble(doubleInputText.getText()));
+									validateFilterParameters(selectedFilterState, filter, validationLabel);
+								} catch (Exception ex){
+									validationLabel.setText(parameterName + " must be a double.");
+									if(selectedFilterState.isEnabled()){
+										selectedFilterState.setEnabled(false);
+										refreshSelectedFilters();
+									}
+								}
+							}
+						});
+					} else {
+						Label unsupportedParamsLabel = new Label(parametersScrolledComposite, SWT.NONE);
+						unsupportedParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						unsupportedParamsLabel.setAlignment(SWT.CENTER);
+						unsupportedParamsLabel.setText("This filter has unsupported parameter types!");
+						parametersScrolledComposite.setContent(unsupportedParamsLabel);
+						parametersScrolledComposite.setMinSize(unsupportedParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+					}
+				}
+				
+				// check if the filter should be disabled due to missing configuration values
+				validateFilterParameters(selectedFilterState, filter, validationLabel);
+				
+				parametersScrolledComposite.setContent(inputComposite);
+				parametersScrolledComposite.setMinSize(inputComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			}
+			
+			Group selectedFilterImpactGroup = new Group(selectedFilterComposite, SWT.NONE);
+			selectedFilterImpactGroup.setLayout(new GridLayout(3, false));
+			selectedFilterImpactGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			selectedFilterImpactGroup.setText("Filter Impact: filtered xx nodes (xx %), yy edges (yy %)");
+			
+			Button toggleFilterActivationButton = new Button(selectedFilterImpactGroup, SWT.NONE);
+			if(selectedFilterState.isEnabled()){
+				toggleFilterActivationButton.setText("Disable Filter");
+			} else {
+				toggleFilterActivationButton.setText("Enable Filter");
+			}
+			
+			Button deleteFilterButton = new Button(selectedFilterImpactGroup, SWT.NONE);
+			deleteFilterButton.setText("Delete Filter");
+			
+			Button showSelectedFilterResultButton = new Button(selectedFilterImpactGroup, SWT.NONE);
+			showSelectedFilterResultButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+			showSelectedFilterResultButton.setText("Show Result");
+
+			toggleFilterActivationButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					selectedFilterState.setEnabled(!selectedFilterState.isEnabled());
+					refreshSelectedFilters();
+				}
+			});
+			
+			deleteFilterButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					selectedFilters.remove(selectedFilterState);
+					refreshSelectedFilters();
+					refreshApplicableFilters();
+				}
+			});
+			
+			showSelectedFilterResultButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					// TODO: implement
+				}
+			});
+			
+			// tracking the expand state of the expanded items
+			final ExpandAdapter expandAdapter = new ExpandAdapter() {
+				@Override
+				public void itemCollapsed(ExpandEvent e) {
+					selectedFilterState.setExpanded(false);
+					refreshSelectedFilters();
+				}
+
+				@Override
+				public void itemExpanded(ExpandEvent e) {
+					selectedFilterState.setExpanded(true);
+					refreshSelectedFilters();
+				}
+			};
+			selectedFilterExpandBar.addExpandListener(expandAdapter);
+			
+			selectedFilterExpandBarItem.setHeight(selectedFilterExpandBarItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		}
+		
+		// update the content
 		selectedFiltersScrolledComposite.setContent(selectedFiltersContentComposite);
 		selectedFiltersScrolledComposite.setMinSize(selectedFiltersContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		// set the scroll position on redraw
+		selectedFiltersScrolledComposite.getVerticalBar().setSelection(scrollPosition);
+		selectedFiltersScrolledComposite.setOrigin(origin);
+	}
+
+	private void validateFilterParameters(SelectedFilterState selectedFilterState, Filter filter, Label validationLabel) {
+		if(!validateFilterParameters(filter, selectedFilterState.filterParameters, validationLabel)){
+			if(selectedFilterState.isEnabled()){
+				selectedFilterState.setEnabled(false);
+				refreshSelectedFilters();
+			}
+		}
+	}
+	
+	private boolean validateFilterParameters(Filter filter, Map<String, Object> filterParameters, Label validationLabel){
+		try {
+			filter.checkParameters(filterParameters);
+			validationLabel.setText("");
+			return true;
+		} catch (Exception e){
+			validationLabel.setText(e.getMessage());
+			return false;
+		}
 	}
 
 	@Override
