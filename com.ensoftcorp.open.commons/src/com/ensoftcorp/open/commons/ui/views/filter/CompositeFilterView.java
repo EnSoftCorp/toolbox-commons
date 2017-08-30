@@ -68,7 +68,7 @@ public class CompositeFilterView extends ViewPart {
 	private Set<SelectedFilterState> selectedFilters = new HashSet<SelectedFilterState>();
 	private Set<ApplicableFilterState> applicableFilters = new HashSet<ApplicableFilterState>();
 	
-	private Comparator<SelectedFilterState> selectedFilterComparator = new SelectedFilterNameComparator();
+	private Comparator<SelectedFilterState> selectedFilterComparator = new FilterNodeImpactComparator().reversed();
 	private Comparator<ApplicableFilterState> applicableFilterComparator = new ApplicableFilterNameComparator();
 
 	private static class FilterNodeImpactComparator implements Comparator<SelectedFilterState> {
@@ -110,6 +110,7 @@ public class CompositeFilterView extends ViewPart {
 	private Text nodesTaggedWithAllText;
 	private Text edgesTaggedWithAnyText;
 	private Text edgesTaggedWithAllText;
+	private Text tagResultText;
 	
 	@Override
 	public void createPartControl(Composite composite) {
@@ -139,6 +140,17 @@ public class CompositeFilterView extends ViewPart {
 		showResultButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		showResultButton.setText("Show Result");
 		
+		Composite tagResultComposite = new Composite(resultGroup, SWT.NONE);
+		tagResultComposite.setLayout(new GridLayout(2, false));
+		tagResultComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		tagResultText = new Text(tagResultComposite, SWT.BORDER);
+		tagResultText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Button tagResultButton = new Button(tagResultComposite, SWT.NONE);
+		tagResultButton.setEnabled(false);
+		tagResultButton.setText("Tag Result");
+		
 		Group recipeGroup = new Group(controlsComposite, SWT.NONE);
 		recipeGroup.setLayout(new GridLayout(1, false));
 		recipeGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -153,14 +165,17 @@ public class CompositeFilterView extends ViewPart {
 		saveRecipeButton.setText("Save Recipe");
 		
 		Composite filtersComposite = new Composite(compositeFiltersSashForm, SWT.NONE);
+		filtersComposite.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		filtersComposite.setLayout(new GridLayout(1, false));
 		
 		Group rootsetSelectionGroup = new Group(filtersComposite, SWT.NONE);
+		rootsetSelectionGroup.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		rootsetSelectionGroup.setLayout(new GridLayout(2, false));
 		rootsetSelectionGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		rootsetSelectionGroup.setText("Rootset Selection");
 
 		Button predefinedRootsetRadio = new Button(rootsetSelectionGroup, SWT.RADIO);
+		predefinedRootsetRadio.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		predefinedRootsetRadio.setSelection(true);
 		predefinedRootsetRadio.setText("Predefined Rootset: ");
 		
@@ -173,6 +188,7 @@ public class CompositeFilterView extends ViewPart {
 		}
 		
 		Button taggedRootsetRadio = new Button(rootsetSelectionGroup, SWT.RADIO);
+		taggedRootsetRadio.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		taggedRootsetRadio.setText("Tagged Rootset: ");
 		
 		Group group = new Group(rootsetSelectionGroup, SWT.NONE);
@@ -180,11 +196,13 @@ public class CompositeFilterView extends ViewPart {
 		group.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Group taggedWithAnyGroup = new Group(group, SWT.NONE);
+		taggedWithAnyGroup.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		taggedWithAnyGroup.setLayout(new GridLayout(4, false));
 		taggedWithAnyGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		taggedWithAnyGroup.setText("Tagged With Any");
 		
 		nodesTaggedWithAnyCheckbox = new Button(taggedWithAnyGroup, SWT.CHECK);
+		nodesTaggedWithAnyCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		nodesTaggedWithAnyCheckbox.setEnabled(false);
 		nodesTaggedWithAnyCheckbox.setText("Nodes: ");
 		
@@ -194,6 +212,7 @@ public class CompositeFilterView extends ViewPart {
 		nodesTaggedWithAnyText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		edgesTaggedWithAnyCheckbox = new Button(taggedWithAnyGroup, SWT.CHECK);
+		edgesTaggedWithAnyCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		edgesTaggedWithAnyCheckbox.setEnabled(false);
 		edgesTaggedWithAnyCheckbox.setText("Edges: ");
 		
@@ -203,11 +222,13 @@ public class CompositeFilterView extends ViewPart {
 		edgesTaggedWithAnyText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Group taggedWithAllGroup = new Group(group, SWT.NONE);
+		taggedWithAllGroup.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		taggedWithAllGroup.setLayout(new GridLayout(4, false));
 		taggedWithAllGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		taggedWithAllGroup.setText("Tagged With All");
 		
 		nodesTaggedWithAllCheckbox = new Button(taggedWithAllGroup, SWT.CHECK);
+		nodesTaggedWithAllCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		nodesTaggedWithAllCheckbox.setEnabled(false);
 		nodesTaggedWithAllCheckbox.setText("Nodes: ");
 		
@@ -217,6 +238,7 @@ public class CompositeFilterView extends ViewPart {
 		nodesTaggedWithAllText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		edgesTaggedWithAllCheckbox = new Button(taggedWithAllGroup, SWT.CHECK);
+		edgesTaggedWithAllCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		edgesTaggedWithAllCheckbox.setEnabled(false);
 		edgesTaggedWithAllCheckbox.setText("Edges: ");
 		
@@ -226,6 +248,7 @@ public class CompositeFilterView extends ViewPart {
 		edgesTaggedWithAllText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Button userDefinedRootsetRadio = new Button(rootsetSelectionGroup, SWT.RADIO);
+		userDefinedRootsetRadio.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		userDefinedRootsetRadio.setText("User Defined Rootset");
 		
 		Label userDefinedRootsetStatusLabel = new Label(rootsetSelectionGroup, SWT.NONE);
@@ -235,74 +258,41 @@ public class CompositeFilterView extends ViewPart {
 		filtersSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		Group selectedFiltersGroup = new Group(filtersSashForm, SWT.NONE);
+		selectedFiltersGroup.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		selectedFiltersGroup.setText("Selected Filters");
 		selectedFiltersGroup.setLayout(new GridLayout(1, false));
 		
-		Group sortSelectedFiltersGroup = new Group(selectedFiltersGroup, SWT.NONE);
-		sortSelectedFiltersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		sortSelectedFiltersGroup.setLayout(new GridLayout(2, false));
-		sortSelectedFiltersGroup.setText("Sort");
+		Composite sortSelectedFiltersComposite = new Composite(selectedFiltersGroup, SWT.NONE);
+		sortSelectedFiltersComposite.setLayout(new GridLayout(2, false));
+		sortSelectedFiltersComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Button sortSelectedFiltersByNameButton = new Button(sortSelectedFiltersGroup, SWT.NONE);
-		sortSelectedFiltersByNameButton.setText("Sort by Name (Z \u2192 A)");
+		Label sortSelectedFiltersLabel = new Label(sortSelectedFiltersComposite, SWT.NONE);
+		sortSelectedFiltersLabel.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
+		sortSelectedFiltersLabel.setText("Sort: ");
 		
-		Button sortSelectedFiltersByImpactButton = new Button(sortSelectedFiltersGroup, SWT.NONE);
-		sortSelectedFiltersByImpactButton.setText("Sort by Node Impact (High \u2192 Low)");
-		
-		sortSelectedFiltersByNameButton.addSelectionListener(new SelectionAdapter() {
+		Combo sortSelectedFiltersCombo = new Combo(sortSelectedFiltersComposite, SWT.READ_ONLY);
+		sortSelectedFiltersCombo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(sortSelectedFiltersByNameButton.getText().equals("Sort by Name (A \u2192 Z)")){
-					sortSelectedFiltersByNameButton.setText("Sort by Name (Z \u2192 A)");
+				if(sortSelectedFiltersCombo.getText().equals("Sort by Name (A \u2192 Z)")){
 					selectedFilterComparator = new SelectedFilterNameComparator();
-				} else {
-					sortSelectedFiltersByNameButton.setText("Sort by Name (A \u2192 Z)");
+				} else if(sortSelectedFiltersCombo.getText().equals("Sort by Name (Z \u2192 A)")) {
 					selectedFilterComparator = new SelectedFilterNameComparator().reversed();
+				} else if(sortSelectedFiltersCombo.getText().equals("Sort by Node Impact (Low \u2192 High)")){
+					selectedFilterComparator = new FilterNodeImpactComparator();
+				} else if(sortSelectedFiltersCombo.getText().equals("Sort by Node Impact (High \u2192 Low)")) {
+					selectedFilterComparator = new FilterNodeImpactComparator().reversed();
+				} else if(sortSelectedFiltersCombo.getText().equals("Sort by Edge Impact (Low \u2192 High)")){
+					selectedFilterComparator = new FilterEdgeImpactComparator();
+				} else if(sortSelectedFiltersCombo.getText().equals("Sort by Edge Impact (High \u2192 Low)")) {
+					selectedFilterComparator = new FilterEdgeImpactComparator().reversed();
 				}
 				refreshSelectedFilters();
 			}
 		});
-		
-		sortSelectedFiltersByImpactButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				String[] alternateSorts = new String[]{"Sort by Node Impact (High \u2192 Low)", "Sort by Node Impact (Low \u2192 High)", 
-													   "Sort by Edge Impact (High \u2192 Low)", "Sort by Edge Impact (Low \u2192 High)"};
-				
-				// find the next sort
-				int i;
-				for(i=0; i<alternateSorts.length; i++){
-					if(sortSelectedFiltersByImpactButton.getText().equals(alternateSorts[i])){
-						break;
-					}
-				}
-				
-				// update the sort comparator
-				switch (i){
-					case 0:
-						selectedFilterComparator = new FilterNodeImpactComparator();
-						break;
-					case 1:
-						selectedFilterComparator = new FilterNodeImpactComparator().reversed();
-						break;
-					case 2:
-						selectedFilterComparator = new FilterEdgeImpactComparator();
-						break;
-					case 3:
-						selectedFilterComparator = new FilterEdgeImpactComparator().reversed();
-						break;
-					default:
-						throw new IllegalArgumentException("Invalid sort selection");
-				}
-				
-				// update button text to next sort
-				i = (i+1) % alternateSorts.length; // increment to next sort
-				sortSelectedFiltersByImpactButton.setText(alternateSorts[i]);
-				
-				// refresh filters
-				refreshSelectedFilters();
-			}
-		});
+		sortSelectedFiltersCombo.setItems(new String[] {"Sort by Name (A \u2192 Z)", "Sort by Name (Z \u2192 A)", "Sort by Node Impact (Low \u2192 High)", "Sort by Node Impact (High \u2192 Low)", "Sort by Edge Impact (Low \u2192 High)", "Sort by Edge Impact (High \u2192 Low)"});
+		sortSelectedFiltersCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		sortSelectedFiltersCombo.select(3);
 		
 		selectedFiltersScrolledComposite = new ScrolledComposite(selectedFiltersGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		selectedFiltersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -310,24 +300,30 @@ public class CompositeFilterView extends ViewPart {
 		selectedFiltersScrolledComposite.setExpandVertical(true);
 		
 		Group applicableFiltersGroup = new Group(filtersSashForm, SWT.NONE);
+		applicableFiltersGroup.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		applicableFiltersGroup.setText("Applicable Filters");
 		applicableFiltersGroup.setLayout(new GridLayout(1, false));
 		
-		Group sortApplicableFiltersGroup = new Group(applicableFiltersGroup, SWT.NONE);
-		sortApplicableFiltersGroup.setLayout(new GridLayout(1, false));
-		sortApplicableFiltersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		sortApplicableFiltersGroup.setText("Sort");
+		Composite sortApplicableFiltersComposite = new Composite(applicableFiltersGroup, SWT.NONE);
+		sortApplicableFiltersComposite.setLayout(new GridLayout(2, false));
+		sortApplicableFiltersComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Button sortApplicableFiltersByName = new Button(sortApplicableFiltersGroup, SWT.NONE);
-		sortApplicableFiltersByName.setText("Sort by Name (Z \u2192 A)");
-		sortApplicableFiltersByName.addSelectionListener(new SelectionAdapter() {
+		Label sortApplicableFiltersLabel = new Label(sortApplicableFiltersComposite, SWT.NONE);
+		sortApplicableFiltersLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		sortApplicableFiltersLabel.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
+		sortApplicableFiltersLabel.setText("Sort: ");
+		
+		Combo sortApplicableFiltersCombo = new Combo(sortApplicableFiltersComposite, SWT.READ_ONLY);
+		sortApplicableFiltersCombo.setItems(new String[] {"Sort by Name (A → Z)", "Sort by Name (Z → A)"});
+		sortApplicableFiltersCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		sortApplicableFiltersCombo.select(0);
+		
+		sortApplicableFiltersCombo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(sortApplicableFiltersByName.getText().equals("Sort by Name (A \u2192 Z)")){
-					sortApplicableFiltersByName.setText("Sort by Name (Z \u2192 A)");
+				if(sortApplicableFiltersCombo.getText().equals("Sort by Name (A \u2192 Z)")){
 					applicableFilterComparator = new ApplicableFilterNameComparator();
-				} else {
-					sortApplicableFiltersByName.setText("Sort by Name (A \u2192 Z)");
+				} else if(sortApplicableFiltersCombo.getText().equals("Sort by Name (Z \u2192 A)")) {
 					applicableFilterComparator = new ApplicableFilterNameComparator().reversed();
 				}
 				refreshApplicableFilters();
@@ -355,8 +351,21 @@ public class CompositeFilterView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				boolean isSelected = predefinedRootsetRadio.getSelection();
 				
+				predefinedRootsetSearchBar.setEnabled(isSelected);
+				
 				if(isSelected){
 					selectedRootset = Common.empty().eval();
+					
+					userDefinedRootsetStatusLabel.setText("");
+			
+					nodesTaggedWithAnyCheckbox.setEnabled(false);
+					edgesTaggedWithAnyCheckbox.setEnabled(false);
+					nodesTaggedWithAllCheckbox.setEnabled(false);
+					edgesTaggedWithAllCheckbox.setEnabled(false);
+					nodesTaggedWithAnyText.setEnabled(false);
+					edgesTaggedWithAnyText.setEnabled(false);
+					nodesTaggedWithAllText.setEnabled(false);
+					edgesTaggedWithAllText.setEnabled(false);
 				}
 				
 				// disable other radios
@@ -376,6 +385,9 @@ public class CompositeFilterView extends ViewPart {
 				boolean isSelected = taggedRootsetRadio.getSelection();
 				
 				if(isSelected){
+					predefinedRootsetSearchBar.setEnabled(false);
+					userDefinedRootsetStatusLabel.setText("");
+					
 					selectedRootset = Common.empty().eval();
 				}
 				
@@ -407,6 +419,17 @@ public class CompositeFilterView extends ViewPart {
 				taggedRootsetRadio.setSelection(!isSelected);
 				
 				if(isSelected){
+					predefinedRootsetSearchBar.setEnabled(false);
+					
+					nodesTaggedWithAnyCheckbox.setEnabled(false);
+					edgesTaggedWithAnyCheckbox.setEnabled(false);
+					nodesTaggedWithAllCheckbox.setEnabled(false);
+					edgesTaggedWithAllCheckbox.setEnabled(false);
+					nodesTaggedWithAnyText.setEnabled(false);
+					edgesTaggedWithAnyText.setEnabled(false);
+					nodesTaggedWithAllText.setEnabled(false);
+					edgesTaggedWithAllText.setEnabled(false);
+					
 					userDefinedRootsetStatusLabel.setText("Execute Shell Command: CompositeFilterView.setRootset(Q rootset, String name)");
 					userDefinedRootsetStatusLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
 					selectedRootset = Common.empty().eval();
@@ -421,69 +444,95 @@ public class CompositeFilterView extends ViewPart {
 		nodesTaggedWithAnyCheckbox.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				selectedRootset = getTaggedRootset().eval();
-				refreshRootset();
+				if(taggedRootsetRadio.getSelection()){
+					selectedRootset = getTaggedRootset().eval();
+					refreshRootset();
+				}
 			}
 		});
 		
 		edgesTaggedWithAnyCheckbox.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				selectedRootset = getTaggedRootset().eval();
-				refreshRootset();
+				if(taggedRootsetRadio.getSelection()){
+					selectedRootset = getTaggedRootset().eval();
+					refreshRootset();
+				}
 			}
 		});
 		
 		nodesTaggedWithAllCheckbox.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				selectedRootset = getTaggedRootset().eval();
-				refreshRootset();
+				if(taggedRootsetRadio.getSelection()){
+					selectedRootset = getTaggedRootset().eval();
+					refreshRootset();
+				}
 			}
 		});
 		
 		edgesTaggedWithAllCheckbox.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				selectedRootset = getTaggedRootset().eval();
-				refreshRootset();
+				if(taggedRootsetRadio.getSelection()){
+					selectedRootset = getTaggedRootset().eval();
+					refreshRootset();
+				}
 			}
 		});
 		
 		nodesTaggedWithAnyText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
-				nodesTaggedWithAnyCheckbox.setSelection(!nodesTaggedWithAnyText.getText().isEmpty());
-				selectedRootset = getTaggedRootset().eval();
-				refreshRootset();
+				if(taggedRootsetRadio.getSelection()){
+					nodesTaggedWithAnyCheckbox.setSelection(!nodesTaggedWithAnyText.getText().isEmpty());
+					selectedRootset = getTaggedRootset().eval();
+					refreshRootset();
+				}
 			}
 		});
 		
 		edgesTaggedWithAnyText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
-				edgesTaggedWithAnyCheckbox.setSelection(!edgesTaggedWithAnyText.getText().isEmpty());
-				selectedRootset = getTaggedRootset().eval();
-				refreshRootset();
+				if(taggedRootsetRadio.getSelection()){
+					edgesTaggedWithAnyCheckbox.setSelection(!edgesTaggedWithAnyText.getText().isEmpty());
+					selectedRootset = getTaggedRootset().eval();
+					refreshRootset();
+				}
 			}
 		});
 		
 		nodesTaggedWithAllText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
-				nodesTaggedWithAllCheckbox.setSelection(!nodesTaggedWithAllText.getText().isEmpty());
-				selectedRootset = getTaggedRootset().eval();
-				refreshRootset();
+				if(taggedRootsetRadio.getSelection()){
+					nodesTaggedWithAllCheckbox.setSelection(!nodesTaggedWithAllText.getText().isEmpty());
+					selectedRootset = getTaggedRootset().eval();
+					refreshRootset();
+				}
 			}
 		});
 		
 		edgesTaggedWithAllText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
-				edgesTaggedWithAllCheckbox.setSelection(!edgesTaggedWithAllText.getText().isEmpty());
-				selectedRootset = getTaggedRootset().eval();
-				refreshRootset();
+				if(taggedRootsetRadio.getSelection()){
+					edgesTaggedWithAllCheckbox.setSelection(!edgesTaggedWithAllText.getText().isEmpty());
+					selectedRootset = getTaggedRootset().eval();
+					refreshRootset();
+				}
 			}
 		});
 		
-		refreshSelectedFilters();
-		refreshApplicableFilters();
+		tagResultText.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent arg0) {
+				tagResultButton.setEnabled(!tagResultText.getText().isEmpty());
+			}
+		});
+		
+		tagResultButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO: implement
+			}
+		});
 	}
 
 	private Q getTaggedRootset(){
