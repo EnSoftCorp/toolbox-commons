@@ -1,10 +1,8 @@
 package com.ensoftcorp.open.commons.ui.views.filter;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,12 +38,11 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootset;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootsets;
-import com.ensoftcorp.open.commons.log.Log;
+import com.ensoftcorp.open.commons.xcsg.XCSGConstantNameValueMapping;
 
 public class CompositeFilterView extends ViewPart {
 	
@@ -58,7 +55,7 @@ public class CompositeFilterView extends ViewPart {
 		FilterableRootsets.loadFilterContributions();
 	}
 	
-	private static Map<String,String> xcsgConstantNameToValueMap = getConstantNameValueMap();
+	private static Map<String,String> xcsgConstantNameToValueMap = XCSGConstantNameValueMapping.getXCSGConstantNameToValueMap();
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -443,36 +440,6 @@ public class CompositeFilterView extends ViewPart {
 		
 		refreshSelectedFilters();
 		refreshApplicableFilters();
-	}
-	
-	private static Map<String, String> getConstantNameValueMap() {
-		Map<String,String> result = new HashMap<String,String>();
-		// need to use reflection on XCSG class and its sub interfaces to get constant names to their raw value mapping
-		// example: "XCSG.ControlFlow_Node" maps to "XCSG.ControlFlow (Node)"
-		Class[] classes = new Class[]{XCSG.class, XCSG.Provisional.class, XCSG.C.Provisional.class, XCSG.Java.class, XCSG.Jimple.class, XCSG.C.class, XCSG.CPP.class};
-		for(Class c : classes){
-			Field[] declaredFields = XCSG.class.getDeclaredFields();
-			for (Field field : declaredFields) {
-			    if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) && java.lang.reflect.Modifier.isPublic(field.getModifiers())) {
-			    	if(field.getType() == String.class){
-			    		try {
-			    			String value = (String) field.get(null);
-			    			String prefix = "";
-			    			if(c == XCSG.class){
-			    				prefix = "XCSG.";
-			    			} else {
-			    				prefix = "XCSG." + c.getSimpleName() + ".";
-			    			}
-				    		result.put(prefix + field.getName(), value);
-			    		} catch (Exception e){
-			    			Log.warning("Unable to parse XCSG value for field: " + field.toGenericString());
-			    		}
-			    	}
-			    }
-			}
-		}
-		
-		return result;
 	}
 
 	private Q getTaggedRootset(){
