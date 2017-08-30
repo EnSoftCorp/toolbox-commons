@@ -169,7 +169,7 @@ public class CompositeFilterView extends ViewPart {
 		filtersComposite.setLayout(new GridLayout(1, false));
 		
 		Group rootsetSelectionGroup = new Group(filtersComposite, SWT.NONE);
-		rootsetSelectionGroup.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		rootsetSelectionGroup.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
 		rootsetSelectionGroup.setLayout(new GridLayout(2, false));
 		rootsetSelectionGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		rootsetSelectionGroup.setText("Rootset Selection");
