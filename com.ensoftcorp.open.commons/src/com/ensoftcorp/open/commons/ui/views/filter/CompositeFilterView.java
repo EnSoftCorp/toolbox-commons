@@ -1,8 +1,10 @@
 package com.ensoftcorp.open.commons.ui.views.filter;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,11 +38,14 @@ import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
+import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootset;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootsets;
+import com.ensoftcorp.open.commons.log.Log;
 
 public class CompositeFilterView extends ViewPart {
 	
@@ -52,6 +57,8 @@ public class CompositeFilterView extends ViewPart {
 		Filters.loadFilterContributions();
 		FilterableRootsets.loadFilterContributions();
 	}
+	
+	private static Map<String,String> xcsgConstantNameToValueMap = getConstantNameValueMap();
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -60,7 +67,7 @@ public class CompositeFilterView extends ViewPart {
 	
 	private static final int FONT_SIZE = 11;
 	
-	private Graph selectedRootset;
+	private Graph selectedRootset = Common.empty().eval();
 	private Set<SelectedFilterState> selectedFilters = new HashSet<SelectedFilterState>();
 	private Set<ApplicableFilterState> applicableFilters = new HashSet<ApplicableFilterState>();
 	
@@ -77,6 +84,14 @@ public class CompositeFilterView extends ViewPart {
 	private ScrolledComposite selectedFiltersScrolledComposite;
 	private ScrolledComposite applicableFiltersScrolledComposite;
 	private Group rootsetGroup;
+	private Button nodesTaggedWithAnyCheckbox;
+	private Button nodesTaggedWithAllCheckbox;
+	private Button edgesTaggedWithAnyCheckbox;
+	private Button edgesTaggedWithAllCheckbox;
+	private Text nodesTaggedWithAnyText;
+	private Text nodesTaggedWithAllText;
+	private Text edgesTaggedWithAnyText;
+	private Text edgesTaggedWithAllText;
 	
 	@Override
 	public void createPartControl(Composite composite) {
@@ -119,19 +134,6 @@ public class CompositeFilterView extends ViewPart {
 		saveRecipeButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		saveRecipeButton.setText("Save Recipe");
 		
-		Group sortGroup = new Group(controlsComposite, SWT.NONE);
-		sortGroup.setLayout(new GridLayout(1, false));
-		sortGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
-		sortGroup.setText("Sort Selected Filters");
-		
-		Button sortByImpactButton = new Button(sortGroup, SWT.NONE);
-		sortByImpactButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		sortByImpactButton.setText("Sort by Impact");
-		
-		Button sortByNameButton = new Button(sortGroup, SWT.NONE);
-		sortByNameButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		sortByNameButton.setText("Sort by Name");
-		
 		Composite filtersComposite = new Composite(compositeFiltersSashForm, SWT.NONE);
 		filtersComposite.setLayout(new GridLayout(1, false));
 		
@@ -152,14 +154,6 @@ public class CompositeFilterView extends ViewPart {
 			predefinedRootsetSearchBar.setData(rootset.getName(), rootset);
 		}
 		
-		predefinedRootsetSearchBar.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				selectedRootset = ((FilterableRootset) predefinedRootsetSearchBar.getData(predefinedRootsetSearchBar.getText())).getRootSet().eval();
-				refreshRootset();
-			}
-		});
-		
 		Button taggedRootsetRadio = new Button(rootsetSelectionGroup, SWT.RADIO);
 		taggedRootsetRadio.setText("Tagged Rootset: ");
 		
@@ -172,20 +166,20 @@ public class CompositeFilterView extends ViewPart {
 		taggedWithAnyGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		taggedWithAnyGroup.setText("Tagged With Any");
 		
-		Button nodesTaggedWithAnyCheckbox = new Button(taggedWithAnyGroup, SWT.CHECK);
+		nodesTaggedWithAnyCheckbox = new Button(taggedWithAnyGroup, SWT.CHECK);
 		nodesTaggedWithAnyCheckbox.setEnabled(false);
 		nodesTaggedWithAnyCheckbox.setText("Nodes: ");
 		
-		Text nodesTaggedWithAnyText = new Text(taggedWithAnyGroup, SWT.BORDER);
+		nodesTaggedWithAnyText = new Text(taggedWithAnyGroup, SWT.BORDER);
 		nodesTaggedWithAnyText.setToolTipText("A comma seperated list of tag values. Raw values or XCSG common names such as XCSG.ControlFlow_Node can be entered.");
 		nodesTaggedWithAnyText.setEnabled(false);
 		nodesTaggedWithAnyText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Button edgesTaggedWithAnyCheckbox = new Button(taggedWithAnyGroup, SWT.CHECK);
+		edgesTaggedWithAnyCheckbox = new Button(taggedWithAnyGroup, SWT.CHECK);
 		edgesTaggedWithAnyCheckbox.setEnabled(false);
 		edgesTaggedWithAnyCheckbox.setText("Edges: ");
 		
-		Text edgesTaggedWithAnyText = new Text(taggedWithAnyGroup, SWT.BORDER);
+		edgesTaggedWithAnyText = new Text(taggedWithAnyGroup, SWT.BORDER);
 		edgesTaggedWithAnyText.setToolTipText("A comma seperated list of tag values. Raw values or XCSG common names such as XCSG.ControlFlow_Edge can be entered.");
 		edgesTaggedWithAnyText.setEnabled(false);
 		edgesTaggedWithAnyText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -195,20 +189,20 @@ public class CompositeFilterView extends ViewPart {
 		taggedWithAllGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		taggedWithAllGroup.setText("Tagged With All");
 		
-		Button nodesTaggedWithAllCheckbox = new Button(taggedWithAllGroup, SWT.CHECK);
+		nodesTaggedWithAllCheckbox = new Button(taggedWithAllGroup, SWT.CHECK);
 		nodesTaggedWithAllCheckbox.setEnabled(false);
 		nodesTaggedWithAllCheckbox.setText("Nodes: ");
 		
-		Text nodesTaggedWithAllText = new Text(taggedWithAllGroup, SWT.BORDER);
+		nodesTaggedWithAllText = new Text(taggedWithAllGroup, SWT.BORDER);
 		nodesTaggedWithAllText.setToolTipText("A comma seperated list of tag values. Raw values or XCSG common names such as XCSG.ControlFlow_Node can be entered.");
 		nodesTaggedWithAllText.setEnabled(false);
 		nodesTaggedWithAllText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Button edgesTaggedWithAllCheckbox = new Button(taggedWithAllGroup, SWT.CHECK);
+		edgesTaggedWithAllCheckbox = new Button(taggedWithAllGroup, SWT.CHECK);
 		edgesTaggedWithAllCheckbox.setEnabled(false);
 		edgesTaggedWithAllCheckbox.setText("Edges: ");
 		
-		Text edgesTaggedWithAllText = new Text(taggedWithAllGroup, SWT.BORDER);
+		edgesTaggedWithAllText = new Text(taggedWithAllGroup, SWT.BORDER);
 		edgesTaggedWithAllText.setToolTipText("A comma seperated list of tag values. Raw values or XCSG common names such as XCSG.ControlFlow_Edge can be entered.");
 		edgesTaggedWithAllText.setEnabled(false);
 		edgesTaggedWithAllText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -226,6 +220,48 @@ public class CompositeFilterView extends ViewPart {
 		selectedFiltersGroup.setText("Selected Filters");
 		selectedFiltersGroup.setLayout(new GridLayout(1, false));
 		
+		Group sortSelectedFiltersGroup = new Group(selectedFiltersGroup, SWT.NONE);
+		sortSelectedFiltersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		sortSelectedFiltersGroup.setLayout(new GridLayout(2, false));
+		sortSelectedFiltersGroup.setText("Sort");
+		
+		Button sortSelectedFiltersByNameButton = new Button(sortSelectedFiltersGroup, SWT.NONE);
+		sortSelectedFiltersByNameButton.setText("Sort by Name (Z \u2192 A)");
+		
+		Button sortSelectedFiltersByImpactButton = new Button(sortSelectedFiltersGroup, SWT.NONE);
+		sortSelectedFiltersByImpactButton.setText("Sort by Impact (High \u2192 Low)");
+		
+		sortSelectedFiltersByNameButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(sortSelectedFiltersByNameButton.getText().equals("Sort by Name (A \u2192 Z)")){
+					sortSelectedFiltersByNameButton.setText("Sort by Name (Z \u2192 A)");
+					selectedFilterComparator = new FilterNameComparator();
+					refreshSelectedFilters();
+				} else {
+					sortSelectedFiltersByNameButton.setText("Sort by Name (A \u2192 Z)");
+					selectedFilterComparator = new FilterNameComparator().reversed();
+					refreshSelectedFilters();
+				}
+			}
+		});
+		
+		sortSelectedFiltersByImpactButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(sortSelectedFiltersByImpactButton.getText().equals("Sort by Impact (High \u2192 Low)")){
+					sortSelectedFiltersByImpactButton.setText("Sort by Impact (Low \u2192 High)");
+//					selectedFilterComparator = ... TODO: implement
+					refreshSelectedFilters();
+				} else {
+					sortSelectedFiltersByImpactButton.setText("Sort by Impact (High \u2192 Low)");
+//					selectedFilterComparator = ... TODO: implement
+					refreshSelectedFilters();
+				}
+				
+			}
+		});
+		
 		selectedFiltersScrolledComposite = new ScrolledComposite(selectedFiltersGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		selectedFiltersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		selectedFiltersScrolledComposite.setExpandHorizontal(true);
@@ -235,6 +271,28 @@ public class CompositeFilterView extends ViewPart {
 		applicableFiltersGroup.setText("Applicable Filters");
 		applicableFiltersGroup.setLayout(new GridLayout(1, false));
 		
+		Group sortApplicableFiltersGroup = new Group(applicableFiltersGroup, SWT.NONE);
+		sortApplicableFiltersGroup.setLayout(new GridLayout(1, false));
+		sortApplicableFiltersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		sortApplicableFiltersGroup.setText("Sort");
+		
+		Button sortApplicableFiltersByName = new Button(sortApplicableFiltersGroup, SWT.NONE);
+		sortApplicableFiltersByName.setText("Sort by Name (Z \u2192 A)");
+		sortApplicableFiltersByName.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(sortApplicableFiltersByName.getText().equals("Sort by Name (A \u2192 Z)")){
+					sortApplicableFiltersByName.setText("Sort by Name (Z \u2192 A)");
+					applicableFilterComparator = new FilterNameComparator();
+					refreshApplicableFilters();
+				} else {
+					sortApplicableFiltersByName.setText("Sort by Name (A \u2192 Z)");
+					applicableFilterComparator = new FilterNameComparator().reversed();
+					refreshApplicableFilters();
+				}
+			}
+		});
+		
 		applicableFiltersScrolledComposite = new ScrolledComposite(applicableFiltersGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		applicableFiltersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		applicableFiltersScrolledComposite.setExpandHorizontal(true);
@@ -243,10 +301,22 @@ public class CompositeFilterView extends ViewPart {
 		filtersSashForm.setWeights(new int[] {1, 1});
 		compositeFiltersSashForm.setWeights(new int[] {230, 800});
 
+		predefinedRootsetSearchBar.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectedRootset = ((FilterableRootset) predefinedRootsetSearchBar.getData(predefinedRootsetSearchBar.getText())).getRootSet().eval();
+				refreshRootset();
+			}
+		});
+		
 		predefinedRootsetRadio.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				boolean isSelected = predefinedRootsetRadio.getSelection();
+				
+				if(isSelected){
+					selectedRootset = Common.empty().eval();
+				}
 				
 				// disable other radios
 				taggedRootsetRadio.setSelection(!isSelected);
@@ -254,6 +324,8 @@ public class CompositeFilterView extends ViewPart {
 				
 				// enable controls
 				predefinedRootsetSearchBar.setEnabled(isSelected);
+				
+				refreshRootset();
 			}
 		});
 
@@ -261,6 +333,10 @@ public class CompositeFilterView extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				boolean isSelected = taggedRootsetRadio.getSelection();
+				
+				if(isSelected){
+					selectedRootset = Common.empty().eval();
+				}
 				
 				// disable other radios
 				predefinedRootsetRadio.setSelection(!isSelected);
@@ -275,6 +351,8 @@ public class CompositeFilterView extends ViewPart {
 				edgesTaggedWithAnyText.setEnabled(isSelected);
 				nodesTaggedWithAllText.setEnabled(isSelected);
 				edgesTaggedWithAllText.setEnabled(isSelected);
+				
+				refreshRootset();
 			}
 		});
 
@@ -290,38 +368,173 @@ public class CompositeFilterView extends ViewPart {
 				if(isSelected){
 					userDefinedRootsetStatusLabel.setText("Execute Shell Command: CompositeFilterView.setRootset(Q rootset, String name)");
 					userDefinedRootsetStatusLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
+					selectedRootset = Common.empty().eval();
 				} else {
 					userDefinedRootsetStatusLabel.setText("");
 				}
+				
+				refreshRootset();
+			}
+		});
+		
+		nodesTaggedWithAnyCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectedRootset = getTaggedRootset().eval();
+				refreshRootset();
+			}
+		});
+		
+		edgesTaggedWithAnyCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectedRootset = getTaggedRootset().eval();
+				refreshRootset();
+			}
+		});
+		
+		nodesTaggedWithAllCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectedRootset = getTaggedRootset().eval();
+				refreshRootset();
+			}
+		});
+		
+		edgesTaggedWithAllCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectedRootset = getTaggedRootset().eval();
+				refreshRootset();
 			}
 		});
 		
 		nodesTaggedWithAnyText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				nodesTaggedWithAnyCheckbox.setSelection(!nodesTaggedWithAnyText.getText().isEmpty());
+				selectedRootset = getTaggedRootset().eval();
+				refreshRootset();
 			}
 		});
 		
 		edgesTaggedWithAnyText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				edgesTaggedWithAnyCheckbox.setSelection(!edgesTaggedWithAnyText.getText().isEmpty());
+				selectedRootset = getTaggedRootset().eval();
+				refreshRootset();
 			}
 		});
 		
 		nodesTaggedWithAllText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				nodesTaggedWithAllCheckbox.setSelection(!nodesTaggedWithAllText.getText().isEmpty());
+				selectedRootset = getTaggedRootset().eval();
+				refreshRootset();
 			}
 		});
 		
 		edgesTaggedWithAllText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				edgesTaggedWithAllCheckbox.setSelection(!edgesTaggedWithAllText.getText().isEmpty());
+				selectedRootset = getTaggedRootset().eval();
+				refreshRootset();
 			}
 		});
 		
 		refreshSelectedFilters();
 		refreshApplicableFilters();
+	}
+	
+	private static Map<String, String> getConstantNameValueMap() {
+		Map<String,String> result = new HashMap<String,String>();
+		// need to use reflection on XCSG class and its sub interfaces to get constant names to their raw value mapping
+		// example: "XCSG.ControlFlow_Node" maps to "XCSG.ControlFlow (Node)"
+		Class[] classes = new Class[]{XCSG.class, XCSG.Provisional.class, XCSG.C.Provisional.class, XCSG.Java.class, XCSG.Jimple.class, XCSG.C.class, XCSG.CPP.class};
+		for(Class c : classes){
+			Field[] declaredFields = XCSG.class.getDeclaredFields();
+			for (Field field : declaredFields) {
+			    if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) && java.lang.reflect.Modifier.isPublic(field.getModifiers())) {
+			    	if(field.getType() == String.class){
+			    		try {
+			    			String value = (String) field.get(null);
+			    			String prefix = "";
+			    			if(c == XCSG.class){
+			    				prefix = "XCSG.";
+			    			} else {
+			    				prefix = "XCSG." + c.getSimpleName() + ".";
+			    			}
+				    		result.put(prefix + field.getName(), value);
+			    		} catch (Exception e){
+			    			Log.warning("Unable to parse XCSG value for field: " + field.toGenericString());
+			    		}
+			    	}
+			    }
+			}
+		}
+		
+		return result;
+	}
+
+	private Q getTaggedRootset(){
+		Q nodesTaggedWithAny = Common.empty();
+		if(nodesTaggedWithAnyCheckbox.getSelection()){
+			String selection = nodesTaggedWithAnyText.getText();
+			String[] tags = getTags(selection);
+			if(tags != null && tags.length > 0){
+				nodesTaggedWithAny = Common.universe().nodesTaggedWithAny(tags);
+			}
+		}
+		Q nodesTaggedWithAll = Common.empty();
+		if(nodesTaggedWithAllCheckbox.getSelection()){
+			String selection = nodesTaggedWithAllText.getText();
+			String[] tags = getTags(selection);
+			if(tags != null && tags.length > 0){
+				nodesTaggedWithAll = Common.universe().nodesTaggedWithAll(tags);
+			}
+		}
+		Q edgesTaggedWithAny = Common.empty();
+		if(edgesTaggedWithAnyCheckbox.getSelection()){
+			String selection = edgesTaggedWithAnyText.getText();
+			String[] tags = getTags(selection);
+			if(tags != null && tags.length > 0){
+				edgesTaggedWithAny = Common.universe().edgesTaggedWithAny(tags);
+			}
+		}
+		Q edgesTaggedWithAll = Common.empty();
+		if(edgesTaggedWithAllCheckbox.getSelection()){
+			String selection = edgesTaggedWithAllText.getText();
+			String[] tags = getTags(selection);
+			if(tags != null && tags.length > 0){
+				edgesTaggedWithAll = Common.universe().edgesTaggedWithAll(tags);
+			}
+		}
+		return nodesTaggedWithAny.union(nodesTaggedWithAll, edgesTaggedWithAny, edgesTaggedWithAll);
+	}
+
+	private String[] getTags(String selection) {
+		ArrayList<String> tags = new ArrayList<String>();
+		if(!selection.isEmpty()){
+			if(selection.contains(",")){
+				for(String tag : selection.split(",")){
+					tag = tag.trim();
+					if(xcsgConstantNameToValueMap.containsKey(tag)){
+						tags.add(xcsgConstantNameToValueMap.get(tag));
+					} else {
+						tags.add(tag);
+					}
+				}
+			} else {
+				String tag = selection.trim();
+				if(xcsgConstantNameToValueMap.containsKey(tag)){
+					tags.add(xcsgConstantNameToValueMap.get(tag));
+				} else {
+					tags.add(tag);
+				}
+			}
+		}
+		String[] result = new String[tags.size()];
+		result = tags.toArray(result);
+		return result;
 	}
 	
 	private void refreshRootset() {
@@ -332,7 +545,11 @@ public class CompositeFilterView extends ViewPart {
 			applicableFilters.add(new ApplicableFilterState(filter, false));
 		}
 		
-		rootsetGroup.setText("Rootset: (" + selectedRootset.nodes().size() + " nodes, " + selectedRootset.edges().size() + " edges)");
+		if(selectedRootset.nodes().isEmpty() && selectedRootset.edges().isEmpty()){
+			rootsetGroup.setText("Rootset: (empty)");
+		} else {
+			rootsetGroup.setText("Rootset: (" + selectedRootset.nodes().size() + " nodes, " + selectedRootset.edges().size() + " edges)");
+		}
 		
 		refreshSelectedFilters();
 		refreshApplicableFilters();
