@@ -68,12 +68,33 @@ public class CompositeFilterView extends ViewPart {
 	private Set<SelectedFilterState> selectedFilters = new HashSet<SelectedFilterState>();
 	private Set<ApplicableFilterState> applicableFilters = new HashSet<ApplicableFilterState>();
 	
-	private Comparator<FilterState> selectedFilterComparator = new FilterNameComparator();
-	private Comparator<FilterState> applicableFilterComparator = new FilterNameComparator();
+	private Comparator<SelectedFilterState> selectedFilterComparator = new SelectedFilterNameComparator();
+	private Comparator<ApplicableFilterState> applicableFilterComparator = new ApplicableFilterNameComparator();
 
-	private static class FilterNameComparator implements Comparator<FilterState> {
+	private static class FilterNodeImpactComparator implements Comparator<SelectedFilterState> {
 		@Override
-		public int compare(FilterState a, FilterState b) {
+		public int compare(SelectedFilterState a, SelectedFilterState b) {
+			return Long.compare(a.getNodeImpact(), b.getNodeImpact());
+		}
+	}
+	
+	private static class FilterEdgeImpactComparator implements Comparator<SelectedFilterState> {
+		@Override
+		public int compare(SelectedFilterState a, SelectedFilterState b) {
+			return Long.compare(a.getEdgeImpact(), b.getEdgeImpact());
+		}
+	}
+	
+	private static class SelectedFilterNameComparator implements Comparator<SelectedFilterState> {
+		@Override
+		public int compare(SelectedFilterState a, SelectedFilterState b) {
+			return a.getFilter().getName().compareTo(b.getFilter().getName());
+		}
+	}
+	
+	private static class ApplicableFilterNameComparator implements Comparator<ApplicableFilterState> {
+		@Override
+		public int compare(ApplicableFilterState a, ApplicableFilterState b) {
 			return a.getFilter().getName().compareTo(b.getFilter().getName());
 		}
 	}
@@ -226,36 +247,60 @@ public class CompositeFilterView extends ViewPart {
 		sortSelectedFiltersByNameButton.setText("Sort by Name (Z \u2192 A)");
 		
 		Button sortSelectedFiltersByImpactButton = new Button(sortSelectedFiltersGroup, SWT.NONE);
-		sortSelectedFiltersByImpactButton.setText("Sort by Impact (High \u2192 Low)");
+		sortSelectedFiltersByImpactButton.setText("Sort by Node Impact (High \u2192 Low)");
 		
 		sortSelectedFiltersByNameButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(sortSelectedFiltersByNameButton.getText().equals("Sort by Name (A \u2192 Z)")){
 					sortSelectedFiltersByNameButton.setText("Sort by Name (Z \u2192 A)");
-					selectedFilterComparator = new FilterNameComparator();
-					refreshSelectedFilters();
+					selectedFilterComparator = new SelectedFilterNameComparator();
 				} else {
 					sortSelectedFiltersByNameButton.setText("Sort by Name (A \u2192 Z)");
-					selectedFilterComparator = new FilterNameComparator().reversed();
-					refreshSelectedFilters();
+					selectedFilterComparator = new SelectedFilterNameComparator().reversed();
 				}
+				refreshSelectedFilters();
 			}
 		});
 		
 		sortSelectedFiltersByImpactButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(sortSelectedFiltersByImpactButton.getText().equals("Sort by Impact (High \u2192 Low)")){
-					sortSelectedFiltersByImpactButton.setText("Sort by Impact (Low \u2192 High)");
-//					selectedFilterComparator = ... TODO: implement
-					refreshSelectedFilters();
-				} else {
-					sortSelectedFiltersByImpactButton.setText("Sort by Impact (High \u2192 Low)");
-//					selectedFilterComparator = ... TODO: implement
-					refreshSelectedFilters();
+				String[] alternateSorts = new String[]{"Sort by Node Impact (High \u2192 Low)", "Sort by Node Impact (Low \u2192 High)", 
+													   "Sort by Edge Impact (High \u2192 Low)", "Sort by Edge Impact (Low \u2192 High)"};
+				
+				// find the next sort
+				int i;
+				for(i=0; i<alternateSorts.length; i++){
+					if(sortSelectedFiltersByImpactButton.getText().equals(alternateSorts[i])){
+						break;
+					}
 				}
 				
+				// update the sort comparator
+				switch (i){
+					case 0:
+						selectedFilterComparator = new FilterNodeImpactComparator();
+						break;
+					case 1:
+						selectedFilterComparator = new FilterNodeImpactComparator().reversed();
+						break;
+					case 2:
+						selectedFilterComparator = new FilterEdgeImpactComparator();
+						break;
+					case 3:
+						selectedFilterComparator = new FilterEdgeImpactComparator().reversed();
+						break;
+					default:
+						throw new IllegalArgumentException("Invalid sort selection");
+				}
+				
+				// update button text to next sort
+				i = (i+1) % alternateSorts.length; // increment to next sort
+				sortSelectedFiltersByImpactButton.setText(alternateSorts[i]);
+				
+				// refresh filters
+				refreshSelectedFilters();
 			}
 		});
 		
@@ -280,13 +325,12 @@ public class CompositeFilterView extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				if(sortApplicableFiltersByName.getText().equals("Sort by Name (A \u2192 Z)")){
 					sortApplicableFiltersByName.setText("Sort by Name (Z \u2192 A)");
-					applicableFilterComparator = new FilterNameComparator();
-					refreshApplicableFilters();
+					applicableFilterComparator = new ApplicableFilterNameComparator();
 				} else {
 					sortApplicableFiltersByName.setText("Sort by Name (A \u2192 Z)");
-					applicableFilterComparator = new FilterNameComparator().reversed();
-					refreshApplicableFilters();
+					applicableFilterComparator = new ApplicableFilterNameComparator().reversed();
 				}
+				refreshApplicableFilters();
 			}
 		});
 		
@@ -691,7 +735,7 @@ public class CompositeFilterView extends ViewPart {
 			addFilterButton.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					selectedFilters.add(new SelectedFilterState(filter, true, Common.toQ(selectedRootset), true));
+					selectedFilters.add(new SelectedFilterState(filter, true, selectedRootset, true));
 					refreshSelectedFilters();
 					refreshApplicableFilters();
 				}

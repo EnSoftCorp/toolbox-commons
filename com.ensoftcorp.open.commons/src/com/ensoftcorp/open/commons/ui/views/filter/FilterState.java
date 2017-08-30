@@ -4,8 +4,8 @@ import com.ensoftcorp.open.commons.filters.Filter;
 
 public class FilterState {
 
-	private Filter filter;
-	private boolean isExpanded;
+	protected Filter filter;
+	protected boolean isExpanded;
 
 	public FilterState(Filter filter, boolean isExpanded) {
 		this.filter = filter;
