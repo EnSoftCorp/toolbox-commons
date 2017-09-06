@@ -3,6 +3,7 @@ package com.ensoftcorp.open.commons.filters;
 import java.util.Map;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -19,8 +20,9 @@ public class NameFilter extends Filter {
 
 	// flags
 	private static final String EXCLUDE_MATCHES = "EXCLUDE_MATCHES";
-	private static final String FILTER_ONLY_NODES = "FILTER_ONLY_NODES";
-	private static final String FILTER_ONLY_EDGES = "FILTER_ONLY_EDGES";
+	private static final String RETAIN_ALL_NODES = "RETAIN_ALL_NODES";
+	private static final String RETAIN_ALL_EDGES = "RETAIN_ALL_EDGES";
+	private static final String RETAIN_UNAMED = "RETAIN_UNAMED";
 	private static final String CASE_INSENSITIVE = "CASE_INSENSITIVE";
 	
 	// parameters
@@ -31,8 +33,9 @@ public class NameFilter extends Filter {
 
 	public NameFilter() {
 		this.addPossibleFlag(EXCLUDE_MATCHES, "Retain only nodes and edges that do not have the given name.");
-		this.addPossibleFlag(FILTER_ONLY_NODES, "Only consider nodes for filtering.");
-		this.addPossibleFlag(FILTER_ONLY_EDGES, "Only consider edges for filtering.");
+		this.addPossibleFlag(RETAIN_ALL_NODES, "All nodes will be retained even if matched.");
+		this.addPossibleFlag(RETAIN_ALL_EDGES, "All edges will be retained even if matched.");
+		this.addPossibleFlag(RETAIN_UNAMED, "Retains nodes and edges that do not have a name attribute (without this flag unamed nodes and edges will be removed from the result).");
 		this.addPossibleFlag(CASE_INSENSITIVE, "Do not distinguish between upper or lower case characters.");
 		this.addPossibleParameter(EXACT_NAME, String.class, false, "Filters nodes and edges with the given exact name.");
 		this.addPossibleParameter(NAME_PREFIX, String.class, false, "Filters nodes and edges with the given name prefix.");
@@ -54,17 +57,57 @@ public class NameFilter extends Filter {
 	protected Q filterInput(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException {
 		checkParameters(parameters);
 
-		AtlasSet<Node> nodes = new AtlasHashSet<Node>();
-		AtlasSet<Edge> edges = new AtlasHashSet<Edge>();
-		if(this.isFlagSet(FILTER_ONLY_NODES, parameters)){
+		AtlasSet<Node> nodesToSave = new AtlasHashSet<Node>();
+		AtlasSet<Edge> edgesToSave = new AtlasHashSet<Edge>();
+		if(this.isFlagSet(RETAIN_ALL_NODES, parameters)){
 			for(Node node : input.retainNodes().eval().nodes()){
-				nodes.add(node);
+				nodesToSave.add(node);
 			}
 		}
-		if(this.isFlagSet(FILTER_ONLY_EDGES, parameters)){
+		if(this.isFlagSet(RETAIN_ALL_EDGES, parameters)){
 			for(Edge edge : input.retainEdges().eval().edges()){
-				edges.add(edge);
+				edgesToSave.add(edge);
 			}
+		}
+		
+		Graph graph = input.eval();
+		AtlasSet<Node> nodes = new AtlasHashSet<Node>(graph.nodes());
+		AtlasSet<Edge> edges = new AtlasHashSet<Edge>(graph.edges());
+		
+		if(this.isFlagSet(RETAIN_UNAMED, parameters)){
+			// filter nodes
+			for(Node node : nodes){
+				if(node.getAttr(XCSG.name) == null){
+					nodesToSave.add(node);
+				}
+			}
+			// filter edges
+			for(Edge edge : edges){
+				if(edge.getAttr(XCSG.name) == null){
+					edgesToSave.add(edge);
+				}
+			}
+		}
+		// remove the unamed nodes and edges from the sets to filter
+		// filter nodes
+		AtlasSet<Node> nullNodesToRemove = new AtlasHashSet<Node>();
+		for(Node node : nodes){
+			if(node.getAttr(XCSG.name) == null){
+				nullNodesToRemove.add(node);
+			}
+		}
+		for(Node node : nullNodesToRemove){
+			nodes.remove(node);
+		}
+		// filter edges
+		AtlasSet<Edge> nullEdgesToRemove = new AtlasHashSet<Edge>();
+		for(Edge edge : edges){
+			if(edge.getAttr(XCSG.name) == null){
+				nullEdgesToRemove.add(edge);
+			}
+		}
+		for(Edge edge : nullEdgesToRemove){
+			edges.remove(edge);
 		}
 		
 		if(this.isParameterSet(EXACT_NAME, parameters)){
@@ -255,8 +298,9 @@ public class NameFilter extends Filter {
 			}
 		}
 		
-		Q graph = Common.toQ(nodes).union(Common.toQ(edges));
-		Q result = Common.toQ(graph.eval());
+		nodes.addAll(nodesToSave);
+		edges.addAll(edgesToSave);
+		Q result = Common.toQ(nodes).union(Common.toQ(edges));
 		
 		if(isFlagSet(EXCLUDE_MATCHES, parameters)){
 			return input.difference(result);

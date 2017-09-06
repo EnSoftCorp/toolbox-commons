@@ -1441,7 +1441,11 @@ public class CompositeFilterView extends ViewPart {
 			validationLabel.setText("");
 			return true;
 		} catch (Exception e){
-			validationLabel.setText(e.getMessage());
+			if(e.getMessage() != null){
+				validationLabel.setText(e.getMessage());
+			} else {
+				validationLabel.setText("Caught: " + e.getClass().getSimpleName());
+			}
 			selectedFilterImpactGroup.setText("Filter Impact: none");
 			return false;
 		}
