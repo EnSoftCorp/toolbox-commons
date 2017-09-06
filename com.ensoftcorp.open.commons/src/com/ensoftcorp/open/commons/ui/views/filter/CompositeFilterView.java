@@ -330,7 +330,7 @@ public class CompositeFilterView extends ViewPart {
 		sortApplicableFiltersLabel.setText("Sort: ");
 		
 		Combo sortApplicableFiltersCombo = new Combo(sortApplicableFiltersComposite, SWT.READ_ONLY);
-		sortApplicableFiltersCombo.setItems(new String[] {"Sort by Name (A → Z)", "Sort by Name (Z → A)"});
+		sortApplicableFiltersCombo.setItems(new String[] {"Sort by Name (A \u2192 Z)", "Sort by Name (Z \u2192 A)"});
 		sortApplicableFiltersCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		sortApplicableFiltersCombo.select(0);
 		
@@ -734,7 +734,7 @@ public class CompositeFilterView extends ViewPart {
 				for(String parameterName : parameterNames){
 					final Class<? extends Object> parameterType = filter.getPossibleParameters().get(parameterName);
 					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
-					boolean isFlag = filter.getPossibleFlags().contains(parameterName);
+					final boolean isFlag = filter.getPossibleFlags().contains(parameterName);
 					
 					if(parameterType == Boolean.class){
 						Composite booleanInputComposite = new Composite(inputComposite, SWT.NONE);
@@ -745,7 +745,7 @@ public class CompositeFilterView extends ViewPart {
 						final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
 						booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
-						if(filter.getPossibleFlags().contains(parameterName)){	
+						if(isFlag){	
 							booleanInputLabel.setText("Flag: "+ parameterName);
 							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
 						} else {
@@ -986,6 +986,7 @@ public class CompositeFilterView extends ViewPart {
 				for(String parameterName : parameterNames){
 					final Class<? extends Object> parameterType = filter.getPossibleParameters().get(parameterName);
 					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
+					final boolean isFlag = filter.getPossibleFlags().contains(parameterName);
 					
 					if(parameterType == Boolean.class){
 						Composite booleanInputComposite = new Composite(inputComposite, SWT.NONE);
@@ -1004,7 +1005,7 @@ public class CompositeFilterView extends ViewPart {
 						final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
 						booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
-						if(filter.getPossibleFlags().contains(parameterName)){	
+						if(isFlag){	
 							booleanInputLabel.setText("Flag: " + parameterName);
 							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
 							

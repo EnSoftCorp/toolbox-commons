@@ -21,7 +21,7 @@ public abstract class NodeFilter extends Filter {
 	 * @return
 	 * @throws InvalidFilterParameterException 
 	 */
-	public Q filter(Q input, Map<String, Object> parameters) throws InvalidFilterParameterException {
+	protected Q filterInput(Q input, Map<String, Object> parameters) throws InvalidFilterParameterException {
 		return getSupportedInput(input).intersection(input).retainNodes();
 	}
 

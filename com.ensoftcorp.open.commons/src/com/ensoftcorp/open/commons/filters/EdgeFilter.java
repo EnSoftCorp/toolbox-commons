@@ -20,7 +20,7 @@ public abstract class EdgeFilter extends Filter {
 	 * 
 	 * @return
 	 */
-	public Q filter(Q input, Map<String, Object> parameters) throws InvalidFilterParameterException {
+	protected Q filterInput(Q input, Map<String, Object> parameters) throws InvalidFilterParameterException {
 		return getSupportedInput(input).intersection(input).retainEdges();
 	}
 

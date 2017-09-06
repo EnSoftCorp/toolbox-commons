@@ -42,9 +42,9 @@ public class SubsystemInteractionFilter extends NodeFilter {
 	}
 
 	@Override
-	public Q filter(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException {
+	protected Q filterInput(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException {
 		checkParameters(parameters);
-		input = super.filter(input, parameters);
+		input = super.filterInput(input, parameters);
 		
 		String[] subsystems = ((String) getParameterValue(SUBSYSTEM_TAGS, parameters)).replaceAll("\\s","").split(",");
 

@@ -51,7 +51,7 @@ public class NameFilter extends Filter {
 	}
 
 	@Override
-	public Q filter(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException {
+	protected Q filterInput(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException {
 		checkParameters(parameters);
 
 		AtlasSet<Node> nodes = new AtlasHashSet<Node>();

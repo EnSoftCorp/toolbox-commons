@@ -269,11 +269,20 @@ public abstract class Filter {
 	}
 	
 	/**
-	 * The filtering strategy
+	 * Returns the filtered input. The result is always a subset of the input.
 	 * @param input
 	 * @return
 	 */
-	public abstract Q filter(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException;
+	public final Q filter(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException {
+		return filterInput(input, parameters).intersection(input);
+	}
+	
+	/**
+	 * The filtering strategy implementation. The result must always be a subset of the input.
+	 * @param input
+	 * @return
+	 */
+	protected abstract Q filterInput(Q input, Map<String,Object> parameters) throws InvalidFilterParameterException;
 	
 	/**
 	 * Returns the filter name
