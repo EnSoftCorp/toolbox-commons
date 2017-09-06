@@ -686,6 +686,7 @@ public class CompositeFilterView extends ViewPart {
 			applicableFilterParametersGroup.setLayout(new GridLayout(1, false));
 			applicableFilterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			
+			// TODO: consider removing parameters scrolled composite, it is stealing focus from expand bar listing scrolling and doesn't seem to be necessary anyway
 			ScrolledComposite parametersScrolledComposite = new ScrolledComposite(applicableFilterParametersGroup, SWT.H_SCROLL | SWT.V_SCROLL);
 			parametersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			parametersScrolledComposite.setExpandHorizontal(true);
@@ -703,9 +704,22 @@ public class CompositeFilterView extends ViewPart {
 				inputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 				inputComposite.setLayout(new GridLayout(1, false));
 
-				// add the parameters in alphabetical order for UI consistency
+				// add the parameters in alphabetical order for UI consistency (flags are ordered first)
 				LinkedList<String> parameterNames = new LinkedList<String>(filter.getPossibleParameters().keySet());
-				Collections.sort(parameterNames);
+				Collections.sort(parameterNames, new Comparator<String>(){
+					@Override
+					public int compare(String p1, String p2) {
+						boolean p1Flag = filter.getPossibleFlags().contains(p1);
+						boolean p2Flag = filter.getPossibleFlags().contains(p2);
+						if(p1Flag && !p2Flag){
+							return -1;
+						} else if(p1Flag && p2Flag){
+							return p1.compareTo(p2);
+						} else {
+							return 1;
+						}
+					}
+				});
 				
 				for(String parameterName : parameterNames){
 					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
@@ -720,6 +734,7 @@ public class CompositeFilterView extends ViewPart {
 				for(String parameterName : parameterNames){
 					final Class<? extends Object> parameterType = filter.getPossibleParameters().get(parameterName);
 					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
+					boolean isFlag = filter.getPossibleFlags().contains(parameterName);
 					
 					if(parameterType == Boolean.class){
 						Composite booleanInputComposite = new Composite(inputComposite, SWT.NONE);
@@ -731,7 +746,7 @@ public class CompositeFilterView extends ViewPart {
 						booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
 						if(filter.getPossibleFlags().contains(parameterName)){	
-							booleanInputLabel.setText(parameterName);
+							booleanInputLabel.setText("Flag: "+ parameterName);
 							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
 						} else {
 							booleanInputLabel.setEnabled(requiredParameter);
@@ -898,6 +913,7 @@ public class CompositeFilterView extends ViewPart {
 			selectedFilterParametersGroup.setLayout(new GridLayout(1, false));
 			selectedFilterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			
+			// TODO: consider removing parameters scrolled composite, it is stealing focus from expand bar listing scrolling and doesn't seem to be necessary anyway
 			ScrolledComposite parametersScrolledComposite = new ScrolledComposite(selectedFilterParametersGroup, SWT.H_SCROLL | SWT.V_SCROLL);
 			parametersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			parametersScrolledComposite.setExpandHorizontal(true);
@@ -936,7 +952,20 @@ public class CompositeFilterView extends ViewPart {
 
 				// add the parameters in alphabetical order for UI consistency
 				LinkedList<String> parameterNames = new LinkedList<String>(filter.getPossibleParameters().keySet());
-				Collections.sort(parameterNames);
+				Collections.sort(parameterNames, new Comparator<String>(){
+					@Override
+					public int compare(String p1, String p2) {
+						boolean p1Flag = filter.getPossibleFlags().contains(p1);
+						boolean p2Flag = filter.getPossibleFlags().contains(p2);
+						if(p1Flag && !p2Flag){
+							return -1;
+						} else if(p1Flag && p2Flag){
+							return p1.compareTo(p2);
+						} else {
+							return 1;
+						}
+					}
+				});
 				
 				for(String parameterName : parameterNames){
 					final boolean requiredParameter = filter.getRequiredParameters().contains(parameterName);
@@ -976,7 +1005,7 @@ public class CompositeFilterView extends ViewPart {
 						booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
 						if(filter.getPossibleFlags().contains(parameterName)){	
-							booleanInputLabel.setText(parameterName);
+							booleanInputLabel.setText("Flag: " + parameterName);
 							booleanInputLabel.setToolTipText(filter.getParameterDescription(parameterName));
 							
 							enableBooleanInputCheckbox.addSelectionListener(new SelectionAdapter() {

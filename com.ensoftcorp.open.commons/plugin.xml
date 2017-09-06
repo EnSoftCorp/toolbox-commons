@@ -98,7 +98,7 @@
             category="com.ensoftcorp.open.commons.views.categories.toolbox"
             class="com.ensoftcorp.open.commons.ui.views.filter.FilterView"
             icon="icons/funnel.gif"
-            id="com.ensoftcorp.open.commons.ui.views.filterview"
+            id="com.ensoftcorp.open.commons.ui.views.filter"
             name="Filter View">
       </view>
    </extension>
@@ -110,7 +110,7 @@
             category="com.ensoftcorp.open.commons.views.categories.toolbox"
             class="com.ensoftcorp.open.commons.ui.views.filter.CompositeFilterView"
             icon="icons/funnel.gif"
-            id="com.ensoftcorp.open.commons.ui.views.compositefilterview"
+            id="com.ensoftcorp.open.commons.ui.views.composite-filter"
             name="Composite Filter View">
       </view>
    </extension>
@@ -212,6 +212,7 @@
    
    <!-- adds filter definitions -->
    <extension point="com.ensoftcorp.open.commons.filter">
+      <filter class="com.ensoftcorp.open.commons.filters.NameFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.CyclomaticComplexityFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.SubsystemInteractionFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.LoopChildFilter"></filter>
