@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.commons.ui.views.filter;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,13 +36,18 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
+import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
+import com.ensoftcorp.open.commons.filters.InvalidFilterParameterException;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootset;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootsets;
+import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.ensoftcorp.open.commons.xcsg.XCSGConstantNameValueMapping;
 
 public class CompositeFilterView extends ViewPart {
@@ -63,8 +69,10 @@ public class CompositeFilterView extends ViewPart {
 	public static final String ID = "com.ensoftcorp.open.commons.ui.views.filter.CompositeFilterView";
 	
 	private static final int FONT_SIZE = 11;
+	private static final DecimalFormat df = new DecimalFormat("#.##");
 	
 	private Graph selectedRootset = Common.empty().eval();
+	private Graph evaluatedResult = Common.empty().eval();
 	private Set<SelectedFilterState> selectedFilters = new HashSet<SelectedFilterState>();
 	private Set<ApplicableFilterState> applicableFilters = new HashSet<ApplicableFilterState>();
 	
@@ -111,6 +119,7 @@ public class CompositeFilterView extends ViewPart {
 	private Text edgesTaggedWithAnyText;
 	private Text edgesTaggedWithAllText;
 	private Text tagResultText;
+	private Group resultGroup;
 	
 	@Override
 	public void createPartControl(Composite composite) {
@@ -131,14 +140,21 @@ public class CompositeFilterView extends ViewPart {
 		showRootsetButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		showRootsetButton.setText("Show Rootset");
 		
-		Group resultGroup = new Group(controlsComposite, SWT.NONE);
+		resultGroup = new Group(controlsComposite, SWT.NONE);
 		resultGroup.setLayout(new GridLayout(1, false));
 		resultGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		resultGroup.setText("Result: (xx nodes, yy edges)");
+		resultGroup.setText("Result: (empty)");
 		
 		Button showResultButton = new Button(resultGroup, SWT.NONE);
 		showResultButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		showResultButton.setText("Show Result");
+		
+		showResultButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DisplayUtils.show(Common.toQ(evaluatedResult), "Filtered Result");
+			}
+		});
 		
 		Composite tagResultComposite = new Composite(resultGroup, SWT.NONE);
 		tagResultComposite.setLayout(new GridLayout(2, false));
@@ -481,40 +497,44 @@ public class CompositeFilterView extends ViewPart {
 			}
 		});
 		
-		nodesTaggedWithAnyText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent event) {
-				if(taggedRootsetRadio.getSelection()){
-					nodesTaggedWithAnyCheckbox.setSelection(!nodesTaggedWithAnyText.getText().isEmpty());
+		nodesTaggedWithAnyText.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent key) {
+				nodesTaggedWithAnyCheckbox.setSelection(!nodesTaggedWithAnyText.getText().isEmpty());
+				if(key.character == '\r' || key.character == ','){
 					selectedRootset = getTaggedRootset().eval();
 					refreshRootset();
 				}
 			}
 		});
 		
-		edgesTaggedWithAnyText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent event) {
-				if(taggedRootsetRadio.getSelection()){
-					edgesTaggedWithAnyCheckbox.setSelection(!edgesTaggedWithAnyText.getText().isEmpty());
+		edgesTaggedWithAnyText.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent key) {
+				edgesTaggedWithAnyCheckbox.setSelection(!edgesTaggedWithAnyText.getText().isEmpty());
+				if(key.character == '\r' || key.character == ','){
 					selectedRootset = getTaggedRootset().eval();
 					refreshRootset();
 				}
 			}
 		});
 		
-		nodesTaggedWithAllText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent event) {
-				if(taggedRootsetRadio.getSelection()){
-					nodesTaggedWithAllCheckbox.setSelection(!nodesTaggedWithAllText.getText().isEmpty());
+		nodesTaggedWithAllText.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent key) {
+				nodesTaggedWithAllCheckbox.setSelection(!nodesTaggedWithAllText.getText().isEmpty());
+				if(key.character == '\r' || key.character == ','){
 					selectedRootset = getTaggedRootset().eval();
 					refreshRootset();
 				}
 			}
 		});
 		
-		edgesTaggedWithAllText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent event) {
-				if(taggedRootsetRadio.getSelection()){
-					edgesTaggedWithAllCheckbox.setSelection(!edgesTaggedWithAllText.getText().isEmpty());
+		edgesTaggedWithAllText.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent key) {
+				edgesTaggedWithAllCheckbox.setSelection(!edgesTaggedWithAllText.getText().isEmpty());
+				if(key.character == '\r' || key.character == ','){
 					selectedRootset = getTaggedRootset().eval();
 					refreshRootset();
 				}
@@ -530,7 +550,14 @@ public class CompositeFilterView extends ViewPart {
 		tagResultButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				// TODO: implement
+				String tag = tagResultText.getText();
+				for(Node node : evaluatedResult.nodes()){
+					node.tag(tag);
+				}
+				for(Edge edge : evaluatedResult.edges()){
+					edge.tag(tag);
+				}
+				DisplayUtils.showMessage("Successfully applied tag: \"" + tag + "\" to filtered result.");
 			}
 		});
 	}
@@ -607,8 +634,10 @@ public class CompositeFilterView extends ViewPart {
 		
 		if(selectedRootset.nodes().isEmpty() && selectedRootset.edges().isEmpty()){
 			rootsetGroup.setText("Rootset: (empty)");
+			resultGroup.setText("Result: (empty)");
 		} else {
 			rootsetGroup.setText("Rootset: (" + selectedRootset.nodes().size() + " nodes, " + selectedRootset.edges().size() + " edges)");
+			resultGroup.setText("Result: (" + selectedRootset.nodes().size() + " nodes, " + selectedRootset.edges().size() + " edges)");
 		}
 		
 		refreshSelectedFilters();
@@ -645,7 +674,8 @@ public class CompositeFilterView extends ViewPart {
 			applicableFilterDescriptionGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			applicableFilterDescriptionGroup.setText("Description");
 			
-			StyledText applicableFilterDescription = new StyledText(applicableFilterDescriptionGroup, SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.READ_ONLY | SWT.WRAP);
+			// TODO: wrap looks much nicer, but is causing height calculation issues
+			StyledText applicableFilterDescription = new StyledText(applicableFilterDescriptionGroup, SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.READ_ONLY /*| SWT.WRAP*/);
 			applicableFilterDescription.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 			applicableFilterDescription.setEditable(false);
 			applicableFilterDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -656,7 +686,7 @@ public class CompositeFilterView extends ViewPart {
 			applicableFilterParametersGroup.setLayout(new GridLayout(1, false));
 			applicableFilterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			
-			ScrolledComposite parametersScrolledComposite = new ScrolledComposite(applicableFilterParametersGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+			ScrolledComposite parametersScrolledComposite = new ScrolledComposite(applicableFilterParametersGroup, SWT.H_SCROLL | SWT.V_SCROLL);
 			parametersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			parametersScrolledComposite.setExpandHorizontal(true);
 			parametersScrolledComposite.setExpandVertical(true); 
@@ -868,10 +898,29 @@ public class CompositeFilterView extends ViewPart {
 			selectedFilterParametersGroup.setLayout(new GridLayout(1, false));
 			selectedFilterParametersGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			
-			ScrolledComposite parametersScrolledComposite = new ScrolledComposite(selectedFilterParametersGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+			ScrolledComposite parametersScrolledComposite = new ScrolledComposite(selectedFilterParametersGroup, SWT.H_SCROLL | SWT.V_SCROLL);
 			parametersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			parametersScrolledComposite.setExpandHorizontal(true);
 			parametersScrolledComposite.setExpandVertical(true); 
+
+			Group selectedFilterImpactGroup = new Group(selectedFilterComposite, SWT.NONE);
+			selectedFilterImpactGroup.setLayout(new GridLayout(3, false));
+			selectedFilterImpactGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			updateFilterImpact(selectedFilterState, selectedFilterImpactGroup);
+
+			Button toggleFilterActivationButton = new Button(selectedFilterImpactGroup, SWT.NONE);
+			if(selectedFilterState.isEnabled()){
+				toggleFilterActivationButton.setText("Disable Filter");
+			} else {
+				toggleFilterActivationButton.setText("Enable Filter");
+			}
+			
+			Button deleteFilterButton = new Button(selectedFilterImpactGroup, SWT.NONE);
+			deleteFilterButton.setText("Delete Filter");
+			
+			Button showSelectedFilterResultButton = new Button(selectedFilterImpactGroup, SWT.NONE);
+			showSelectedFilterResultButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+			showSelectedFilterResultButton.setText("Show Result");
 
 			if(filter.getPossibleParameters().isEmpty()){
 				Label noParamsLabel = new Label(parametersScrolledComposite, SWT.NONE);
@@ -937,10 +986,12 @@ public class CompositeFilterView extends ViewPart {
 									booleanInputLabel.setEnabled(enabled);
 									if(enabled){
 										selectedFilterState.filterParameters.put(parameterName, true);
-										validateFilterParameters(selectedFilterState, filter, validationLabel);
 									} else {
 										selectedFilterState.filterParameters.remove(parameterName);
-										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									}
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
+									if(enabled){
+										updateResults();
 									}
 								}
 							});
@@ -962,7 +1013,8 @@ public class CompositeFilterView extends ViewPart {
 								@Override
 								public void widgetSelected(SelectionEvent e) {
 									selectedFilterState.filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
-									validateFilterParameters(selectedFilterState, filter, validationLabel);
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
+									updateResults();
 								}
 							});
 							
@@ -974,10 +1026,12 @@ public class CompositeFilterView extends ViewPart {
 									booleanInputCheckbox.setEnabled(enabled);
 									if(enabled){
 										selectedFilterState.filterParameters.put(parameterName, booleanInputCheckbox.getSelection());
-										validateFilterParameters(selectedFilterState, filter, validationLabel);
 									} else {
 										selectedFilterState.filterParameters.remove(parameterName);
-										validateFilterParameters(selectedFilterState, filter, validationLabel);
+									}
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
+									if(enabled){
+										updateResults();
 									}
 								}
 							});
@@ -1030,7 +1084,7 @@ public class CompositeFilterView extends ViewPart {
 									String text = stringInputText.getText();
 									if(!text.equals("")){
 										selectedFilterState.filterParameters.put(parameterName, text);
-										validateFilterParameters(selectedFilterState, filter, validationLabel);
+										updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
 									} else {
 										validationLabel.setText(parameterName + " must be an non-empty string.");
 										if(selectedFilterState.isEnabled()){
@@ -1038,9 +1092,10 @@ public class CompositeFilterView extends ViewPart {
 											refreshSelectedFilters();
 										}
 									}
+									updateResults();
 								} else {
 									selectedFilterState.filterParameters.remove(parameterName);
-									validateFilterParameters(selectedFilterState, filter, validationLabel);
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
 								}
 							}
 						});
@@ -1051,7 +1106,8 @@ public class CompositeFilterView extends ViewPart {
 								String text = stringInputText.getText();
 								if(!text.equals("")){
 									selectedFilterState.filterParameters.put(parameterName, text);
-									validateFilterParameters(selectedFilterState, filter, validationLabel);
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
+									updateResults();
 								} else {
 									validationLabel.setText(parameterName + " must be an non-empty string.");
 									if(selectedFilterState.isEnabled()){
@@ -1108,7 +1164,7 @@ public class CompositeFilterView extends ViewPart {
 								if(enabled){
 									try {
 										selectedFilterState.filterParameters.put(parameterName, Integer.parseInt(integerInputText.getText()));
-										validateFilterParameters(selectedFilterState, filter, validationLabel);
+										updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
 									} catch (Exception ex){
 										validationLabel.setText(parameterName + " must be an integer.");
 										if(selectedFilterState.isEnabled()){
@@ -1116,9 +1172,10 @@ public class CompositeFilterView extends ViewPart {
 											refreshSelectedFilters();
 										}
 									}
+									updateResults();
 								} else {
 									selectedFilterState.filterParameters.remove(parameterName);
-									validateFilterParameters(selectedFilterState, filter, validationLabel);
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
 								}
 							}
 						});
@@ -1128,7 +1185,8 @@ public class CompositeFilterView extends ViewPart {
 							public void keyReleased(KeyEvent e) {
 								try {
 									selectedFilterState.filterParameters.put(parameterName, Integer.parseInt(integerInputText.getText()));
-									validateFilterParameters(selectedFilterState, filter, validationLabel);
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
+									updateResults();
 								} catch (Exception ex){
 									validationLabel.setText(parameterName + " must be an integer.");
 									if(selectedFilterState.isEnabled()){
@@ -1185,7 +1243,8 @@ public class CompositeFilterView extends ViewPart {
 								if(enabled){
 									try {
 										selectedFilterState.filterParameters.put(parameterName, Double.parseDouble(doubleInputText.getText()));
-										validateFilterParameters(selectedFilterState, filter, validationLabel);
+										updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
+										updateResults();
 									} catch (Exception ex){
 										validationLabel.setText(parameterName + " must be a double.");
 										if(selectedFilterState.isEnabled()){
@@ -1195,7 +1254,7 @@ public class CompositeFilterView extends ViewPart {
 									}
 								} else {
 									selectedFilterState.filterParameters.remove(parameterName);
-									validateFilterParameters(selectedFilterState, filter, validationLabel);
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
 								}
 							}
 						});
@@ -1205,7 +1264,8 @@ public class CompositeFilterView extends ViewPart {
 							public void keyReleased(KeyEvent e) {
 								try {
 									selectedFilterState.filterParameters.put(parameterName, Double.parseDouble(doubleInputText.getText()));
-									validateFilterParameters(selectedFilterState, filter, validationLabel);
+									updateFilterResult(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
+									updateResults();
 								} catch (Exception ex){
 									validationLabel.setText(parameterName + " must be a double.");
 									if(selectedFilterState.isEnabled()){
@@ -1226,36 +1286,18 @@ public class CompositeFilterView extends ViewPart {
 				}
 				
 				// check if the filter should be disabled due to missing configuration values
-				validateFilterParameters(selectedFilterState, filter, validationLabel);
+				validateFilterParameters(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup);
 				
 				parametersScrolledComposite.setContent(inputComposite);
 				parametersScrolledComposite.setMinSize(inputComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 			}
 			
-			Group selectedFilterImpactGroup = new Group(selectedFilterComposite, SWT.NONE);
-			selectedFilterImpactGroup.setLayout(new GridLayout(3, false));
-			selectedFilterImpactGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-			selectedFilterImpactGroup.setText("Filter Impact: filtered xx nodes (xx %), yy edges (yy %)");
-			
-			Button toggleFilterActivationButton = new Button(selectedFilterImpactGroup, SWT.NONE);
-			if(selectedFilterState.isEnabled()){
-				toggleFilterActivationButton.setText("Disable Filter");
-			} else {
-				toggleFilterActivationButton.setText("Enable Filter");
-			}
-			
-			Button deleteFilterButton = new Button(selectedFilterImpactGroup, SWT.NONE);
-			deleteFilterButton.setText("Delete Filter");
-			
-			Button showSelectedFilterResultButton = new Button(selectedFilterImpactGroup, SWT.NONE);
-			showSelectedFilterResultButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
-			showSelectedFilterResultButton.setText("Show Result");
-
 			toggleFilterActivationButton.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					selectedFilterState.setEnabled(!selectedFilterState.isEnabled());
 					refreshSelectedFilters();
+					updateResults();
 				}
 			});
 			
@@ -1271,7 +1313,7 @@ public class CompositeFilterView extends ViewPart {
 			showSelectedFilterResultButton.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					// TODO: implement
+					DisplayUtils.show(Common.toQ(selectedFilterState.getFilteredRootset()), selectedFilterState.getFilter().getName());
 				}
 			});
 			
@@ -1303,22 +1345,74 @@ public class CompositeFilterView extends ViewPart {
 		selectedFiltersScrolledComposite.setOrigin(origin);
 	}
 
-	private void validateFilterParameters(SelectedFilterState selectedFilterState, Filter filter, Label validationLabel) {
-		if(!validateFilterParameters(filter, selectedFilterState.filterParameters, validationLabel)){
+	private void updateFilterResult(SelectedFilterState selectedFilterState, Filter filter, Label validationLabel, Group selectedFilterImpactGroup) {
+		if(validateFilterParameters(selectedFilterState, filter, validationLabel, selectedFilterImpactGroup)){
+			try {
+				selectedFilterState.updateFilterResult();
+				updateFilterImpact(selectedFilterState, selectedFilterImpactGroup);
+			} catch (InvalidFilterParameterException ex) {
+				// should never happen
+				Log.warning("Invalid Filter Configuration", ex);
+			}
+		}
+	}
+
+	private void updateFilterImpact(SelectedFilterState selectedFilterState, Group selectedFilterImpactGroup) {
+		if(selectedFilterState.getNodeImpact() == 0 && selectedFilterState.getEdgeImpact() == 0){
+			selectedFilterImpactGroup.setText("Filter Impact: none");
+		} else {
+			double nodePercentage = ((double) selectedFilterState.getNodeImpact() / (double) selectedRootset.nodes().size()) * 100.0;
+			double edgePercentage = ((double) selectedFilterState.getEdgeImpact() / (double) selectedRootset.edges().size()) * 100.0;
+			selectedFilterImpactGroup.setText("Filter Impact: filtered " + selectedFilterState.getNodeImpact() + " nodes (" + df.format(nodePercentage) + " %), " + selectedFilterState.getEdgeImpact() + " edges (" + df.format(edgePercentage) + " %)");
+		}
+	}
+	
+	private void updateResults() {
+		ArrayList<Q> filteredResults = new ArrayList<Q>();
+		for(SelectedFilterState filter : selectedFilters){
+			if(filter.isEnabled()){
+				filteredResults.add(Common.toQ(filter.getFilteredRootset()));
+			}
+		}
+		Q result;
+		if(filteredResults.isEmpty()){
+			result = Common.toQ(selectedRootset);
+		} else if(filteredResults.size() == 1){
+			result = filteredResults.get(0);
+		} else {
+			Q first = filteredResults.remove(0);
+			Q[] rest = new Q[filteredResults.size()];
+			filteredResults.toArray(rest);
+			result = first.intersection(rest);
+		}
+		evaluatedResult = result.eval();
+		
+		if(evaluatedResult.nodes().isEmpty() && evaluatedResult.edges().isEmpty()){
+			resultGroup.setText("Result: (empty)");
+		} else {
+			resultGroup.setText("Result: (" + evaluatedResult.nodes().size() + " nodes, " + evaluatedResult.edges().size() + " edges)");
+		}
+	}
+
+	private boolean validateFilterParameters(SelectedFilterState selectedFilterState, Filter filter, Label validationLabel, Group selectedFilterImpactGroup) {
+		boolean isValid = validateFilterParameters(filter, selectedFilterState.filterParameters, validationLabel, selectedFilterImpactGroup);
+		if(!isValid){
 			if(selectedFilterState.isEnabled()){
 				selectedFilterState.setEnabled(false);
 				refreshSelectedFilters();
 			}
 		}
+		return isValid;
 	}
 	
-	private boolean validateFilterParameters(Filter filter, Map<String, Object> filterParameters, Label validationLabel){
+	private boolean validateFilterParameters(Filter filter, Map<String, Object> filterParameters, Label validationLabel, Group selectedFilterImpactGroup){
 		try {
 			filter.checkParameters(filterParameters);
 			validationLabel.setText("");
 			return true;
 		} catch (Exception e){
 			validationLabel.setText(e.getMessage());
+			selectedFilterImpactGroup.setText("Filter Impact: none");
 			return false;
 		}
 	}

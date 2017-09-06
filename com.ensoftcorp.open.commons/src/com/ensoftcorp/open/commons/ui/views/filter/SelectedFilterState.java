@@ -39,6 +39,10 @@ public class SelectedFilterState extends FilterState {
 	public long getEdgeImpact() {
 		return edgeImpact;
 	}
+	
+	public Graph getFilteredRootset(){
+		return filteredRootset;
+	}
 
 	public void updateFilterResult() throws InvalidFilterParameterException {
 		try {
