@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -436,9 +437,22 @@ public class FilterView extends ViewPart {
 				requiredFieldsLabel.setText("*Indicates required fields.");
 				requiredFieldsLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 				
-				// add the parameters in alphabetical order for UI consistency
+				// add the parameters in alphabetical order for UI consistency (flags are ordered first)
 				LinkedList<String> parameterNames = new LinkedList<String>(filter.getPossibleParameters().keySet());
-				Collections.sort(parameterNames);
+				Collections.sort(parameterNames, new Comparator<String>(){
+					@Override
+					public int compare(String p1, String p2) {
+						boolean p1Flag = filter.getPossibleFlags().contains(p1);
+						boolean p2Flag = filter.getPossibleFlags().contains(p2);
+						if(p1Flag && !p2Flag){
+							return -1;
+						} else if(p1Flag && p2Flag){
+							return p1.compareTo(p2);
+						} else {
+							return 1;
+						}
+					}
+				});
 				
 				for(String parameterName : parameterNames){
 					final Class<? extends Object> parameterType = filter.getPossibleParameters().get(parameterName);
