@@ -1,5 +1,7 @@
 package com.ensoftcorp.open.commons.analysis;
 
+import java.util.Iterator;
+
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
@@ -511,30 +513,41 @@ public final class CommonQueries {
 	}
 	
 	/**
-	 * Everything declared under the given functions, but NOT declared under
+	 * All nodes declared under the given functions, but NOT declared under
 	 * additional functions or types. Retrieves declarations of only this function.
 	 * Results are only returned if they are within the given context.
 	 * 
-	 * @param origin
+	 * @param functions
 	 * @return
 	 */
-	public static Q localDeclarations(Q origin) {
-		return localDeclarations(Common.index(), origin);
+	public static Q localDeclarations(Q functions) {
+		return localDeclarations(Common.index(), functions);
 	}
 
 	/**
-	 * Everything declared under the given functions, but NOT declared under
+	 * All nodes declared under the given functions, but NOT declared under
 	 * additional functions or types. Retrieves declarations of only this function.
 	 * Results are only returned if they are within the given context.
 	 * 
 	 * @param context
-	 * @param origin
+	 * @param functions
 	 * @return
 	 */
-	public static Q localDeclarations(Q context, Q origin) {
-		Q declarations = context.edges(XCSG.Contains);
-		declarations = declarations.differenceEdges(declarations.reverseStep(declarations.nodes(XCSG.Type)));
-		return declarations.forward(origin);
+	public static Q localDeclarations(Q context, Q functions) {
+		AtlasSet<Node> result = new AtlasHashSet<Node>();
+		AtlasSet<Node> worklist = new AtlasHashSet<Node>(functions.children().eval().nodes());
+		while(!worklist.isEmpty()){
+			Iterator<Node> iter = worklist.iterator();
+			Node child = iter.next();
+			iter.remove();
+			if(child.taggedWith(XCSG.Type) || child.taggedWith(XCSG.Function)){
+				continue;
+			} else {
+				result.add(child);
+				worklist.addAll(Common.toQ(child).children().eval().nodes());
+			}
+		}
+		return Common.toQ(result);
 	}
 
 	/**
