@@ -23,6 +23,7 @@ Note that version numbers are based off [Atlas](http://www.ensoftcorp.com/atlas/
 
 ### 3.1.7
 - Optimizations for local delcarations, CFG, and exceptional CFG common queries
+- Embedded javadoc with plugin
 
 ### 3.1.6
 - Bug fixes for sandboxing
