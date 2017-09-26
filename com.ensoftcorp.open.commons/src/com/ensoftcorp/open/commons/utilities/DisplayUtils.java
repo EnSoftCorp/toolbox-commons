@@ -11,6 +11,7 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
 
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.highlight.Highlighter;
@@ -54,13 +55,13 @@ public class DisplayUtils {
 	 * @return
 	 */
 	public static String promptString(String title, String message, boolean blocking) {
-		final Display display;
-		if(Display.getCurrent() != null){
-			display = Display.getCurrent();
+		final Shell shell;
+		if(Display.getCurrent() != null && Display.getCurrent().getActiveShell() != null){
+			shell = Display.getCurrent().getActiveShell();
 		} else {
-			display = Display.getDefault();
+			shell = Display.getDefault().getActiveShell();
 		}
-	    InputDialog prompt = new InputDialog(display.getActiveShell(), blocking, title, message);
+	    InputDialog prompt = new InputDialog(shell, blocking, title, message);
 	    return prompt.open();
 	}
 	
@@ -83,12 +84,15 @@ public class DisplayUtils {
 	 */
 	public static Boolean promptBoolean(String title, String message, boolean blocking) {
 		final Display display;
-		if(Display.getCurrent() != null){
+		final Shell shell;
+		if(Display.getCurrent() != null && Display.getCurrent().getActiveShell() != null){
 			display = Display.getCurrent();
+			shell = Display.getCurrent().getActiveShell();
 		} else {
 			display = Display.getDefault();
+			shell = Display.getDefault().getActiveShell();
 		}
-		MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_QUESTION | SWT.NO | SWT.YES);
+		MessageBox mb = new MessageBox(shell, SWT.ICON_QUESTION | SWT.NO | SWT.YES);
 		mb.setText(title);
 		mb.setMessage(message);
 		int response = mb.open();
@@ -108,15 +112,18 @@ public class DisplayUtils {
 	 */
 	public static void showError(final String message) {
 		final Display display;
-		if(Display.getCurrent() != null){
+		final Shell shell;
+		if(Display.getCurrent() != null && Display.getCurrent().getActiveShell() != null){
 			display = Display.getCurrent();
+			shell = Display.getCurrent().getActiveShell();
 		} else {
 			display = Display.getDefault();
+			shell = Display.getDefault().getActiveShell();
 		}
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
-				MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_ERROR | SWT.OK);
+				MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
 				mb.setText("Alert");
 				mb.setMessage(message);
 				mb.open();
@@ -133,15 +140,18 @@ public class DisplayUtils {
 	 */
 	public static void showError(final Throwable t, final String message) {
 		final Display display;
-		if(Display.getCurrent() != null){
+		final Shell shell;
+		if(Display.getCurrent() != null && Display.getCurrent().getActiveShell() != null){
 			display = Display.getCurrent();
+			shell = Display.getCurrent().getActiveShell();
 		} else {
 			display = Display.getDefault();
+			shell = Display.getDefault().getActiveShell();
 		}
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
-				MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_ERROR | SWT.NO | SWT.YES);
+				MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.NO | SWT.YES);
 				mb.setText("Alert");
 				StringWriter errors = new StringWriter();
 				t.printStackTrace(new PrintWriter(errors));
@@ -163,15 +173,18 @@ public class DisplayUtils {
 	 */
 	public static void showMessage(final String message){
 		final Display display;
-		if(Display.getCurrent() != null){
+		final Shell shell;
+		if(Display.getCurrent() != null && Display.getCurrent().getActiveShell() != null){
 			display = Display.getCurrent();
+			shell = Display.getCurrent().getActiveShell();
 		} else {
 			display = Display.getDefault();
+			shell = Display.getDefault().getActiveShell();
 		}
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
-				MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_INFORMATION | SWT.OK);
+				MessageBox mb = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
 				mb.setText("Message");
 				mb.setMessage(message);
 				mb.open();
@@ -250,10 +263,13 @@ public class DisplayUtils {
 	 */
 	public static void show(final Q q, final IMarkup markup, final boolean extend, final String title) {
 		final Display display;
-		if(Display.getCurrent() != null){
+		final Shell shell;
+		if(Display.getCurrent() != null && Display.getCurrent().getActiveShell() != null){
 			display = Display.getCurrent();
+			shell = Display.getCurrent().getActiveShell();
 		} else {
 			display = Display.getDefault();
+			shell = Display.getDefault().getActiveShell();
 		}
 		display.syncExec(new Runnable() {
 			public void run() {
@@ -261,7 +277,7 @@ public class DisplayUtils {
 					long graphSize = CommonQueries.nodeSize(q);
 					boolean showGraph = false;
 					if (graphSize > LARGE_GRAPH_WARNING) {
-						MessageBox mb = new MessageBox(display.getActiveShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+						MessageBox mb = new MessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 						mb.setText("Warning");
 						mb.setMessage("The graph you are about to display has " + graphSize + " nodes.  " 
 								+ "Displaying large graphs may cause Eclipse to become unresponsive." 
