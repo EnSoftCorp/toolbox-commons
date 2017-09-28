@@ -9,7 +9,6 @@ import java.io.StringWriter;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
