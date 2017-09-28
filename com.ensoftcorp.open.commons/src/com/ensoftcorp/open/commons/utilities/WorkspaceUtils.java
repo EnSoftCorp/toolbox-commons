@@ -5,6 +5,7 @@ import java.io.File;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -25,6 +26,15 @@ import org.eclipse.ui.ide.IDE;
 public class WorkspaceUtils {
 
 	private WorkspaceUtils() {}
+	
+	/**
+	 * Returns a project in the workspace for the given project name
+	 * @param projectName
+	 * @return
+	 */
+	public static IProject getProject(String projectName){
+		return ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+	}
 	
 	/**
 	 * Converts a File to an Eclipse IFile Source:
