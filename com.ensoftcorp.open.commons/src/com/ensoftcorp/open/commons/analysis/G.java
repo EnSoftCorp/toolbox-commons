@@ -153,7 +153,7 @@ public class G {
 				throw new IllegalArgumentException(message);
 		}
 		
-		GraphElement edge = edges.getFirst();
+		Edge edge = edges.one();
 		if (edge == null) {
 			if (expected)
 				Log.warning(nd + " degree == 0 for (tag, node): " + tag + ", " + node);

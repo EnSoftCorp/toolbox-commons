@@ -9,10 +9,13 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
 import com.ensoftcorp.atlas.core.script.StyledResult;
 import com.ensoftcorp.atlas.ui.scripts.selections.FilteringAtlasSmartViewScript;
+import com.ensoftcorp.atlas.ui.scripts.selections.IExplorableScript;
 import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
+import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
+import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 
-public class UniversalGraphExplorerSmartView extends FilteringAtlasSmartViewScript implements IResizableScript {
+public class UniversalGraphExplorerSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
 	@Override
 	public String getTitle() {
@@ -37,6 +40,11 @@ public class UniversalGraphExplorerSmartView extends FilteringAtlasSmartViewScri
 	@Override
 	public int getDefaultStepBottom() {
 		return 1;
+	}
+	
+	@Override
+	public FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
+		return SimpleScriptUtil.explore(this, event, oldResult);
 	}
 
 	@Override

@@ -790,7 +790,7 @@ public final class CommonQueries {
 	 */
 	public static Node leastCommonAncestor(Node child1, Node child2, Q graph){
 		Q ancestors = graph.reverse(Common.toQ(child1)).intersection(graph.reverse(Common.toQ(child2)));
-		return ancestors.leaves().eval().nodes().getFirst();
+		return ancestors.leaves().eval().nodes().one();
 	}
 
 	/**
@@ -842,7 +842,7 @@ public final class CommonQueries {
 			return null;
 		}
 		while(true) {
-			GraphElement containsEdge = Graph.U.edges(node, NodeDirection.IN).taggedWithAll(XCSG.Contains).getFirst();
+			GraphElement containsEdge = Graph.U.edges(node, NodeDirection.IN).taggedWithAll(XCSG.Contains).one();
 			if(containsEdge == null){
 				return null;
 			}
