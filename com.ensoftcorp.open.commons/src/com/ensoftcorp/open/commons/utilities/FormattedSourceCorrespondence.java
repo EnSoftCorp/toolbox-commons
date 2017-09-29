@@ -15,8 +15,10 @@ import java.util.TreeSet;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.index.common.SourceCorrespondence;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
@@ -253,13 +255,13 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	public static Collection<FormattedSourceCorrespondence> getSourceCorrespondents(Q q) {
 		LinkedList<FormattedSourceCorrespondence> sourceCorrespondents = new LinkedList<FormattedSourceCorrespondence>();
 		Graph graph = q.eval();
-		for (GraphElement node : graph.nodes()) {
+		for (Node node : graph.nodes()) {
 			FormattedSourceCorrespondence fsc = getSourceCorrespondent(node);
 			if(fsc != null){
 				sourceCorrespondents.add(fsc);
 			}
 		}
-		for (GraphElement edge : graph.edges()){
+		for (Edge edge : graph.edges()){
 			FormattedSourceCorrespondence fsc = getSourceCorrespondent(edge);
 			if(fsc != null){
 				sourceCorrespondents.add(fsc);
@@ -278,13 +280,13 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	public static FormattedSourceCorrespondence getSourceCorrespondent(GraphElement ge) {
 		FormattedSourceCorrespondence sourceCorrespondent = null;
 		Object name = ge.attr().get(XCSG.name);
-		Object fsc = ge.attr().get(XCSG.sourceCorrespondence);
+		Object sc = ge.attr().get(XCSG.sourceCorrespondence);
 		
-		if(fsc != null && fsc instanceof SourceCorrespondence){
+		if(sc != null && sc instanceof SourceCorrespondence){
 			if(name != null) {
-				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) fsc, name.toString());
+				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) sc, name.toString());
 			} else {
-				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) fsc);
+				sourceCorrespondent = new FormattedSourceCorrespondence((SourceCorrespondence) sc);
 			}
 		}
 		Object scList = ge.attr().get(XCSG.sourceCorrespondence);
