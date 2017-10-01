@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.ensoftcorp.open.commons.feature_3.1.7.201709131025.jar" id="com.ensoftcorp.open.commons.feature" version="3.1.7.201709131025">
+   <feature url="features/com.ensoftcorp.open.commons.feature_3.1.7.201710011246.jar" id="com.ensoftcorp.open.commons.feature" version="3.1.7.201710011246">
       <category name="com.ensoftcorp.open.commons.category"/>
    </feature>
    <category-def name="com.ensoftcorp.open.commons.category" label="Toolbox Commons">
