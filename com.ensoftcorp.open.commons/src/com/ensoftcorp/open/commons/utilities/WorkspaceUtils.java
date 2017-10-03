@@ -57,7 +57,48 @@ public class WorkspaceUtils {
 	 * @return
 	 */
 	public static File getFile(IFile iFile) {
-		return iFile.getLocation().toFile();
+		File file = getFile(iFile, true);
+		if(file == null){
+			// file does not exist, but we should at least return a file
+			file = getFile(iFile, false);
+		}
+		return file;
+	}
+	
+	/**
+	 * Converts an IFile to an Java File Source:
+	 * 
+	 * @param file
+	 * @return
+	 */
+	private static File getFile(IFile iFile, boolean checkExists) {
+		File file = null;
+		
+		// generally this is all we need
+		if(iFile.getLocation() != null){
+			file = iFile.getLocation().toFile();
+			if(!file.exists()){
+				file = null;
+			}
+		}
+		
+		// however Eclispe is weird so we have some fallbacks
+		if(file == null && iFile.getRawLocation() != null){
+			file = iFile.getRawLocation().toFile();
+			if(!file.exists()){
+				file = null;
+			}
+		}
+		
+		// in the worst case this method should work
+		if(file == null){
+			file = new File(iFile.getFullPath().toOSString());
+			if(!file.exists()){
+				file = null;
+			}
+		}
+		
+		return file;
 	}
 	
 	public static void openFileInEclipseEditor(File file) {
