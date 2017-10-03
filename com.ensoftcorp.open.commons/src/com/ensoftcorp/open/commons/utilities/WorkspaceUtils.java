@@ -1,6 +1,7 @@
 package com.ensoftcorp.open.commons.utilities;
 
 import java.io.File;
+import java.net.URI;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -8,7 +9,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -37,8 +40,8 @@ public class WorkspaceUtils {
 	}
 	
 	/**
-	 * Converts a File to an Eclipse IFile Source:
-	 * http://stackoverflow.com/questions/960746/how-to-convert-from-file-to-ifile-in-java-for-files-outside-the-project
+	 * Converts a File to an Eclipse IFile 
+	 * Source: http://stackoverflow.com/questions/960746/how-to-convert-from-file-to-ifile-in-java-for-files-outside-the-project
 	 * 
 	 * @param file
 	 * @return
@@ -51,51 +54,29 @@ public class WorkspaceUtils {
 	}
 	
 	/**
-	 * Converts an IFile to an Java File Source:
+	 * Converts an IFile to a Java File
 	 * 
 	 * @param file
 	 * @return
+	 * @throws CoreException 
 	 */
-	public static File getFile(IFile iFile) {
-		File file = getFile(iFile, true);
-		if(file == null){
-			// file does not exist, but we should at least return a file
-			file = getFile(iFile, false);
+	public static File getFile(IFile iFile) throws CoreException {
+		URI uri; 
+
+		// get the file uri, accound for symbolic links
+		if(!iFile.isLinked()){
+			uri = iFile.getLocationURI();
+		} else {
+			uri = iFile.getRawLocationURI();
 		}
-		return file;
-	}
-	
-	/**
-	 * Converts an IFile to an Java File Source:
-	 * 
-	 * @param file
-	 * @return
-	 */
-	private static File getFile(IFile iFile, boolean checkExists) {
-		File file = null;
-		
-		// generally this is all we need
-		if(iFile.getLocation() != null){
-			file = iFile.getLocation().toFile();
-			if(!file.exists()){
-				file = null;
-			}
-		}
-		
-		// however Eclipse is weird so we have some fallbacks
-		if(file == null && iFile.getRawLocation() != null){
-			file = iFile.getRawLocation().toFile();
-			if(!file.exists()){
-				file = null;
-			}
-		}
-		
-		// in the worst case this method should work
-		if(file == null){
+
+		// get the native file using Eclipse File System
+		File file;
+		if(uri != null){
+			file = EFS.getStore(uri).toLocalFile(0, new NullProgressMonitor());
+		} else {
+			// Eclipse is weird...this last resort should work
 			file = new File(iFile.getFullPath().toOSString());
-			if(!file.exists()){
-				file = null;
-			}
 		}
 		
 		return file;
