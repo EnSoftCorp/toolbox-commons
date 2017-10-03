@@ -82,7 +82,7 @@ public class WorkspaceUtils {
 			}
 		}
 		
-		// however Eclispe is weird so we have some fallbacks
+		// however Eclipse is weird so we have some fallbacks
 		if(file == null && iFile.getRawLocation() != null){
 			file = iFile.getRawLocation().toFile();
 			if(!file.exists()){
