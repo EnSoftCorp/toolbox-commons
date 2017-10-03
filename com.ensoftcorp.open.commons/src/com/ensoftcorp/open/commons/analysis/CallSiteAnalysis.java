@@ -145,8 +145,8 @@ public class CallSiteAnalysis {
 		if(node.taggedWith(XCSG.Language.C)){
 			return XCSG.Language.C;
 		}
-		if(node.taggedWith(XCSG.Language.Cpp)){
-			return XCSG.Language.Cpp;
+		if(node.taggedWith(XCSG.Language.CPP)){
+			return XCSG.Language.CPP;
 		}
 		throw new RuntimeException("Unknown language type");
 	}
