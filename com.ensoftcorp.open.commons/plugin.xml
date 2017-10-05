@@ -18,6 +18,12 @@
       <script
             class="com.ensoftcorp.open.commons.ui.smart.UniversalGraphExplorerSmartView">
       </script>
+      <script
+            class="com.ensoftcorp.open.commons.ui.smart.ExceptionalControlFlowSmartView">
+      </script>
+      <script
+            class="com.ensoftcorp.open.commons.ui.smart.replacements.ReplacementControlFlowSmartView">
+      </script>
    </extension>
 
    <!-- defines the tooblox commons handler actions -->
