@@ -17,7 +17,6 @@ import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
 import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
-import com.ensoftcorp.atlas.ui.views.selectionDetailView.SelectionScripts;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 
 /**
