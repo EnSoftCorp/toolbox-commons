@@ -28,7 +28,7 @@ public class ExceptionalControlFlowSmartView extends FilteringAtlasSmartViewScri
 
 	@Override
 	public String getTitle() {
-		return "Control Flow (exceptional)";
+		return "Control Flow (Exceptional)";
 	}
 	
 	@Override
