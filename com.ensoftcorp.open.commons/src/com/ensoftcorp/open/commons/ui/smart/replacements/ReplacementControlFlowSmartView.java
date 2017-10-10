@@ -17,6 +17,7 @@ import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
 import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
+import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 
 /**
@@ -77,32 +78,40 @@ public class ReplacementControlFlowSmartView extends FilteringAtlasSmartViewScri
 		AtlasSet<Node> dataFlowNodes = filteredSelection.nodes(XCSG.DataFlow_Node).eval().nodes();
 		AtlasSet<Node> correspondingDataFlowStatements = Common.toQ(dataFlowNodes).parent().nodes(XCSG.ControlFlow_Node).eval().nodes();
 		AtlasSet<Node> functions = filteredSelection.nodes(XCSG.Function).eval().nodes();
-		Q origin = filteredSelection.difference(Common.toQ(functions), Common.toQ(dataFlowNodes)).union(Common.toQ(correspondingDataFlowStatements));
+		Q selectedStatements = filteredSelection.difference(Common.toQ(functions), Common.toQ(dataFlowNodes)).union(Common.toQ(correspondingDataFlowStatements));
 
 		if(functions.isEmpty()){
 			// just cfg nodes were selected
-			Q containingFunctions = CommonQueries.getContainingFunctions(origin);
+			Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
 			Q cfgs = CommonQueries.cfg(containingFunctions);
 			
 			// highlight the origin
 			Highlighter h = new Highlighter();
-			h.highlight(origin, Color.CYAN);
-			return computeFrontierResult(origin, cfgs, forward, reverse, h);
+			h.highlight(selectedStatements, Color.CYAN);
+			return computeFrontierResult(selectedStatements, cfgs, forward, reverse, h);
 		} else {
 			// a function was selected possibly along with cfg nodes
-			Q containingFunctions = CommonQueries.getContainingFunctions(origin);
+			Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
 			Q cfgs = CommonQueries.cfg(containingFunctions);
-			Q selectedFunctionCFGs = CommonQueries.cfg(Common.toQ(functions));
+			Q selectedFunctions = Common.toQ(functions);
+			
+			// remove any functions that are selected because callsites were selected
+			Q selectedCallsites = selectedStatements.children().nodes(XCSG.CallSite);
+			Q selectedCallsiteFunctions = CallSiteAnalysis.getTargets(selectedCallsites);
+			selectedFunctions = selectedFunctions.difference(selectedCallsiteFunctions);
+			
+			// get the complete CFGs for any intentionally selected function
+			Q selectedFunctionCFGs = CommonQueries.cfg(selectedFunctions);
 			
 			// highlight the selected functions
 			// highlight the actually selected origin
 			Highlighter h = new Highlighter();
 			h.highlight(Common.toQ(functions), Color.CYAN); 
-			h.highlight(origin, Color.CYAN);
+			h.highlight(selectedStatements, Color.CYAN);
 			
 			// just pretend the entire cfg was selected for selected functions
-			origin = origin.union(selectedFunctionCFGs);
-			return computeFrontierResult(origin, cfgs, forward, reverse, h);
+			selectedStatements = selectedStatements.union(selectedFunctionCFGs);
+			return computeFrontierResult(selectedStatements, cfgs, forward, reverse, h);
 		}
 	}
 	
