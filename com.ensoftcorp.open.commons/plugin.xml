@@ -109,6 +109,18 @@
       </view>
    </extension>
    
+   <!-- extension for Code Painter Control Panel view -->
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.codepainter.ControlPanelView"
+            icon="icons/funnel.gif"
+            id="com.ensoftcorp.open.commons.ui.views.codepainter.controlpanel"
+            name="Code Painter Control Panel">
+      </view>
+   </extension>
+   
    <!-- extension for Composite Filter View view -->
    <!-- DISABLED FOR RELEASE
 	<extension
