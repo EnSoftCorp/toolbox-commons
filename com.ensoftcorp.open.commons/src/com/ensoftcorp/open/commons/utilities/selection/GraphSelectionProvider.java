@@ -1,11 +1,11 @@
 package com.ensoftcorp.open.commons.utilities.selection;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 
 import com.ensoftcorp.atlas.core.query.Q;
@@ -14,7 +14,7 @@ public class GraphSelectionProvider implements ISelectionProvider {
 
 	private boolean enabled = true;
 	private ISelection selection = new StructuredSelection();
-	private Set<ISelectionChangedListener> changeListeners = new HashSet<ISelectionChangedListener>();
+	private CopyOnWriteArrayList<ISelectionChangedListener> changeListeners = new CopyOnWriteArrayList<ISelectionChangedListener>();
 
 	@Override
 	public ISelection getSelection() {
@@ -33,8 +33,12 @@ public class GraphSelectionProvider implements ISelectionProvider {
 
 	@Override
 	public void setSelection(ISelection selection) {
+		this.selection = selection;
+		SelectionChangedEvent selectionChangedEvent = new SelectionChangedEvent(this, getSelection());
 		if(enabled){
-			this.selection = selection;
+			for(ISelectionChangedListener changeListener : changeListeners){
+				changeListener.selectionChanged(selectionChangedEvent);
+			}
 		}
 	}
 	

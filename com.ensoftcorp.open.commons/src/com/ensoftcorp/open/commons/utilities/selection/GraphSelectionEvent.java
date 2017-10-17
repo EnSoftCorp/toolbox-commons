@@ -17,13 +17,7 @@ public class GraphSelectionEvent extends StructuredSelection {
 	private List<GraphElement> graphElements = new LinkedList<GraphElement>();
 	
 	public GraphSelectionEvent(Q selection){
-		Graph graph = selection.eval();
-		for(Node node : graph.nodes()){
-			graphElements.add(node);
-		}
-		for(Edge edge : graph.edges()){
-			graphElements.add(edge);
-		}
+		this(selection.eval());
 	}
 	
 	public GraphSelectionEvent(Graph selection){

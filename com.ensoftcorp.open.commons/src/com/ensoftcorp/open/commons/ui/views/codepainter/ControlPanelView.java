@@ -20,7 +20,7 @@ public class ControlPanelView extends GraphSelectionProviderView {
 	
 	@Override
 	public void createPartControl(Composite arg0) {
-		
+
 		Button btnShow = new Button(arg0, SWT.NONE);
 		btnShow.setText("Show");
 		
