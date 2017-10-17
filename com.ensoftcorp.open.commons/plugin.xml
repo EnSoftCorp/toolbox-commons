@@ -16,13 +16,13 @@
     <extension
          point="com.ensoftcorp.atlas.ui.smartViewScript">
       <script
-            class="com.ensoftcorp.open.commons.ui.smart.UniversalGraphExplorerSmartView">
+            class="com.ensoftcorp.open.commons.ui.views.smart.UniversalGraphExplorerSmartView">
       </script>
       <script
-            class="com.ensoftcorp.open.commons.ui.smart.ExceptionalControlFlowSmartView">
+            class="com.ensoftcorp.open.commons.ui.views.smart.ExceptionalControlFlowSmartView">
       </script>
       <script
-            class="com.ensoftcorp.open.commons.ui.smart.replacements.ReplacementControlFlowSmartView">
+            class="com.ensoftcorp.open.commons.ui.views.smart.replacements.ReplacementControlFlowSmartView">
       </script>
    </extension>
 

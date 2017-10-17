@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.ui.smart.replacements;
+package com.ensoftcorp.open.commons.ui.views.smart.replacements;
 
 import java.awt.Color;
 

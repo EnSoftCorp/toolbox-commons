@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.ui.smart;
+package com.ensoftcorp.open.commons.ui.views.smart;
 
 import java.awt.Color;
 
@@ -82,7 +82,7 @@ public class UniversalGraphExplorerSmartView extends FilteringAtlasSmartViewScri
 	}
 
 	@Override
-	protected StyledResult selectionChanged(IAtlasSelectionEvent input, Q filteredSelection) {
+	protected StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection) {
 		return null;
 	}
 }
