@@ -37,6 +37,7 @@ public class GraphSelectionEvent extends StructuredSelection {
 		return graphElements.get(0);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Iterator iterator(){
 		return graphElements.iterator();
@@ -49,6 +50,7 @@ public class GraphSelectionEvent extends StructuredSelection {
 		return result;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	public List toList(){
 		return new LinkedList<GraphElement>(graphElements);
