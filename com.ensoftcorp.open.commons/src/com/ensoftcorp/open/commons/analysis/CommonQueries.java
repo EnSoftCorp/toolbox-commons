@@ -472,14 +472,20 @@ public final class CommonQueries {
 	
 	/**
 	 * 
+	 * @param function
+	 * @return the data flow graph under the function
+	 */
+	public static Q dfg(Node function) {
+		return dfg(Common.toQ(function));
+	}
+	
+	/**
+	 * 
 	 * @param functions
 	 * @return the control flow graph under the function
 	 */
 	public static Q cfg(Q functions) {
-		
-		// TODO: Use future API: com.ensoftcorp.atlas.core.script.CommonQueries.cfg(functions);
-		
-		return localDeclarations(functions).nodes(XCSG.ControlFlow_Node).induce(Common.edges(XCSG.ControlFlow_Edge));
+		return com.ensoftcorp.atlas.core.script.CommonQueries.cfg(functions);
 	}
 	
 	/**
@@ -497,10 +503,7 @@ public final class CommonQueries {
 	 * @return the control flow graph (including exceptional control flow) under the function
 	 */
 	public static Q excfg(Q functions) {
-		
-		// TODO: Use future API: com.ensoftcorp.atlas.core.script.CommonQueries.excfg(functions);
-		
-		return localDeclarations(functions).nodes(XCSG.ControlFlow_Node).induce(Common.edges(XCSG.ControlFlow_Edge, XCSG.ExceptionalControlFlow_Edge));
+		return com.ensoftcorp.atlas.core.script.CommonQueries.excfg(functions);
 	}
 	
 	/**
