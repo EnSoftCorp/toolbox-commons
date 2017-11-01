@@ -1,23 +1,45 @@
-package com.ensoftcorp.open.commons.ui.views.codepainter;
+package com.ensoftcorp.open.commons.codepainter;
 
 import java.awt.Color;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
+import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.markup.IMarkup;
 import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.markup.MarkupProperty;
+import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 
 public abstract class ColorPalette {
+	
+	protected AtlasSet<Node> canvasNodes = new AtlasHashSet<Node>();
+	protected AtlasSet<Edge> canvasEdges = new AtlasHashSet<Edge>();
+	
+	/**
+	 * Updates the canvas (nodes and edges that coloring will be applied to)
+	 * This is required for color palettes that may change dynamically
+	 * @param canvas
+	 */
+	public final void setCanvas(Q canvas){
+		Graph g = canvas.eval();
+		canvasNodes.clear();
+		canvasNodes.addAll(g.nodes());
+		canvasEdges.clear();
+		canvasEdges.addAll(g.edges());
+	}
+	
+	protected abstract void canvasChanged();
 	
 	public abstract String getName();
 	
 	public abstract String getDescription();
 	
-	public IMarkup getMarkup(){
+	public final IMarkup getMarkup(){
 		Markup markup = new Markup();
 		for(Entry<Node,Color> nodeColoring : getNodeColors().entrySet()){
 			Node node = nodeColoring.getKey();

@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.ui.views.codepainter;
+package com.ensoftcorp.open.commons.codepainter;
 
 import java.awt.Color;
 import java.util.HashMap;
@@ -6,8 +6,6 @@ import java.util.Map;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.markup.IMarkup;
-import com.ensoftcorp.atlas.core.markup.Markup;
 
 public class EmptyColorPalette extends ColorPalette {
 
@@ -19,11 +17,6 @@ public class EmptyColorPalette extends ColorPalette {
 	@Override
 	public String getDescription() {
 		return "No applied coloring.";
-	}
-
-	@Override
-	public IMarkup getMarkup() {
-		return new Markup();
 	}
 	
 	@Override
@@ -45,5 +38,8 @@ public class EmptyColorPalette extends ColorPalette {
 	public Map<Color, String> getEdgeColorLegend() {
 		return new HashMap<Color,String>();
 	}
+
+	@Override
+	protected void canvasChanged() {}
 
 }

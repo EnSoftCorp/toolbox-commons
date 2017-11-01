@@ -163,7 +163,24 @@
    		 id="com.ensoftcorp.open.commons.analyzer"
    		 name="Analyzer"
    		 schema="schema/com.ensoftcorp.open.commons.analyzer.exsd"/>
-   <extension-point id="com.ensoftcorp.open.commons.language.analysis" name="LanguageSpecificAnalysis" schema="schema/com.ensoftcorp.open.commons.language.analysis.exsd"/>
+   
+   <!-- defines an extension point schema for language analysis handlers -->
+   <extension-point 
+      	 id="com.ensoftcorp.open.commons.language.analysis" 
+      	 name="LanguageSpecificAnalysis" 
+      	 schema="schema/com.ensoftcorp.open.commons.language.analysis.exsd"/>
+      	 
+   <!-- defines an extension point schema for color palettes -->
+   <extension-point 
+   		 id="com.ensoftcorp.open.commons.colorpalette" 
+   		 name="Color Palette" 
+   		 schema="schema/com.ensoftcorp.open.commons.colorpalette.exsd"/>
+   
+   <!-- defines an extension point schema for code painters -->
+   <extension-point 
+   		 id="com.ensoftcorp.open.commons.codepainter" 
+   		 name="Code Painter" 
+   		 schema="schema/com.ensoftcorp.open.commons.codepainter.exsd"/>
    
    <!-- adds a post code map hook for running registered prioritized codemap stages -->
    <extension
@@ -239,6 +256,14 @@
       <filter class="com.ensoftcorp.open.commons.filters.ExceptionalTryChildFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.ExceptionalCatchChildFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.ExceptionalFinallyChildFilter"></filter>
+   </extension>
+   
+   <!-- adds codepainter smart view -->
+   <extension
+         point="com.ensoftcorp.atlas.ui.smartViewScript">
+      <script
+            class="com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterSmartView">
+      </script>
    </extension>
    
    <!-- adds filter rootset definitions -->

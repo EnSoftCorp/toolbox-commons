@@ -9,6 +9,7 @@ import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
 import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
+import com.ensoftcorp.open.commons.codepainter.CodePainter;
 
 public class CodePainterSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
@@ -51,9 +52,9 @@ public class CodePainterSmartView extends FilteringAtlasSmartViewScript implemen
 	
 	@Override
 	public FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
-		if(codePainter != null){
-			return codePainter.explore(event, oldResult);
-		}
+//		if(codePainter != null){
+//			return codePainter.explore(event, oldResult);
+//		}
 		return SimpleScriptUtil.explore(this, event, oldResult);
 	}
 

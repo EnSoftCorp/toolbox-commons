@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.ui.views.codepainter;
+package com.ensoftcorp.open.commons.codepainter;
 
 import java.awt.Color;
 

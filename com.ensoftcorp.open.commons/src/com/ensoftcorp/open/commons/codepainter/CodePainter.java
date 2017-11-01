@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.ui.views.codepainter;
+package com.ensoftcorp.open.commons.codepainter;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -301,6 +301,9 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 				
 				return legend;
 			}
+
+			@Override
+			protected void canvasChanged() {}
 			
 		};
 		return activeColorPalette;
@@ -311,11 +314,15 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	}
 	
 	public void addColorPalette(ColorPalette palette){
-		appliedColorPalettes.add(palette);
+		if(!getBaseColorPalette().equals(palette)){
+			appliedColorPalettes.add(palette);
+		}
 	}
 	
 	public void addColorPalette(ColorPalette palette, int index){
-		appliedColorPalettes.add(index, palette);
+		if(!getBaseColorPalette().equals(palette)){
+			appliedColorPalettes.add(index, palette);
+		}
 	}
 	
 	public void removeColorPalette(ColorPalette palette){
@@ -340,15 +347,30 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 		return SimpleScriptUtil.explore(this, event, oldResult);
 	}
 
+	/**
+	 * Computes a new styled frontier result for a given selection event and the
+	 * number of steps forward and reverse to explore on the frontier.
+	 */
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward){
 		UnstyledFrontierResult frontierResult = computeFrontierResult(event, reverse, forward);
+		if(frontierResult == null){
+			return null;
+		}
 		ColorPalette palette = getActiveColorPalette();
 		IMarkup markup = palette.getMarkup();
 		return new FrontierStyledResult(frontierResult.getResult(), frontierResult.getFrontierReverse(), frontierResult.getFrontierForward(), markup);
 	}
 
-	protected StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection){
+	/**
+	 * Computes a new styled result for a given selection event. Note that this
+	 * implementation increases visibility of this method from its base class
+	 * signature from protected to public.
+	 */
+	public StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection){
 		UnstyledResult result = computeResult(event, filter(filteredSelection));
+		if(result == null){
+			return null;
+		}
 		ColorPalette palette = getActiveColorPalette();
 		IMarkup markup = palette.getMarkup();
 		return new StyledResult(result.getResult(), markup);
@@ -356,6 +378,8 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	
 	public abstract UnstyledFrontierResult computeFrontierResult(IAtlasSelectionEvent event, int reverse, int forward);
 
-	public abstract UnstyledResult computeResult(IAtlasSelectionEvent event, Q filteredSelection);
+	public UnstyledResult computeResult(IAtlasSelectionEvent event, Q filteredSelection) {
+		return new UnstyledResult(computeFrontierResult(event, 0, 0).getResult());
+	}
 
 }
