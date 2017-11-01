@@ -37,6 +37,7 @@ public class ControlPanelView extends GraphSelectionProviderView {
 		selectedCodePainterCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		// populate the combo with the registered code painters
+		selectedCodePainterCombo.removeAll();
 		for(CodePainter codePainter : CodePainters.getRegisteredCodePainters()){
 			selectedCodePainterCombo.add(codePainter.getTitle());
 			selectedCodePainterCombo.setData(codePainter.getTitle(), codePainter);
