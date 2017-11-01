@@ -362,11 +362,9 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	}
 
 	/**
-	 * Computes a new styled result for a given selection event. Note that this
-	 * implementation increases visibility of this method from its base class
-	 * signature from protected to public.
+	 * Computes a new styled result for a given selection event.
 	 */
-	public StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection){
+	protected StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection){
 		UnstyledResult result = computeResult(event, filter(filteredSelection));
 		if(result == null){
 			return null;
@@ -379,6 +377,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	public abstract UnstyledFrontierResult computeFrontierResult(IAtlasSelectionEvent event, int reverse, int forward);
 
 	public UnstyledResult computeResult(IAtlasSelectionEvent event, Q filteredSelection) {
+		// this is likely dead code, but exists for posterity
 		return new UnstyledResult(computeFrontierResult(event, 0, 0).getResult());
 	}
 

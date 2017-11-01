@@ -52,9 +52,9 @@ public class CodePainterSmartView extends FilteringAtlasSmartViewScript implemen
 	
 	@Override
 	public FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
-//		if(codePainter != null){
-//			return codePainter.explore(event, oldResult);
-//		}
+		if(codePainter != null){
+			return codePainter.explore(event, oldResult);
+		}
 		return SimpleScriptUtil.explore(this, event, oldResult);
 	}
 
@@ -68,9 +68,10 @@ public class CodePainterSmartView extends FilteringAtlasSmartViewScript implemen
 
 	@Override
 	protected StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection) {
-		if(codePainter != null){
-			return codePainter.selectionChanged(event, filteredSelection);
-		}
+		// this is going to be dead code, so just returning null to preserve the selected graph
+//		if(codePainter != null){
+//			return codePainter.selectionChanged(event, filteredSelection);
+//		}
 		return null;
 	}
 
