@@ -54,7 +54,7 @@ public class ControlPanelView extends GraphSelectionProviderView {
 		browseCodePaintersGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		browseCodePaintersGroup.setText("Browse Code Painters:");
 		
-		Tree categorizedCodePaintersTree = new Tree(browseCodePaintersGroup, SWT.BORDER);
+		Tree categorizedCodePaintersTree = new Tree(browseCodePaintersGroup, SWT.NONE);
 		categorizedCodePaintersTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		// populate the combo with the registered code painters
@@ -79,26 +79,40 @@ public class ControlPanelView extends GraphSelectionProviderView {
 		// add code painters to categorized tree
 		categorizedCodePaintersTree.removeAll();
 		for(CodePainter codePainter : codePainters){
-			boolean categoryExists = false;
-			for(TreeItem category : categorizedCodePaintersTree.getItems()){
-				if(category.getText().equals(codePainter.getCategory())){
-					TreeItem item = new TreeItem(category, SWT.NONE);
-					item.setText(codePainter.getTitle());
-					item.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/brush.gif"));
-					item.setData(codePainter);
-					categoryExists = true;
-					break;
+			String qualifiedCategory = codePainter.getCategory();
+			String[] categoryNames = qualifiedCategory.split("/");
+			TreeItem category = null;
+			for(int i=0; i<categoryNames.length; i++){
+				String categoryName = categoryNames[i];
+				boolean categoryExists = false;
+				
+				// if this is the first level search the tree roots for the category
+				// otherwise search the parent categories children for the current category level
+				TreeItem[] children = (i==0 ? categorizedCodePaintersTree.getItems() : category.getItems());
+				
+				for(TreeItem child : children){
+					if(child.getText().equals(categoryName)){
+						categoryExists = true;
+						category = child;
+						break;
+					}
+				}
+				if(!categoryExists){
+					TreeItem child;
+					if(i == 0){
+						child = new TreeItem(categorizedCodePaintersTree, SWT.NONE);
+					} else {
+						child = new TreeItem(category, SWT.NONE);
+					}
+					child.setText(categoryName);
+					child.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/folder.gif"));
+					category = child;
 				}
 			}
-			if(!categoryExists){
-				TreeItem category = new TreeItem(categorizedCodePaintersTree, SWT.NONE);
-				category.setText(codePainter.getCategory());
-				category.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/folder.gif"));
-				TreeItem item = new TreeItem(category, SWT.NONE);
-				item.setText(codePainter.getTitle());
-				item.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/brush.gif"));
-				item.setData(codePainter);
-			}
+			TreeItem codePainterItem = new TreeItem(category, SWT.NONE);
+			codePainterItem.setText(codePainter.getTitle());
+			codePainterItem.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/brush.gif"));
+			codePainterItem.setData(codePainter);
 		}
 		
 		categorizedCodePaintersTree.addSelectionListener(new SelectionAdapter() {

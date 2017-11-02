@@ -335,6 +335,11 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	
 	public abstract String getTitle();
 	
+	/**
+	 * Defines the category this code painter is classified under.
+	 * Optionally categories can be qualified for multiple levels with "/"
+	 * @return
+	 */
 	public abstract String getCategory();
 
 	protected abstract String[] getSupportedNodeTags();
