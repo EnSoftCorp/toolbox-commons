@@ -115,8 +115,12 @@
       </view>
    </extension>
    
+   <!-- adds codepainter definitions -->
+   <extension point="com.ensoftcorp.open.commons.codepainter">
+      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.UniversalGraphExplorerCodePainter"></codepainter>
+   </extension>
+   
    <!-- extension for Composite Filter View view -->
-   <!-- DISABLED FOR RELEASE
 	<extension
          point="org.eclipse.ui.views">
       <view
@@ -127,7 +131,6 @@
             name="Composite Filter View">
       </view>
    </extension>
-   -->
    
    <!-- defines an extension point schema for contributing subsystem definitons -->
    <extension-point 
