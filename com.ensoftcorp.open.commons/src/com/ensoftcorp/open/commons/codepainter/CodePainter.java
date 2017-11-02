@@ -46,10 +46,10 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 		private Q frontierForward;
 		private Q frontierReverse;
 		
-		public UnstyledFrontierResult(Q result, Q frontierForward, Q frontierReverse){
+		public UnstyledFrontierResult(Q result, Q frontierReverse, Q frontierForward){
 			this.result = result;
-			this.frontierForward = frontierForward;
 			this.frontierReverse = frontierReverse;
+			this.frontierForward = frontierForward;
 		}
 		
 		public Q getResult(){
@@ -358,6 +358,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 		}
 		ColorPalette palette = getActiveColorPalette();
 		IMarkup markup = palette.getMarkup();
+				
 		return new FrontierStyledResult(frontierResult.getResult(), frontierResult.getFrontierReverse(), frontierResult.getFrontierForward(), markup);
 	}
 
@@ -365,19 +366,21 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	 * Computes a new styled result for a given selection event.
 	 */
 	protected StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection){
-		UnstyledResult result = computeResult(event, filter(filteredSelection));
-		if(result == null){
-			return null;
-		}
-		ColorPalette palette = getActiveColorPalette();
-		IMarkup markup = palette.getMarkup();
-		return new StyledResult(result.getResult(), markup);
+		// this is dead code, but exists for posterity
+//		UnstyledResult result = computeResult(event, filter(filteredSelection));
+//		if(result == null){
+//			return null;
+//		}
+//		ColorPalette palette = getActiveColorPalette();
+//		IMarkup markup = palette.getMarkup();
+//		return new StyledResult(result.getResult(), markup);
+		
+		return null;
 	}
 	
 	public abstract UnstyledFrontierResult computeFrontierResult(IAtlasSelectionEvent event, int reverse, int forward);
 
 	public UnstyledResult computeResult(IAtlasSelectionEvent event, Q filteredSelection) {
-		// this is likely dead code, but exists for posterity
 		return new UnstyledResult(computeFrontierResult(event, 0, 0).getResult());
 	}
 
