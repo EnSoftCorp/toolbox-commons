@@ -1,6 +1,7 @@
 package com.ensoftcorp.open.commons.codepainter;
 
 import java.awt.Color;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -23,6 +24,47 @@ public abstract class ColorPalette {
 		Color[] colors = new Color[RESERVED_COLORS.length];
 		System.arraycopy(RESERVED_COLORS, 0, colors, 0, RESERVED_COLORS.length);
 		return colors;
+	}
+	
+	/**
+	 * Returns an empty color palette
+	 * @return
+	 */
+	public static ColorPalette getEmptyColorPalette(){
+		return new ColorPalette (){
+			@Override
+			public String getName() {
+				return "Empty Color Palette";
+			}
+
+			@Override
+			public String getDescription() {
+				return "No applied coloring.";
+			}
+			
+			@Override
+			public Map<Node, Color> getNodeColors() {
+				return new HashMap<Node,Color>();
+			}
+
+			@Override
+			public Map<Edge, Color> getEdgeColors() {
+				return new HashMap<Edge,Color>();
+			}
+
+			@Override
+			public Map<Color, String> getNodeColorLegend() {
+				return new HashMap<Color,String>();
+			}
+
+			@Override
+			public Map<Color, String> getEdgeColorLegend() {
+				return new HashMap<Color,String>();
+			}
+
+			@Override
+			protected void canvasChanged() {}
+		};
 	}
 	
 	protected AtlasSet<Node> canvasNodes = new AtlasHashSet<Node>();

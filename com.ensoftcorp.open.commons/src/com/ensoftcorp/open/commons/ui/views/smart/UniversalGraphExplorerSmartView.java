@@ -1,9 +1,6 @@
 package com.ensoftcorp.open.commons.ui.views.smart;
 
-import java.awt.Color;
-
-import com.ensoftcorp.atlas.core.highlight.Highlighter;
-import com.ensoftcorp.atlas.core.markup.MarkupFromH;
+import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
@@ -57,28 +54,27 @@ public class UniversalGraphExplorerSmartView extends FilteringAtlasSmartViewScri
 		
 		Q origin = filteredSelection;
 		
-		// highlight the origin
-		Highlighter h = new Highlighter();
-		h.highlight(origin, Color.CYAN);
-		
-		// calculate the complete result
-		Q fullForward = Common.universe().forward(origin);
-		Q fullReverse = Common.universe().reverse(origin);
-		Q completeResult = fullForward.union(fullReverse);
+		// graph is the entire universe
+		Q graph = Common.universe();
 		
 		// compute what to show for current steps
-		Q f = origin.forwardStepOn(completeResult, forward);
-		Q r = origin.reverseStepOn(completeResult, reverse);
-		Q result = f.union(r).union(origin);
+		Q f = origin.forwardStepOn(graph, forward);
+		Q r = origin.reverseStepOn(graph, reverse);
+		Q result = f.union(r);
 		
 		// compute what is on the frontier
-		Q frontierForward = origin.forwardStepOn(completeResult, forward+1);
-		frontierForward = frontierForward.retainEdges().differenceEdges(result);
-		Q frontierReverse = origin.reverseStepOn(completeResult, reverse+1);
-		frontierReverse = frontierReverse.retainEdges().differenceEdges(result);
-
+		Q frontierReverse = origin.reverseStepOn(graph, reverse+1);
+		frontierReverse = frontierReverse.differenceEdges(result).retainEdges();
+		Q frontierForward = origin.forwardStepOn(graph, forward+1);
+		frontierForward = frontierForward.differenceEdges(result).retainEdges();
+		
 		// show the result
-		return new com.ensoftcorp.atlas.core.script.FrontierStyledResult(result, frontierReverse, frontierForward, new MarkupFromH(h));
+		FrontierStyledResult frontier = new FrontierStyledResult(result, frontierReverse, frontierForward, new Markup());
+		
+		// highlight the selection
+		frontier.setInput(origin);
+		
+		return frontier;
 	}
 
 	@Override

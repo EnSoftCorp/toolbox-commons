@@ -334,6 +334,8 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	}
 	
 	public abstract String getTitle();
+	
+	public abstract String getCategory();
 
 	protected abstract String[] getSupportedNodeTags();
 	
