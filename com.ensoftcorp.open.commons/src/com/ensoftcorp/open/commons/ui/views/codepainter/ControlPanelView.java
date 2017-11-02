@@ -121,8 +121,10 @@ public class ControlPanelView extends GraphSelectionProviderView {
 				if(categorizedCodePaintersTree.getSelectionCount() == 1){
 					CodePainter codePainter = (CodePainter) categorizedCodePaintersTree.getSelection()[0].getData();
 					if(codePainter != null){
-						CodePainterSmartView.setCodePainter(codePainter);
-						selectedCodePainterCombo.setText(codePainter.getTitle());
+						if(CodePainterSmartView.setCodePainter(codePainter)){
+							selectedCodePainterCombo.setText(codePainter.getTitle());
+							refreshSelection();
+						}
 					}
 				}
 			}
@@ -143,7 +145,9 @@ public class ControlPanelView extends GraphSelectionProviderView {
 			public void widgetSelected(SelectionEvent e) {
 				CodePainter codePainter = (CodePainter) selectedCodePainterCombo.getData(selectedCodePainterCombo.getText());
 				if(codePainter != null){
-					CodePainterSmartView.setCodePainter(codePainter);
+					if(CodePainterSmartView.setCodePainter(codePainter)){
+						refreshSelection();
+					}
 				}
 			}
 		});

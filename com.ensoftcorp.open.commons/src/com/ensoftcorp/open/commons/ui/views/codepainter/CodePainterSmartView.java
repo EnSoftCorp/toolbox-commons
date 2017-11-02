@@ -15,8 +15,31 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 
 	private static CodePainter codePainter = null;
 	
-	public static final synchronized void setCodePainter(CodePainter codePainter){
-		CodePainterSmartView.codePainter = codePainter;
+	/**
+	 * Sets the active code painter. Setting code painter to null effectively
+	 * disables code painter smart view.
+	 * 
+	 * @param codePainter
+	 */
+	public static final synchronized boolean setCodePainter(CodePainter codePainter){
+		synchronized (CodePainter.class){
+			if(codePainter == null){
+				// assigning null again
+				CodePainterSmartView.codePainter = null;
+				return true;
+			} else if(CodePainterSmartView.codePainter == null){
+				// first non-null assignment
+				CodePainterSmartView.codePainter = codePainter;
+				return true;
+			} else if(!CodePainterSmartView.codePainter.equals(codePainter)){
+				// new non-equal assignment (code painter change)
+				CodePainterSmartView.codePainter = codePainter;
+				return true;
+			}
+			
+			// no change
+			return false;
+		}
 	}
 	
 	@Override

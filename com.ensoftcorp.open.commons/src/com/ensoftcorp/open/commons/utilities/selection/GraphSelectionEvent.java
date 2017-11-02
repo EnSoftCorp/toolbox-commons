@@ -11,21 +11,24 @@ import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.script.Common;
 
 public class GraphSelectionEvent extends StructuredSelection {
 
 	private List<GraphElement> graphElements = new LinkedList<GraphElement>();
 	
 	public GraphSelectionEvent(Q selection){
-		this(selection.eval());
+		this(selection!=null ? selection.eval() : Common.empty().eval());
 	}
 	
 	public GraphSelectionEvent(Graph selection){
-		for(Node node : selection.nodes()){
-			graphElements.add(node);
-		}
-		for(Edge edge : selection.edges()){
-			graphElements.add(edge);
+		if(selection != null){
+			for(Node node : selection.nodes()){
+				graphElements.add(node);
+			}
+			for(Edge edge : selection.edges()){
+				graphElements.add(edge);
+			}
 		}
 	}
 	
