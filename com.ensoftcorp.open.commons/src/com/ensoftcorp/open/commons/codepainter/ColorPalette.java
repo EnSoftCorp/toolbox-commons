@@ -9,13 +9,21 @@ import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.markup.IMarkup;
 import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.markup.MarkupProperty;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 
 public abstract class ColorPalette {
+	
+	public static final Color SELECTION_COLOR = new Color(255,253,40);
+	private static final Color[] RESERVED_COLORS = new Color[]{ SELECTION_COLOR };
+	
+	public static final Color[] getReservedColors(){
+		Color[] colors = new Color[RESERVED_COLORS.length];
+		System.arraycopy(RESERVED_COLORS, 0, colors, 0, RESERVED_COLORS.length);
+		return colors;
+	}
 	
 	protected AtlasSet<Node> canvasNodes = new AtlasHashSet<Node>();
 	protected AtlasSet<Edge> canvasEdges = new AtlasHashSet<Edge>();
@@ -39,7 +47,7 @@ public abstract class ColorPalette {
 	
 	public abstract String getDescription();
 	
-	public final IMarkup getMarkup(){
+	public final Markup getMarkup(){
 		Markup markup = new Markup();
 		for(Entry<Node,Color> nodeColoring : getNodeColors().entrySet()){
 			Node node = nodeColoring.getKey();

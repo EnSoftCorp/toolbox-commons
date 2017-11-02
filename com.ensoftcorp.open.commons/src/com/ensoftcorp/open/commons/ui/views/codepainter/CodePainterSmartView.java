@@ -11,67 +11,72 @@ import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 
-public class CodePainterSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
+public final class CodePainterSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
 	private static CodePainter codePainter = null;
 	
-	public static void setCodePainter(CodePainter codePainter){
+	public static final synchronized void setCodePainter(CodePainter codePainter){
 		CodePainterSmartView.codePainter = codePainter;
 	}
 	
 	@Override
-	public String getTitle() {
+	public final String getTitle() {
 		return "Code Painter";
 	}
 
 	@Override
-	protected String[] getSupportedNodeTags() {
+	protected final String[] getSupportedNodeTags() {
 		return EVERYTHING;
 	}
 	
 	@Override
-	protected String[] getSupportedEdgeTags() {
+	protected final String[] getSupportedEdgeTags() {
 		return EVERYTHING;
 	}
 
 	@Override
-	public int getDefaultStepTop() {
-		if(codePainter != null){
-			return codePainter.getDefaultStepTop();
+	public final synchronized int getDefaultStepTop() {
+		synchronized (CodePainter.class){
+			if(codePainter != null){
+				return codePainter.getDefaultStepTop();
+			}
 		}
 		return 1;
 	}
 
 	@Override
-	public int getDefaultStepBottom() {
-		if(codePainter != null){
-			return codePainter.getDefaultStepBottom();
+	public final synchronized int getDefaultStepBottom() {
+		synchronized (CodePainter.class){
+			if(codePainter != null){
+				return codePainter.getDefaultStepBottom();
+			}
 		}
 		return 1;
 	}
 	
 	@Override
-	public FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
-		if(codePainter != null){
-			return codePainter.explore(event, oldResult);
+	public final synchronized FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
+		synchronized (CodePainter.class){
+			if(codePainter != null){
+				return codePainter.explore(event, oldResult);
+			}
 		}
 		return SimpleScriptUtil.explore(this, event, oldResult);
 	}
 
 	@Override
-	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
-		if(codePainter != null){
-			return codePainter.evaluate(event, reverse, forward);
+	public final synchronized FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
+		synchronized (CodePainter.class){
+			if(codePainter != null){
+				return codePainter.evaluate(event, reverse, forward);
+			}
 		}
 		return null;
 	}
 
 	@Override
-	protected StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection) {
-		// this is going to be dead code, so just returning null to preserve the selected graph
-//		if(codePainter != null){
-//			return codePainter.selectionChanged(event, filteredSelection);
-//		}
+	protected final StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection) {
+		// this is dead code, just here to satisfy interfaces
 		return null;
 	}
 

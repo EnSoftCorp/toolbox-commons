@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.markup.IMarkup;
+import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
 import com.ensoftcorp.atlas.core.script.StyledResult;
@@ -352,36 +352,51 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	 * number of steps forward and reverse to explore on the frontier.
 	 */
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward){
-		UnstyledFrontierResult frontierResult = computeFrontierResult(event, reverse, forward);
+		Q convertedSelections = convertSelection(filter(event));
+		UnstyledFrontierResult frontierResult = computeFrontierResult(filter(event), reverse, forward);
 		if(frontierResult == null){
 			return null;
 		}
 		ColorPalette palette = getActiveColorPalette();
-		IMarkup markup = palette.getMarkup();
+		Markup markup = palette.getMarkup();
 				
-		return new FrontierStyledResult(frontierResult.getResult(), frontierResult.getFrontierReverse(), frontierResult.getFrontierForward(), markup);
+		FrontierStyledResult result = new FrontierStyledResult(frontierResult.getResult(), frontierResult.getFrontierReverse(), frontierResult.getFrontierForward(), markup);
+		
+		// highlights the computed selection
+		result.setInput(convertedSelections);
+		
+		return result;
 	}
 
 	/**
 	 * Computes a new styled result for a given selection event.
 	 */
-	protected StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection){
-		// this is dead code, but exists for posterity
-//		UnstyledResult result = computeResult(event, filter(filteredSelection));
-//		if(result == null){
-//			return null;
-//		}
-//		ColorPalette palette = getActiveColorPalette();
-//		IMarkup markup = palette.getMarkup();
-//		return new StyledResult(result.getResult(), markup);
-		
+	protected final StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection){
+		// this is dead code, but exists to satisfy interfaces
 		return null;
 	}
 	
-	public abstract UnstyledFrontierResult computeFrontierResult(IAtlasSelectionEvent event, int reverse, int forward);
+	/**
+	 * Filters the selection event to selections that the code painter responds
+	 * to. Ideally any selection that a script can respond to should be included
+	 * in the result or converted to a selection that is contained in the final
+	 * result. If the selection is just a convenience input (for example a data
+	 * flow node) that corresponds to a selection contained in the final result
+	 * (say a control flow node that contains the selected data flow node) then 
+	 * this method should be overridden to convert the selection to selections 
+	 * contained in the final result.
+	 * 
+	 * @param event
+	 * @return
+	 */
+	public Q convertSelection(Q filteredSelections){
+		return filteredSelections;
+	}
+	
+	public abstract UnstyledFrontierResult computeFrontierResult(Q filteredSelections, int reverse, int forward);
 
-	public UnstyledResult computeResult(IAtlasSelectionEvent event, Q filteredSelection) {
-		return new UnstyledResult(computeFrontierResult(event, 0, 0).getResult());
+	public UnstyledResult computeResult(Q filteredSelections) {
+		return new UnstyledResult(computeFrontierResult(filteredSelections, 0, 0).getResult());
 	}
 
 }
