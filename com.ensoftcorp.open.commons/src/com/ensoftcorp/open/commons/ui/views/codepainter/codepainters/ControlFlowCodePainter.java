@@ -9,7 +9,7 @@ import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
-import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowColorPalette;
+import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeColorPalette;
 
 /**
  * A Control Flow code painter
@@ -18,7 +18,7 @@ import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlo
  */
 public class ControlFlowCodePainter extends CodePainter {
 	
-	private ColorPalette controlFlowColorPalette = new ControlFlowColorPalette();
+	private ColorPalette controlFlowColorPalette = new ControlFlowEdgeColorPalette();
 	
 	@Override
 	public String getTitle() {

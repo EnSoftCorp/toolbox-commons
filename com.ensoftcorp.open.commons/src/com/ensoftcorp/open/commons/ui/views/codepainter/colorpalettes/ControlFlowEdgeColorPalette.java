@@ -11,7 +11,7 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 
-public class ControlFlowColorPalette extends ColorPalette {
+public class ControlFlowEdgeColorPalette extends ColorPalette {
 
 	public static final Color CONDITIONAL_TRUE_CONTROL_FLOW_COLOR = Color.WHITE;
 	public static final Color CONDITIONAL_FALSE_CONTROL_FLOW_COLOR = Color.BLACK;
