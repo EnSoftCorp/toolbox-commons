@@ -12,30 +12,37 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wb.swt.ResourceManager;
 
+import com.ensoftcorp.atlas.core.indexing.IIndexListener;
+import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.CodePainters;
 import com.ensoftcorp.open.commons.codepainter.ColorPalettes;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderView;
 
-public class ControlPanelView extends GraphSelectionProviderView {
+public class CodePainterControlPanel extends GraphSelectionProviderView {
 
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
-	public static final String ID = "com.ensoftcorp.open.commons.ui.views.codepainter.controlpanel";
+	public static final String ID = "com.ensoftcorp.open.commons.ui.views.codepainter.controlpanel"; //$NON-NLS-1$
 	
-	public ControlPanelView(){
+	public CodePainterControlPanel(){
+		setPartName("Code Painter Control Panel");
+		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/toolbox.gif"));
 		CodePainters.loadCodePainterContributions();
 		ColorPalettes.loadColorPaletteContributions();
 	}
 	
 	@Override
 	public void createPartControl(Composite parent) {
+		boolean indexExists = IndexingUtil.indexExists();
+		
 		parent.setLayout(new GridLayout(1, false));
 		
 		Composite searchCodePaintersComposite = new Composite(parent, SWT.NONE);
@@ -44,6 +51,7 @@ public class ControlPanelView extends GraphSelectionProviderView {
 		
 		Button searchCodePaintersCheckbox = new Button(searchCodePaintersComposite, SWT.CHECK);
 		searchCodePaintersCheckbox.setText("Search Code Painters: ");
+		searchCodePaintersCheckbox.setEnabled(indexExists);
 		
 		Combo selectedCodePainterCombo = new Combo(searchCodePaintersComposite, SWT.NONE);
 		selectedCodePainterCombo.setEnabled(false);
@@ -56,6 +64,7 @@ public class ControlPanelView extends GraphSelectionProviderView {
 		
 		Tree categorizedCodePaintersTree = new Tree(browseCodePaintersGroup, SWT.NONE);
 		categorizedCodePaintersTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		categorizedCodePaintersTree.setEnabled(indexExists);
 		
 		// populate the combo with the registered code painters
 		selectedCodePainterCombo.removeAll();
@@ -149,6 +158,43 @@ public class ControlPanelView extends GraphSelectionProviderView {
 						refreshSelection();
 					}
 				}
+			}
+		});
+		
+		// add index listeners to disable UI when index is changing
+		final Display display = parent.getShell().getDisplay();
+		IndexingUtil.addListener(new IIndexListener(){
+			@Override
+			public void indexOperationCancelled(IndexOperation op) {}
+
+			@Override
+			public void indexOperationComplete(IndexOperation op) {
+				display.syncExec(new Runnable(){
+					@Override
+					public void run() {
+						searchCodePaintersCheckbox.setEnabled(true);
+						categorizedCodePaintersTree.setEnabled(true);
+					}
+				});
+			}
+
+			@Override
+			public void indexOperationError(IndexOperation op, Throwable error) {}
+
+			@Override
+			public void indexOperationScheduled(IndexOperation op) {}
+
+			@Override
+			public void indexOperationStarted(IndexOperation op) {
+				display.syncExec(new Runnable(){
+					@Override
+					public void run() {
+						searchCodePaintersCheckbox.setSelection(false);
+						searchCodePaintersCheckbox.setEnabled(false);
+						selectedCodePainterCombo.setEnabled(false);
+						categorizedCodePaintersTree.setEnabled(false);
+					}
+				});
 			}
 		});
 		
