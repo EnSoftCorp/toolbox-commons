@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.ui.views.codepainter;
+package com.ensoftcorp.open.commons.ui.views.codepainter.codepainters;
 
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
@@ -45,7 +45,8 @@ public class UniversalGraphExplorerCodePainter extends CodePainter {
 
 	@Override
 	public ColorPalette getBaseColorPalette() {
-		return ColorPalette.getEmptyColorPalette();
+		// returning null to indicate the result is unstyled by default
+		return null;
 	}
 
 	@Override

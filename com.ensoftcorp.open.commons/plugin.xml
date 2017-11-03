@@ -2,6 +2,11 @@
 <?eclipse version="3.4"?>
 <plugin>
 
+   <!-- startup to register the XCSG tag hierarchy extensions -->
+   <extension point="org.eclipse.ui.startup">
+     <startup class="com.ensoftcorp.open.commons.startup.RegisterHierarchyStartup"/>
+   </extension>
+
    <!-- create an Atlas Toolbox parent preferences menu item -->
    <extension
          point="org.eclipse.ui.preferencePages">
@@ -117,7 +122,8 @@
    
    <!-- adds codepainter definitions -->
    <extension point="com.ensoftcorp.open.commons.codepainter">
-      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.UniversalGraphExplorerCodePainter"></codepainter>
+      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.UniversalGraphExplorerCodePainter"></codepainter>
+      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.ControlFlowCodePainter"></codepainter>
    </extension>
    
    <!-- extension for Composite Filter View view -->

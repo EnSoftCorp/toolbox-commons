@@ -79,6 +79,10 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 		this.conflictStrategy = conflictStrategy;
 	}
 	
+	/**
+	 * The base and perhaps computation specific coloring scheme. If the computation result is null may be returned.
+	 * @return
+	 */
 	public abstract ColorPalette getBaseColorPalette();
 	
 	protected ColorPalette getActiveColorPalette(){
@@ -97,7 +101,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 			public Map<Node, Color> getNodeColors() {
 				
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getBaseColorPalette();
+				ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
 				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
@@ -158,7 +162,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 			@Override
 			public Map<Edge, Color> getEdgeColors() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getBaseColorPalette();
+				ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
 				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
@@ -219,7 +223,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 			@Override
 			public Map<Color, String> getNodeColorLegend() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getBaseColorPalette();
+				ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
 				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
@@ -262,7 +266,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 			@Override
 			public Map<Color, String> getEdgeColorLegend() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getBaseColorPalette();
+				ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
 				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
@@ -314,14 +318,20 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	}
 	
 	public void addColorPalette(ColorPalette palette){
-		if(!getBaseColorPalette().equals(palette)){
-			appliedColorPalettes.add(palette);
+		if(palette != null){
+			ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
+			if(!baseColorPalette.equals(palette)){
+				appliedColorPalettes.add(palette);
+			}
 		}
 	}
 	
 	public void addColorPalette(ColorPalette palette, int index){
-		if(!getBaseColorPalette().equals(palette)){
-			appliedColorPalettes.add(index, palette);
+		if(palette != null){
+			ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
+			if(!baseColorPalette.equals(palette)){
+				appliedColorPalettes.add(index, palette);
+			}
 		}
 	}
 	
@@ -364,12 +374,21 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 		if(frontierResult == null){
 			return null;
 		}
+		
+		// update the canvas each color palette will be applied to
+		if(this.getBaseColorPalette() != null){
+			this.getBaseColorPalette().setCanvas(frontierResult.getResult());
+		}
+		for(ColorPalette palette : appliedColorPalettes){
+			palette.setCanvas(frontierResult.getResult());
+		}
+		
+		// compute the styled frontier result to display
 		ColorPalette palette = getActiveColorPalette();
 		Markup markup = palette.getMarkup();
-				
 		FrontierStyledResult result = new FrontierStyledResult(frontierResult.getResult(), frontierResult.getFrontierReverse(), frontierResult.getFrontierForward(), markup);
 		
-		// highlights the computed selection
+		// highlight the selections
 		result.setInput(convertedSelections);
 		
 		return result;

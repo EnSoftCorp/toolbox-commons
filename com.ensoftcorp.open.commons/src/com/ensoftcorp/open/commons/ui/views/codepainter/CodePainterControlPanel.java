@@ -33,6 +33,7 @@ import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.CodePainters;
 import com.ensoftcorp.open.commons.codepainter.ColorPalettes;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderView;
+import org.eclipse.swt.custom.SashForm;
 
 public class CodePainterControlPanel extends GraphSelectionProviderView {
 
@@ -192,71 +193,59 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		final CTabItem codePainterColorPalettesTab = new CTabItem(folder, SWT.NONE);
 		codePainterColorPalettesTab.setText("Color Palettes");
 		
-		ScrolledComposite codePainterColorPalettesScrolledComposite = new ScrolledComposite(folder, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
-		codePainterColorPalettesTab.setControl(codePainterColorPalettesScrolledComposite);
-		codePainterColorPalettesScrolledComposite.setExpandHorizontal(true);
-		codePainterColorPalettesScrolledComposite.setExpandVertical(true);
+		SashForm sashForm = new SashForm(folder, SWT.NONE);
+		codePainterColorPalettesTab.setControl(sashForm);
 		
-		Composite codePainterColorPaletteContentComposite = new Composite(codePainterColorPalettesScrolledComposite, SWT.NONE);
-		codePainterColorPaletteContentComposite.setLayout(new GridLayout(1, false));
+		Group applicableColorPalettesGroup = new Group(sashForm, SWT.NONE);
+		applicableColorPalettesGroup.setText("Applicable Color Palettes");
+		applicableColorPalettesGroup.setLayout(new GridLayout(1, false));
 		
-		Label lblNewLabel = new Label(codePainterColorPaletteContentComposite, SWT.NONE);
-		lblNewLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		lblNewLabel.setText("New Label");
+		ScrolledComposite applicableColorPalettesScrolledComposite = new ScrolledComposite(applicableColorPalettesGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		applicableColorPalettesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		applicableColorPalettesScrolledComposite.setExpandHorizontal(true);
+		applicableColorPalettesScrolledComposite.setExpandVertical(true);
 		
-		Label label = new Label(codePainterColorPaletteContentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
-		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Composite applicableColorPalettesContentComposite = new Composite(applicableColorPalettesScrolledComposite, SWT.NONE);
+		applicableColorPalettesContentComposite.setLayout(new GridLayout(1, false));
 		
-		Composite composite = new Composite(codePainterColorPaletteContentComposite, SWT.NONE);
-		composite.setLayout(new GridLayout(2, false));
-		composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Button btnEnabled = new Button(composite, SWT.CHECK);
-		btnEnabled.setSelection(true);
-		btnEnabled.setText("Enabled");
-		
-		ExpandBar expandBar = new ExpandBar(composite, SWT.NONE);
+		ExpandBar expandBar = new ExpandBar(applicableColorPalettesContentComposite, SWT.NONE);
 		expandBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		ExpandItem xpndtmNewExpanditem = new ExpandItem(expandBar, SWT.NONE);
 		xpndtmNewExpanditem.setExpanded(true);
-		xpndtmNewExpanditem.setText("Base Color Palette: Empty");
+		xpndtmNewExpanditem.setText("CP1");
 		
-		Composite composite_1 = new Composite(expandBar, SWT.NONE);
-		xpndtmNewExpanditem.setControl(composite_1);
+		Composite composite = new Composite(expandBar, SWT.NONE);
+		xpndtmNewExpanditem.setControl(composite);
 		xpndtmNewExpanditem.setHeight(xpndtmNewExpanditem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-		composite_1.setLayout(new GridLayout(1, false));
+		applicableColorPalettesScrolledComposite.setContent(applicableColorPalettesContentComposite);
+		applicableColorPalettesScrolledComposite.setMinSize(applicableColorPalettesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
-		Composite composite_2 = new Composite(composite_1, SWT.NONE);
-		composite_2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		composite_2.setLayout(new GridLayout(2, false));
+		Group activeColorPalletesGroup = new Group(sashForm, SWT.NONE);
+		activeColorPalletesGroup.setText("Active Color Palettes");
+		activeColorPalletesGroup.setLayout(new GridLayout(1, false));
 		
-		Composite color = new Composite(composite_2, SWT.BORDER);
-		color.setBackground(SWTResourceManager.getColor(SWT.COLOR_RED));
-		GridData gd_color = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_color.widthHint = 20;
-		gd_color.heightHint = 20;
-		color.setLayoutData(gd_color);
+		ScrolledComposite activeColorPalettesScrolledComposite = new ScrolledComposite(activeColorPalletesGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		activeColorPalettesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		activeColorPalettesScrolledComposite.setExpandHorizontal(true);
+		activeColorPalettesScrolledComposite.setExpandVertical(true);
 		
-		color.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseUp(MouseEvent e) {
-				// TODO: implement
-			}
-		});
+		Composite activeColorPalettesContentComposite = new Composite(activeColorPalettesScrolledComposite, SWT.NONE);
+		activeColorPalettesContentComposite.setLayout(new GridLayout(1, false));
 		
-		Label colorLabel = new Label(composite_2, SWT.NONE);
-		colorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		colorLabel.setSize(439, 15);
-		colorLabel.setText("Color Label");
+		ExpandBar expandBar_1 = new ExpandBar(activeColorPalettesContentComposite, SWT.NONE);
+		expandBar_1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Label label_2 = new Label(composite_1, SWT.SEPARATOR | SWT.HORIZONTAL);
-		label_2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		ExpandItem xpndtmNewExpanditem_1 = new ExpandItem(expandBar_1, SWT.NONE);
+		xpndtmNewExpanditem_1.setExpanded(true);
+		xpndtmNewExpanditem_1.setText("CP2");
 		
-		Label label_1 = new Label(codePainterColorPaletteContentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
-		label_1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		codePainterColorPalettesScrolledComposite.setContent(codePainterColorPaletteContentComposite);
-		codePainterColorPalettesScrolledComposite.setMinSize(codePainterColorPaletteContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		Composite composite_1 = new Composite(expandBar_1, SWT.NONE);
+		xpndtmNewExpanditem_1.setControl(composite_1);
+		xpndtmNewExpanditem_1.setHeight(xpndtmNewExpanditem_1.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		activeColorPalettesScrolledComposite.setContent(activeColorPalettesContentComposite);
+		activeColorPalettesScrolledComposite.setMinSize(activeColorPalettesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		sashForm.setWeights(new int[] {1, 1});
 		
 		final CTabItem codePainterLegendsTab = new CTabItem(folder, SWT.NONE);
 		codePainterLegendsTab.setText("Legend");

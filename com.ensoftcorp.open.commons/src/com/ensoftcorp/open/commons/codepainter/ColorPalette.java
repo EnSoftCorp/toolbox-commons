@@ -26,6 +26,12 @@ public abstract class ColorPalette {
 		return colors;
 	}
 	
+	private static String SUPPORTS_NOTHING = "SUPPORTS_NOTHING";
+	private static String SUPPORTS_EVERYTHING = "SUPPORTS_EVERYTHING";
+	
+	protected static String[] EVERYTHING = { SUPPORTS_EVERYTHING };
+	protected static String[] NOTHING = { SUPPORTS_NOTHING };
+	
 	/**
 	 * Returns an empty color palette
 	 * @return
@@ -81,6 +87,7 @@ public abstract class ColorPalette {
 		canvasNodes.addAll(g.nodes());
 		canvasEdges.clear();
 		canvasEdges.addAll(g.edges());
+		canvasChanged();
 	}
 	
 	protected abstract void canvasChanged();

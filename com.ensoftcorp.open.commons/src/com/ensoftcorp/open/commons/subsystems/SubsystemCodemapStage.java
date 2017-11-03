@@ -69,6 +69,9 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 	}
 	
 	private void buildSubsystemTagHierarchy(Set<Subsystem> subsystems) {
+		
+		// TODO: migrate this to the RegistryHierarchyStartup.earlyStartup method
+		
 		// register root tag
 		try {
 			XCSG.HIERARCHY.registerTag(Subsystem.ROOT_SUBSYSTEM_TAG, new String[] {});
