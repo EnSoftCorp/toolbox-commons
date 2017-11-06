@@ -18,11 +18,16 @@ import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlo
  * @author Ben Holland
  */
 public class ControlFlowCodePainter extends CodePainter {
+
+	private static String INCLUDE_EXCEPTIONAL_CONTROL_FLOW = "INCLUDE_EXCEPTIONAL_CONTROL_FLOW";
 	
 	public ControlFlowCodePainter(){
 		// add some default coloring palettes
 		this.addColorPalette(new ControlFlowEdgeColorPalette());
 		this.addColorPalette(new ControlFlowLoopDepthColorPalette());
+		
+		// add optional parameters and flags
+		this.addPossibleFlag(INCLUDE_EXCEPTIONAL_CONTROL_FLOW, "Includes exceptional control flow paths.", false);
 	}
 	
 	@Override
@@ -118,8 +123,12 @@ public class ControlFlowCodePainter extends CodePainter {
 		}
 	}
 	
-	protected Q getCFG(Q functions){
-		return CommonQueries.cfg(functions);
+	private Q getCFG(Q functions){
+		if(this.isFlagSet(INCLUDE_EXCEPTIONAL_CONTROL_FLOW)){
+			return CommonQueries.excfg(functions);
+		} else {
+			return CommonQueries.cfg(functions);
+		}
 	}
 	
 	private UnstyledFrontierResult computeFrontierResult(Q origin, Q graph, int reverse, int forward){

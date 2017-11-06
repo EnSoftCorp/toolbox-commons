@@ -3,11 +3,12 @@ package com.ensoftcorp.open.commons.codepainter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class Configurable {
 
+	private Map<String,Object> parameters = new HashMap<String,Object>();
 	private Map<String,Class<? extends Object>> parameterNames = new HashMap<String,Class<? extends Object>>();
 	private Map<String,Object> defaultParameterValues = new HashMap<String,Object>();
 	private Map<String,String> parameterDescriptions = new HashMap<String,String>();
@@ -78,7 +79,7 @@ public class Configurable {
 	 * @param parameters
 	 * @return
 	 */
-	public boolean isParameterSet(String name, Map<String,Object> parameters){
+	public boolean isParameterSet(String name){
 		return parameters.containsKey(name);
 	}
 	
@@ -88,8 +89,17 @@ public class Configurable {
 	 * @param parameters
 	 * @return
 	 */
-	public boolean isFlagSet(String name, Map<String,Object> parameters){
-		return isParameterSet(name, parameters);
+	public boolean isFlagSet(String name){
+		if(isParameterSet(name)){
+			return true;
+		} else {
+			Boolean result = (Boolean) defaultParameterValues.get(name);
+			if(result != null){
+				return result;
+			} else {
+				return false;
+			}
+		}
 	}
 	
 	/**
@@ -98,8 +108,12 @@ public class Configurable {
 	 * @param parameters
 	 * @return
 	 */
-	public Object getParameterValue(String name, Map<String,Object> parameters){
-		return parameters.get(name);
+	public Object getParameterValue(String name){
+		if(parameters.containsKey(name)){
+			return parameters.get(name);
+		} else {
+			return defaultParameterValues.get(name);
+		}
 	}
 	
 	/**
