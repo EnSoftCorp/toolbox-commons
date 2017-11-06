@@ -17,7 +17,7 @@ public class ControlFlowEdgeColorPalette extends ColorPalette {
 	public static final Color CONDITIONAL_TRUE_CONTROL_FLOW_COLOR = Color.WHITE;
 	public static final Color CONDITIONAL_FALSE_CONTROL_FLOW_COLOR = Color.BLACK;
 	public static final Color UNCONDITIONAL_CONTROL_FLOW_COLOR = Color.GRAY; // this is also the default coloring
-	public static final Color EXCEPTIONAL_CONTROL_FLOW_COLOR = Color.GREEN;
+	public static final Color EXCEPTIONAL_CONTROL_FLOW_COLOR = Color.GREEN.darker();
 	public static final Color LOOPBACK_EDGE_CONTROL_FLOW_COLOR = Color.BLUE;
 	
 	private Map<Edge, Color> edgeColors = new HashMap<Edge,Color>();

@@ -89,7 +89,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	 */
 	public abstract ColorPalette getComputationSpecificColorPalette();
 	
-	protected ColorPalette getActiveColorPalette(){
+	public ColorPalette getActiveColorPalette(){
 		ColorPalette activeColorPalette = new ColorPalette(){
 			@Override
 			public String getName() {

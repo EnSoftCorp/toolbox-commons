@@ -42,6 +42,16 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 		}
 	}
 	
+	/**
+	 * Returns the active code painter
+	 * @return
+	 */
+	public static final synchronized CodePainter getCodePainter(){
+		synchronized (CodePainter.class){
+			return codePainter;
+		}
+	}
+	
 	@Override
 	public final String getTitle() {
 		return "Code Painter";
