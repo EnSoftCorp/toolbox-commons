@@ -13,7 +13,7 @@ import com.ensoftcorp.atlas.core.markup.MarkupProperty;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 
-public abstract class ColorPalette {
+public abstract class ColorPalette extends Configurable {
 	
 	public static final Color SELECTION_COLOR = new Color(255,253,40);
 	private static final Color[] RESERVED_COLORS = new Color[]{ SELECTION_COLOR };

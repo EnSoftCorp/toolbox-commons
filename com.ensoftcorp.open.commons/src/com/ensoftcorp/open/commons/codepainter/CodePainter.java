@@ -12,16 +12,16 @@ import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.script.CommonQueries;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
-import com.ensoftcorp.atlas.core.script.StyledResult;
-import com.ensoftcorp.atlas.ui.scripts.selections.FilteringAtlasSmartViewScript;
 import com.ensoftcorp.atlas.ui.scripts.selections.IExplorableScript;
 import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
 import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 
-public abstract class CodePainter extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
+public abstract class CodePainter extends Configurable implements IResizableScript, IExplorableScript {
 	
 	/**
 	 * Holds an unstyled result
@@ -75,6 +75,10 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	protected ArrayList<ColorPalette> appliedColorPalettes = new ArrayList<ColorPalette>();
 	protected ColorPaletteConflictStrategy conflictStrategy = ColorPaletteConflictStrategy.CHOOSE_FIRST_MATCH;
 	
+	/**
+	 * Sets a coloring conflict resolution strategy
+	 * @param conflictStrategy
+	 */
 	public void setColorPaletteConflictStrategy(ColorPaletteConflictStrategy conflictStrategy){
 		this.conflictStrategy = conflictStrategy;
 	}
@@ -365,17 +369,80 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	}
 
 	/**
+	 * Indicates that the code painter supports selections on nothing
+	 */
+	protected static final String[] NOTHING = null;
+	
+	/**
+	 * Indicates that the code painter supports selections on everything
+	 */
+	protected static final String[] EVERYTHING = new String[]{};
+
+	/**
+	 * Filters the code painter selection to the supported node and edge types
+	 * @param event
+	 * @return
+	 */
+	protected Q filter(IAtlasSelectionEvent event) {
+		return filter(event.getSelection());
+	}
+
+	/**
+	 * Filters the input to the code painters supported node and edge types
+	 * @param input
+	 * @return
+	 */
+	protected Q filter(Q input) {
+		String[] supportedNodeTags = getSupportedNodeTags();
+		String[] supportedEdgeTags = getSupportedEdgeTags();
+		Q result = Common.empty();
+		if (supportedNodeTags != null) {
+			if (supportedNodeTags.length > 0) {
+				result = result.union(new Q[] { input.nodesTaggedWithAny(supportedNodeTags).retainNodes() });
+			} else {
+				result = result.union(new Q[] { input.retainNodes() });
+			}
+		}
+		if (supportedEdgeTags != null) {
+			if (supportedEdgeTags.length > 0) {
+				result = result.union(new Q[] { input.edgesTaggedWithAny(supportedEdgeTags).retainEdges() });
+			} else {
+				result = result.union(new Q[] { input.retainEdges() });
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns true if the input contains nodes or edges supported by the code painter
+	 * @param input
+	 * @return
+	 */
+	public boolean isApplicableTo(Q input){
+		return !CommonQueries.isEmpty(filter(input));
+	}
+	
+	/**
 	 * Computes a new styled frontier result for a given selection event and the
 	 * number of steps forward and reverse to explore on the frontier.
 	 */
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward){
-		Q convertedSelections = convertSelection(filter(event));
-		UnstyledFrontierResult frontierResult = computeFrontierResult(filter(event), reverse, forward);
+		// do not update the result if selection is invalid or empty
+		Q filteredSelection = filter(event);
+		if ((filteredSelection == null) || (CommonQueries.isEmpty(filteredSelection))) {
+			return null;
+		}
+		
+		Q convertedSelections = convertSelection(filteredSelection);
+		UnstyledFrontierResult frontierResult = computeFrontierResult(filteredSelection, reverse, forward);
+		
+		// if the frontier result was returned null (which indicates the display
+		// should not be updated) then do not update the styled result
 		if(frontierResult == null){
 			return null;
 		}
 		
-		// update the canvas each color palette will be applied to
+		// update the canvas of each color palette
 		if(this.getComputationSpecificColorPalette() != null){
 			this.getComputationSpecificColorPalette().setCanvas(frontierResult.getResult());
 		}
@@ -392,14 +459,6 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 		result.setInput(convertedSelections);
 		
 		return result;
-	}
-
-	/**
-	 * Computes a new styled result for a given selection event.
-	 */
-	protected final StyledResult selectionChanged(IAtlasSelectionEvent event, Q filteredSelection){
-		// this is dead code, but exists to satisfy interfaces
-		return null;
 	}
 	
 	/**

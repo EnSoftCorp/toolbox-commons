@@ -9,6 +9,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 
 public class ControlFlowEdgeColorPalette extends ColorPalette {
@@ -24,34 +25,39 @@ public class ControlFlowEdgeColorPalette extends ColorPalette {
 	@Override
 	protected void canvasChanged() {
 		edgeColors.clear();
-		Q edges = Common.toQ(canvas).edges(XCSG.ControlFlow_Edge);
+		
+		// need to expand the canvas for frontier edges
+		// expand to the full function of any statements on the canvas
+		Q canvasStatements = Common.toQ(canvas).nodes(XCSG.ControlFlow_Node);
+		Q fullCanvas = CommonQueries.cfg(CommonQueries.getContainingFunctions(canvasStatements));
+		Q controlFlowEdges = fullCanvas.edges(XCSG.ControlFlow_Edge);
 		
 		// color all edges gray to start, this is the default color
 		// and unconditional edges will remain gray
-		for(Edge edge : edges.eval().edges()){
+		for(Edge edge : controlFlowEdges.eval().edges()){
 			edgeColors.put(edge, UNCONDITIONAL_CONTROL_FLOW_COLOR);
 		}
 		
 		// color the conditional true edges
-		Q conditionalTrue = edges.selectEdge(XCSG.conditionValue, Boolean.TRUE, "true");
+		Q conditionalTrue = controlFlowEdges.selectEdge(XCSG.conditionValue, Boolean.TRUE, "true");
 		for(Edge edge : conditionalTrue.eval().edges()){
 			edgeColors.put(edge, CONDITIONAL_TRUE_CONTROL_FLOW_COLOR);
 		}
 		
 		// color the conditional false edges
-		Q conditionalFalse = edges.selectEdge(XCSG.conditionValue, Boolean.FALSE, "false");
+		Q conditionalFalse = controlFlowEdges.selectEdge(XCSG.conditionValue, Boolean.FALSE, "false");
 		for(Edge edge : conditionalFalse.eval().edges()){
 			edgeColors.put(edge, CONDITIONAL_FALSE_CONTROL_FLOW_COLOR);
 		}
 		
 		// color the exceptional edges
-		Q exceptionalControlFlow = edges.edges(XCSG.ExceptionalControlFlow_Edge);
+		Q exceptionalControlFlow = controlFlowEdges.edges(XCSG.ExceptionalControlFlow_Edge);
 		for(Edge edge : exceptionalControlFlow.eval().edges()){
 			edgeColors.put(edge, EXCEPTIONAL_CONTROL_FLOW_COLOR);
 		}
 		
 		// color the loop back edges
-		Q loopbackEdge = edges.edges(XCSG.ControlFlowBackEdge);
+		Q loopbackEdge = controlFlowEdges.edges(XCSG.ControlFlowBackEdge);
 		for(Edge edge : loopbackEdge.eval().edges()){
 			edgeColors.put(edge, LOOPBACK_EDGE_CONTROL_FLOW_COLOR);
 		}

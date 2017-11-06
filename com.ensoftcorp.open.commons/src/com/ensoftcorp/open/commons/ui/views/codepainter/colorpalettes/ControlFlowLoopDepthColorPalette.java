@@ -89,8 +89,8 @@ public class ControlFlowLoopDepthColorPalette extends ColorPalette {
 	 * @return
 	 */
 	private void computeLoopDepthColoring() {
-		// to make the coloring consistent for any selection we will compute
-		// colors for the full function of any statements on the canvas
+		// to make the coloring consistent for any selection we will compute and
+		// include frontier nodes colors for the full function of any statements on the canvas
 		Q canvasStatements = Common.toQ(canvas).nodes(XCSG.ControlFlow_Node);
 		Q fullCanvas = CommonQueries.cfg(CommonQueries.getContainingFunctions(canvasStatements));
 		AtlasSet<Node> loopHeaders = fullCanvas.nodesTaggedWithAll(XCSG.Loop).eval().nodes();
