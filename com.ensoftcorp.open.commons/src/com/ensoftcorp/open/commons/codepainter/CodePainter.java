@@ -80,10 +80,10 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	}
 	
 	/**
-	 * The base and perhaps computation specific coloring scheme. If the computation result is null may be returned.
+	 * The computation specific coloring scheme. If there is no computation specific coloring then null may be returned.
 	 * @return
 	 */
-	public abstract ColorPalette getBaseColorPalette();
+	public abstract ColorPalette getComputationSpecificColorPalette();
 	
 	protected ColorPalette getActiveColorPalette(){
 		ColorPalette activeColorPalette = new ColorPalette(){
@@ -101,7 +101,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 			public Map<Node, Color> getNodeColors() {
 				
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
+				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
 				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
@@ -162,7 +162,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 			@Override
 			public Map<Edge, Color> getEdgeColors() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
+				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
 				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
@@ -223,7 +223,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 			@Override
 			public Map<Color, String> getNodeColorLegend() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
+				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
 				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
@@ -266,7 +266,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 			@Override
 			public Map<Color, String> getEdgeColorLegend() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
+				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
 				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
@@ -319,7 +319,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	
 	public void addColorPalette(ColorPalette palette){
 		if(palette != null){
-			ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
+			ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
 			if(!baseColorPalette.equals(palette)){
 				appliedColorPalettes.add(palette);
 			}
@@ -328,7 +328,7 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 	
 	public void addColorPalette(ColorPalette palette, int index){
 		if(palette != null){
-			ColorPalette baseColorPalette = getBaseColorPalette() != null ? getBaseColorPalette() : ColorPalette.getEmptyColorPalette();
+			ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
 			if(!baseColorPalette.equals(palette)){
 				appliedColorPalettes.add(index, palette);
 			}
@@ -376,8 +376,8 @@ public abstract class CodePainter extends FilteringAtlasSmartViewScript implemen
 		}
 		
 		// update the canvas each color palette will be applied to
-		if(this.getBaseColorPalette() != null){
-			this.getBaseColorPalette().setCanvas(frontierResult.getResult());
+		if(this.getComputationSpecificColorPalette() != null){
+			this.getComputationSpecificColorPalette().setCanvas(frontierResult.getResult());
 		}
 		for(ColorPalette palette : appliedColorPalettes){
 			palette.setCanvas(frontierResult.getResult());

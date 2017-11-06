@@ -44,8 +44,8 @@ public class UniversalGraphExplorerCodePainter extends CodePainter {
 	}
 
 	@Override
-	public ColorPalette getBaseColorPalette() {
-		// returning null to indicate the result is unstyled by default
+	public ColorPalette getComputationSpecificColorPalette() {
+		// returning null to indicate there is no computation specific coloring
 		return null;
 	}
 

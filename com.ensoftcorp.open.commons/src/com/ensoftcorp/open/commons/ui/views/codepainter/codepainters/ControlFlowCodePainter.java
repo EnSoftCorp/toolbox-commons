@@ -10,6 +10,7 @@ import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeColorPalette;
+import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowLoopDepthColorPalette;
 
 /**
  * A Control Flow code painter
@@ -18,7 +19,11 @@ import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlo
  */
 public class ControlFlowCodePainter extends CodePainter {
 	
-	private ColorPalette controlFlowColorPalette = new ControlFlowEdgeColorPalette();
+	public ControlFlowCodePainter(){
+		// add some default coloring palettes
+		this.addColorPalette(new ControlFlowEdgeColorPalette());
+		this.addColorPalette(new ControlFlowLoopDepthColorPalette());
+	}
 	
 	@Override
 	public String getTitle() {
@@ -61,8 +66,9 @@ public class ControlFlowCodePainter extends CodePainter {
 	}
 
 	@Override
-	public ColorPalette getBaseColorPalette() {
-		return controlFlowColorPalette;
+	public ColorPalette getComputationSpecificColorPalette() {
+		// returning null to indicate there is no computation specific coloring
+		return null;
 	}
 
 	@Override
