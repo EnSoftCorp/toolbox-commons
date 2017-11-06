@@ -24,7 +24,7 @@ public class ControlFlowEdgeColorPalette extends ColorPalette {
 	@Override
 	protected void canvasChanged() {
 		edgeColors.clear();
-		Q edges = Common.toQ(canvasEdges).edges(XCSG.ControlFlow_Edge);
+		Q edges = Common.toQ(canvas).edges(XCSG.ControlFlow_Edge);
 		
 		// color all edges gray to start, this is the default color
 		// and unconditional edges will remain gray
@@ -59,7 +59,7 @@ public class ControlFlowEdgeColorPalette extends ColorPalette {
 
 	@Override
 	public String getName() {
-		return "Control Flow Color Palette";
+		return "Control Flow Edge Color Palette";
 	}
 
 	@Override

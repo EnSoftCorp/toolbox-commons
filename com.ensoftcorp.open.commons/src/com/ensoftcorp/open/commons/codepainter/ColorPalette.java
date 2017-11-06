@@ -8,8 +8,6 @@ import java.util.Map.Entry;
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
-import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.markup.MarkupProperty;
 import com.ensoftcorp.atlas.core.query.Q;
@@ -73,8 +71,7 @@ public abstract class ColorPalette {
 		};
 	}
 	
-	protected AtlasSet<Node> canvasNodes = new AtlasHashSet<Node>();
-	protected AtlasSet<Edge> canvasEdges = new AtlasHashSet<Edge>();
+	protected Graph canvas = Common.empty().eval();
 	
 	/**
 	 * Updates the canvas (nodes and edges that coloring will be applied to)
@@ -82,11 +79,7 @@ public abstract class ColorPalette {
 	 * @param canvas
 	 */
 	public final void setCanvas(Q canvas){
-		Graph g = canvas.eval();
-		canvasNodes.clear();
-		canvasNodes.addAll(g.nodes());
-		canvasEdges.clear();
-		canvasEdges.addAll(g.edges());
+		this.canvas = canvas.eval();
 		canvasChanged();
 	}
 	
