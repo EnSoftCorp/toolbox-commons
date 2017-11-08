@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -13,6 +14,8 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.ExpandAdapter;
+import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -41,8 +44,6 @@ import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 import com.ensoftcorp.open.commons.codepainter.ColorPalettes;
 import com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterSmartView.CodePainterSmartViewEventListener;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderView;
-import org.eclipse.swt.events.ExpandAdapter;
-import org.eclipse.swt.events.ExpandEvent;
 
 public class CodePainterControlPanel extends GraphSelectionProviderView {
 
@@ -96,6 +97,10 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		
 		final CTabItem codePainterLegendTab = new CTabItem(folder, SWT.NONE);
 		codePainterLegendTab.setText("Legend");
+		
+		Composite codePainterLegendComposite = new Composite(folder, SWT.NONE);
+		codePainterLegendTab.setControl(codePainterLegendComposite);
+		codePainterLegendComposite.setLayout(new GridLayout(1, false));
 		
 		Button searchCodePaintersCheckbox = new Button(searchCodePaintersComposite, SWT.CHECK);
 		searchCodePaintersCheckbox.setText("Search Code Painters: ");
@@ -211,14 +216,15 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		
 		Group colorPalettesGroup = new Group(codePainterColorPalettesComposite, SWT.NONE);
 		colorPalettesGroup.setText("Color Palettes");
-		colorPalettesGroup.setLayout(new GridLayout(2, false));
+		colorPalettesGroup.setLayout(new GridLayout(3, false));
 		colorPalettesGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Combo applicableColorPalettesCombo = new Combo(colorPalettesGroup, SWT.NONE);
+		Combo applicableColorPalettesCombo = new Combo(colorPalettesGroup, SWT.READ_ONLY);
 		applicableColorPalettesCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Button addColorPaletteLayerCombo = new Button(colorPalettesGroup, SWT.NONE);
-		addColorPaletteLayerCombo.setText("Add Layer");
+		Button addColorPaletteLayerButton = new Button(colorPalettesGroup, SWT.NONE);
+		addColorPaletteLayerButton.setText("Add Layer");
+		addColorPaletteLayerButton.setEnabled(false);
 		
 		Group colorPaletteLayersGroup = new Group(codePainterColorPalettesComposite, SWT.NONE);
 		colorPaletteLayersGroup.setText("Color Palette Layers");
@@ -231,12 +237,54 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		colorPaletteLayersScrolledComposite.setExpandHorizontal(true);
 		colorPaletteLayersScrolledComposite.setExpandVertical(true);
 		
-		refreshColorPaletteLayers(applicableColorPalettesCombo, colorPaletteLayersScrolledComposite);
+		addColorPaletteLayerButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ColorPalette selectedColorPalette = (ColorPalette) applicableColorPalettesCombo.getData(applicableColorPalettesCombo.getText());
+				if(selectedColorPalette != null){
+					CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+					if(activeCodePainter != null){
+						activeCodePainter.addColorPalette(selectedColorPalette);
+						colorPaletteStates.add(new ColorPaletteState(selectedColorPalette));
+					}
+					addColorPaletteLayerButton.setEnabled(false);
+					refreshColorPaletteLayers(applicableColorPalettesCombo, addColorPaletteLayerButton, colorPaletteLayersScrolledComposite);
+				}
+			}
+		});
 		
-		// initialized the empty legend
-		SashForm codePainterLegendSashForm = new SashForm(folder, SWT.NONE);
-		codePainterLegendTab.setControl(codePainterLegendSashForm);
+		refreshColorPaletteLayers(applicableColorPalettesCombo, addColorPaletteLayerButton, colorPaletteLayersScrolledComposite);
+		
+		Button restoreDefaultColorPalettesButton = new Button(colorPalettesGroup, SWT.NONE);
+		restoreDefaultColorPalettesButton.setText("Restore Defaults");
+		
+		restoreDefaultColorPalettesButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+				if(activeCodePainter != null){
+					activeCodePainter.restoreDefaultColorPalettes();
+				}
+			}
+		});
+		
+		// initialize the empty legend
+		Composite conflictResolutionStrategyComposite = new Composite(codePainterLegendComposite, SWT.NONE);
+		conflictResolutionStrategyComposite.setLayout(new GridLayout(2, false));
+		conflictResolutionStrategyComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label conflictResolutionLabel = new Label(conflictResolutionStrategyComposite, SWT.NONE);
+		conflictResolutionLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		conflictResolutionLabel.setText("Color Conflict Resolution Strategy: ");
+		
+		Combo conflictResolutionStrategyCombo = new Combo(conflictResolutionStrategyComposite, SWT.READ_ONLY);
+		conflictResolutionStrategyCombo.setItems(new String[] {"First Match", "Last Match", "Mix Colors"});
+		conflictResolutionStrategyCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		conflictResolutionStrategyCombo.select(0);
+		
+		SashForm codePainterLegendSashForm = new SashForm(codePainterLegendComposite, SWT.NONE);
 		codePainterLegendSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
 		Group legendNodesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
 		legendNodesGroup.setText("Nodes");
 		legendNodesGroup.setLayout(new GridLayout(1, false));
@@ -268,6 +316,17 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
 		codePainterLegendSashForm.setWeights(new int[] {1, 1});
+		
+		conflictResolutionStrategyCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+				if(activeCodePainter != null){
+					activeCodePainter.setColorPaletteConflictStrategy(CodePainter.ColorPaletteConflictStrategy.values()[conflictResolutionStrategyCombo.getSelectionIndex()]);
+					refreshLegend(legendNodesScrolledComposite, legendEdgesScrolledComposite);
+				}
+			}
+		});
 
 		// set the default tab
 		folder.setSelection(codePainterSelectionTab);
@@ -329,8 +388,17 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				display.asyncExec(new Runnable(){
 					@Override
 					public void run() {
+						// reset the code painter layer state
+						colorPaletteStates.clear();
+						CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+						if(activeCodePainter != null){
+							for(ColorPalette colorPalette : activeCodePainter.getColorPalettes()){
+								colorPaletteStates.add(new ColorPaletteState(colorPalette));
+							}
+						}
+						
 						refreshLegend(legendNodesScrolledComposite, legendEdgesScrolledComposite);
-						refreshColorPaletteLayers(applicableColorPalettesCombo, colorPaletteLayersScrolledComposite);
+						refreshColorPaletteLayers(applicableColorPalettesCombo, addColorPaletteLayerButton, colorPaletteLayersScrolledComposite);
 					}
 				});
 			}
@@ -340,128 +408,209 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		registerGraphSelectionProvider();
 	}
 
-	private void refreshColorPaletteLayers(Combo applicableColorPalettesCombo, ScrolledComposite colorPaletteLayersScrolledComposite) {
-		// populate the applicable color palettes that are not already applied
-		CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+	/*
+	 * Small helper class to visually track the state of the color palette layers
+	 */
+	private static class ColorPaletteState {
+		public ColorPalette colorPalette;
+		public boolean expanded;
+		public boolean enabled;
+		
+		public ColorPaletteState(ColorPalette colorPalette) {
+			this.colorPalette = colorPalette;
+			this.expanded = false;
+			this.enabled = true;
+		}
+
+		public boolean isExpanded() {
+			return expanded;
+		}
+		
+		public void setExpanded(boolean expanded) {
+			this.expanded = expanded;
+		}
+		
+		public boolean isEnabled() {
+			return enabled;
+		}
+		
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
+		}
+		
+		public ColorPalette getColorPalette() {
+			return colorPalette;
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((colorPalette == null) ? 0 : colorPalette.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			ColorPaletteState other = (ColorPaletteState) obj;
+			if (colorPalette == null) {
+				if (other.colorPalette != null)
+					return false;
+			} else if (!colorPalette.equals(other.colorPalette))
+				return false;
+			return true;
+		}
+	}
+	
+	// current color palette states (and ordering, 0 index is first layer)
+	private List<ColorPaletteState> colorPaletteStates = new LinkedList<ColorPaletteState>();
+	
+	private void refreshColorPaletteLayers(Combo applicableColorPalettesCombo, Button addColorPaletteLayerButton, ScrolledComposite colorPaletteLayersScrolledComposite) {
+		// reset the view
+		Composite colorPaletteLayersContentComposite = new Composite(colorPaletteLayersScrolledComposite, SWT.NONE);
+		colorPaletteLayersContentComposite.setLayout(new GridLayout(1, false));
 		applicableColorPalettesCombo.removeAll();
+		addColorPaletteLayerButton.setEnabled(false);
+		
+		// get the active code painter
+		CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
 		if(activeCodePainter != null){
-			for(ColorPalette colorPalette : ColorPalettes.getRegisteredColorPalettes()){
-				if(!activeCodePainter.getAppliedColorPalettes().contains(colorPalette)){
-					applicableColorPalettesCombo.add(colorPalette.getName());
-					applicableColorPalettesCombo.setData(colorPalette);
+		
+			// populate the applicable color palettes that are not already applied
+			if(activeCodePainter != null){
+				for(ColorPalette colorPalette : ColorPalettes.getRegisteredColorPalettes()){
+					if(!activeCodePainter.getColorPalettes().contains(colorPalette)){
+						applicableColorPalettesCombo.add(colorPalette.getName());
+						applicableColorPalettesCombo.setData(colorPalette);
+					}
 				}
+			}
+			
+			applicableColorPalettesCombo.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					ColorPalette selectedColorPalette = (ColorPalette) applicableColorPalettesCombo.getData(applicableColorPalettesCombo.getText());
+					addColorPaletteLayerButton.setEnabled(selectedColorPalette != null);
+				}
+			});
+			
+			for(ColorPaletteState colorPaletteState : colorPaletteStates){
+				ColorPalette colorPalette = colorPaletteState.getColorPalette();
+				ExpandBar colorPaletteExpandBar = new ExpandBar(colorPaletteLayersContentComposite, SWT.NONE);
+				colorPaletteExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+				
+				ExpandItem colorPaletteExpandItem = new ExpandItem(colorPaletteExpandBar, SWT.NONE);
+				colorPaletteExpandItem.setExpanded(colorPaletteState.isExpanded());
+				if(colorPaletteState.isEnabled()){
+					colorPaletteExpandItem.setText(colorPalette.getName());
+				} else {
+					colorPaletteExpandItem.setText("[DISABLED] " + colorPalette.getName());
+				}
+				
+				Composite colorPaletteContentComposite = new Composite(colorPaletteExpandBar, SWT.NONE);
+				colorPaletteExpandItem.setControl(colorPaletteContentComposite);
+				colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+				colorPaletteContentComposite.setLayout(new GridLayout(1, false));
+				
+				Composite colorPaletteOverviewComposite = new Composite(colorPaletteContentComposite, SWT.NONE);
+				colorPaletteOverviewComposite.setLayout(new GridLayout(2, false));
+				colorPaletteOverviewComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+				
+				Label descriptionLabel = new Label(colorPaletteOverviewComposite, SWT.NONE);
+				descriptionLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+				descriptionLabel.setText("Description: ");
+				
+				StyledText descriptionText = new StyledText(colorPaletteOverviewComposite, SWT.BORDER);
+				descriptionText.setEditable(false);
+				descriptionText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				descriptionText.setText(colorPalette.getDescription());
+				
+				Label enabledLabel = new Label(colorPaletteOverviewComposite, SWT.NONE);
+				enabledLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+				enabledLabel.setText("Enabled: ");
+				
+				Button enabledCheckbox = new Button(colorPaletteOverviewComposite, SWT.CHECK);
+				enabledCheckbox.setSelection(colorPaletteState.isEnabled());
+				enabledCheckbox.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						boolean enabled = enabledCheckbox.getSelection();
+						colorPaletteState.setEnabled(enabled);
+						if(enabled){
+							colorPaletteExpandItem.setText(colorPalette.getName());
+						} else {
+							colorPaletteExpandItem.setText("[DISABLED] " + colorPalette.getName());
+						}
+					}
+				});
+				
+				CTabFolder colorPaletteTabFolder = new CTabFolder(colorPaletteContentComposite, SWT.NONE);
+				colorPaletteTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+				colorPaletteTabFolder.setBorderVisible(true);
+				colorPaletteTabFolder.setSimple(false); // adds the Eclipse style "swoosh"
+				
+				CTabItem colorPaletteConfigurationsTabItem = new CTabItem(colorPaletteTabFolder, SWT.NONE);
+				colorPaletteConfigurationsTabItem.setText("Configurations");
+				colorPaletteTabFolder.setSelection(colorPaletteConfigurationsTabItem);
+				
+				Composite composite = new Composite(colorPaletteTabFolder, SWT.NONE);
+				colorPaletteConfigurationsTabItem.setControl(composite);
+				composite.setLayout(new GridLayout(1, false));
+				
+				Label lblTodo = new Label(composite, SWT.NONE);
+				lblTodo.setText("TODO");
+				
+				CTabItem colorPaletteColoringTabItem = new CTabItem(colorPaletteTabFolder, SWT.NONE);
+				colorPaletteColoringTabItem.setText("Coloring");
+				
+				Composite composite_1 = new Composite(colorPaletteTabFolder, SWT.NONE);
+				colorPaletteColoringTabItem.setControl(composite_1);
+				composite_1.setLayout(new GridLayout(1, false));
+				
+				Label lblNewLabel = new Label(composite_1, SWT.NONE);
+				lblNewLabel.setText("TODO");
+				
+				Composite colorPaletteControlsComposite = new Composite(colorPaletteContentComposite, SWT.NONE);
+				colorPaletteControlsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+				colorPaletteControlsComposite.setLayout(new GridLayout(1, false));
+				
+				Button deleteButton = new Button(colorPaletteControlsComposite, SWT.NONE);
+				deleteButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+				deleteButton.setText("Delete");
+				deleteButton.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						activeCodePainter.removeColorPalette(colorPalette);
+						colorPaletteStates.remove(colorPaletteState);
+						refreshColorPaletteLayers(applicableColorPalettesCombo, addColorPaletteLayerButton, colorPaletteLayersScrolledComposite);
+					}
+				});
+				
+				// compute the expand bar item height
+				colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+				
+				colorPaletteExpandBar.addExpandListener(new ExpandAdapter() {
+					@Override
+					public void itemExpanded(ExpandEvent e) {
+						colorPaletteState.setExpanded(true);
+						refreshColorPaletteLayers(applicableColorPalettesCombo, addColorPaletteLayerButton, colorPaletteLayersScrolledComposite);
+					}
+					@Override
+					public void itemCollapsed(ExpandEvent e) {
+						colorPaletteState.setExpanded(false);
+						refreshColorPaletteLayers(applicableColorPalettesCombo, addColorPaletteLayerButton, colorPaletteLayersScrolledComposite);
+					}
+				});
 			}
 		}
 		
-		Composite colorPaletteLayersContentComposite = new Composite(colorPaletteLayersScrolledComposite, SWT.NONE);
-		colorPaletteLayersContentComposite.setLayout(new GridLayout(1, false));
-		
-		ExpandBar colorPaletteExpandBar = new ExpandBar(colorPaletteLayersContentComposite, SWT.NONE);
-		colorPaletteExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		ExpandItem colorPaletteExpandItem = new ExpandItem(colorPaletteExpandBar, SWT.NONE);
-		colorPaletteExpandItem.setExpanded(true);
-		colorPaletteExpandItem.setText("Color Palette Name");
-		
-		Composite colorPaletteContentComposite = new Composite(colorPaletteExpandBar, SWT.NONE);
-		colorPaletteExpandItem.setControl(colorPaletteContentComposite);
-		colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-		colorPaletteContentComposite.setLayout(new GridLayout(1, false));
-		
-		Composite colorPaletteOverviewComposite = new Composite(colorPaletteContentComposite, SWT.NONE);
-		colorPaletteOverviewComposite.setLayout(new GridLayout(2, false));
-		colorPaletteOverviewComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Label descriptionLabel = new Label(colorPaletteOverviewComposite, SWT.NONE);
-		descriptionLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		descriptionLabel.setText("Description: ");
-		
-		StyledText descriptionText = new StyledText(colorPaletteOverviewComposite, SWT.BORDER);
-		descriptionText.setEditable(false);
-		descriptionText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		Label enabledLabel = new Label(colorPaletteOverviewComposite, SWT.NONE);
-		enabledLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		enabledLabel.setText("Enabled: ");
-		
-		Button enabledCheckbox = new Button(colorPaletteOverviewComposite, SWT.CHECK);
-		enabledCheckbox.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
-		
-		CTabFolder colorPaletteTabFolder = new CTabFolder(colorPaletteContentComposite, SWT.NONE);
-		colorPaletteTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		colorPaletteTabFolder.setBorderVisible(true);
-		colorPaletteTabFolder.setSimple(false); // adds the Eclipse style "swoosh"
-		
-		CTabItem colorPaletteConfigurationsTabItem = new CTabItem(colorPaletteTabFolder, SWT.NONE);
-		colorPaletteConfigurationsTabItem.setText("Configurations");
-		colorPaletteTabFolder.setSelection(colorPaletteConfigurationsTabItem);
-		
-		Composite composite = new Composite(colorPaletteTabFolder, SWT.NONE);
-		colorPaletteConfigurationsTabItem.setControl(composite);
-		composite.setLayout(new GridLayout(1, false));
-		
-		Label lblTodo = new Label(composite, SWT.NONE);
-		lblTodo.setText("TODO");
-		
-		CTabItem colorPaletteColoringTabItem = new CTabItem(colorPaletteTabFolder, SWT.NONE);
-		colorPaletteColoringTabItem.setText("Coloring");
-		
-		Composite composite_1 = new Composite(colorPaletteTabFolder, SWT.NONE);
-		colorPaletteColoringTabItem.setControl(composite_1);
-		composite_1.setLayout(new GridLayout(1, false));
-		
-		Label lblNewLabel = new Label(composite_1, SWT.NONE);
-		lblNewLabel.setText("TODO");
-		
-		Composite colorPaletteControlsComposite = new Composite(colorPaletteContentComposite, SWT.NONE);
-		colorPaletteControlsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		colorPaletteControlsComposite.setLayout(new GridLayout(3, false));
-		
-		Button moveUpButton = new Button(colorPaletteControlsComposite, SWT.NONE);
-		moveUpButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
-		moveUpButton.setBounds(0, 0, 60, 25);
-		moveUpButton.setText("Move Up");
-		
-		Button moveDownButton = new Button(colorPaletteControlsComposite, SWT.NONE);
-		moveDownButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
-		moveDownButton.setBounds(0, 0, 75, 25);
-		moveDownButton.setText("Move Down");
-		
-		Button deleteButton = new Button(colorPaletteControlsComposite, SWT.NONE);
-		deleteButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
-		deleteButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
-		deleteButton.setText("Delete");
-		
-		// compute the expand bar item height
-		colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-		
-//		colorPaletteExpandBar.addExpandListener(new ExpandAdapter() {
-//			@Override
-//			public void itemExpanded(ExpandEvent e) {
-//				refreshColorPaletteLayers(applicableColorPalettesCombo, colorPaletteLayersScrolledComposite);
-//			}
-//			@Override
-//			public void itemCollapsed(ExpandEvent e) {
-//				refreshColorPaletteLayers(applicableColorPalettesCombo, colorPaletteLayersScrolledComposite);
-//			}
-//		});
-		
+		// update the color palette layer content
 		colorPaletteLayersScrolledComposite.setContent(colorPaletteLayersContentComposite);
 		colorPaletteLayersScrolledComposite.setMinSize(colorPaletteLayersContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
@@ -535,7 +684,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		}
 		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
 		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
 		
 		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
 		legendEdgesContentComposite.setLayout(new GridLayout(1, false));

@@ -1,5 +1,8 @@
 package com.ensoftcorp.open.commons.ui.views.codepainter.codepainters;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
@@ -22,10 +25,6 @@ public class ControlFlowCodePainter extends CodePainter {
 	private static String INCLUDE_EXCEPTIONAL_CONTROL_FLOW = "INCLUDE_EXCEPTIONAL_CONTROL_FLOW";
 	
 	public ControlFlowCodePainter(){
-		// add some default coloring palettes
-		this.addColorPalette(new ControlFlowEdgeTypeColorPalette());
-		this.addColorPalette(new ControlFlowLoopDepthColorPalette());
-		
 		// add optional parameters and flags
 		this.addPossibleFlag(INCLUDE_EXCEPTIONAL_CONTROL_FLOW, "Includes exceptional control flow paths.", false);
 	}
@@ -68,12 +67,6 @@ public class ControlFlowCodePainter extends CodePainter {
 	@Override
 	public int getDefaultStepBottom() {
 		return 1;
-	}
-
-	@Override
-	public ColorPalette getComputationSpecificColorPalette() {
-		// returning null to indicate there is no computation specific coloring
-		return null;
 	}
 
 	@Override
@@ -145,6 +138,14 @@ public class ControlFlowCodePainter extends CodePainter {
 		
 		// show the result
 		return new UnstyledFrontierResult(result, frontierReverse, frontierForward);
+	}
+
+	@Override
+	public List<ColorPalette> getDefaultColorPalettes() {
+		List<ColorPalette> result = new LinkedList<ColorPalette>();
+		result.add(new ControlFlowEdgeTypeColorPalette());
+		result.add(new ControlFlowLoopDepthColorPalette());
+		return result;
 	}
 	
 }

@@ -1,5 +1,8 @@
 package com.ensoftcorp.open.commons.ui.views.codepainter.codepainters;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
@@ -44,12 +47,6 @@ public class UniversalGraphExplorerCodePainter extends CodePainter {
 	}
 
 	@Override
-	public ColorPalette getComputationSpecificColorPalette() {
-		// returning null to indicate there is no computation specific coloring
-		return null;
-	}
-
-	@Override
 	public UnstyledFrontierResult computeFrontierResult(Q filteredSelections, int reverse, int forward) {
 		// graph is the entire universe
 		Q graph = Common.universe();
@@ -69,6 +66,11 @@ public class UniversalGraphExplorerCodePainter extends CodePainter {
 				
 		// show the result
 		return new UnstyledFrontierResult(result, frontierReverse, frontierForward);
+	}
+	
+	@Override
+	public List<ColorPalette> getDefaultColorPalettes() {
+		return new LinkedList<ColorPalette>();
 	}
 
 }

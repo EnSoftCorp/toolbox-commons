@@ -65,6 +65,12 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		}
 	}
 	
+	public CodePainter(){
+		for(ColorPalette colorPalette : getDefaultColorPalettes()){
+			colorPalettes.add(colorPalette);
+		}
+	}
+	
 	/**
 	 * Defines strategies for resolving coloring conflicts
 	 */
@@ -72,8 +78,25 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		CHOOSE_FIRST_MATCH, CHOOSE_LAST_MATCH, MIX_COLORS
 	}
 	
-	protected ArrayList<ColorPalette> appliedColorPalettes = new ArrayList<ColorPalette>();
+	protected ArrayList<ColorPalette> colorPalettes = new ArrayList<ColorPalette>();
 	protected ColorPaletteConflictStrategy conflictStrategy = ColorPaletteConflictStrategy.CHOOSE_FIRST_MATCH;
+	
+	/**
+	 * Returns a default list of ordered color palettes
+	 * The 0th element represents the first color palette layer the will be applied
+	 * @return
+	 */
+	public abstract List<ColorPalette> getDefaultColorPalettes();
+	
+	/**
+	 * Restores default color palettes
+	 */
+	public void restoreDefaultColorPalettes(){
+		this.colorPalettes.clear();
+		for(ColorPalette colorPalette : getDefaultColorPalettes()){
+			this.addColorPalette(colorPalette);
+		}
+	}
 	
 	/**
 	 * Sets a coloring conflict resolution strategy
@@ -82,12 +105,6 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	public void setColorPaletteConflictStrategy(ColorPaletteConflictStrategy conflictStrategy){
 		this.conflictStrategy = conflictStrategy;
 	}
-	
-	/**
-	 * The computation specific coloring scheme. If there is no computation specific coloring then null may be returned.
-	 * @return
-	 */
-	public abstract ColorPalette getComputationSpecificColorPalette();
 	
 	public ColorPalette getActiveColorPalette(){
 		ColorPalette activeColorPalette = new ColorPalette(){
@@ -104,14 +121,12 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			@Override
 			public Map<Node, Color> getNodeColors() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-				List<ColorPalette> colorPalettes = getAppliedColorPalettes();
+				List<ColorPalette> colorPalettes = getColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute node colorings for the active color palettes
 				Map<Node, Color> nodeColors = new HashMap<Node, Color>();
 				Map<Node, List<Color>> nodeColorsToMix = new HashMap<Node, List<Color>>();
-				nodeColors.putAll(baseColorPalette.getNodeColors());
 				for(ColorPalette colorPalette : colorPalettes){
 					for(Entry<Node,Color> entry : colorPalette.getNodeColors().entrySet()){
 						Node node = entry.getKey();
@@ -134,9 +149,6 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 								nodeColorsToMix.get(node).add(color);
 							} else {
 								List<Color> colors = new LinkedList<Color>();
-								if(baseColorPalette.getNodeColors().containsKey(node)){
-									colors.add(baseColorPalette.getNodeColors().get(node));
-								}
 								colors.add(color);
 								nodeColorsToMix.put(node, colors);
 							}
@@ -165,14 +177,12 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			@Override
 			public Map<Edge, Color> getEdgeColors() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-				List<ColorPalette> colorPalettes = getAppliedColorPalettes();
+				List<ColorPalette> colorPalettes = getColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute edge colorings for the active color palettes
 				Map<Edge, Color> edgeColors = new HashMap<Edge, Color>();
 				Map<Edge, List<Color>> edgeColorsToMix = new HashMap<Edge, List<Color>>();
-				edgeColors.putAll(baseColorPalette.getEdgeColors());
 				for(ColorPalette colorPalette : colorPalettes){
 					for(Entry<Edge,Color> entry : colorPalette.getEdgeColors().entrySet()){
 						Edge edge = entry.getKey();
@@ -195,9 +205,6 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 								edgeColorsToMix.get(edge).add(color);
 							} else {
 								List<Color> colors = new LinkedList<Color>();
-								if(baseColorPalette.getEdgeColors().containsKey(edge)){
-									colors.add(baseColorPalette.getEdgeColors().get(edge));
-								}
 								colors.add(color);
 								edgeColorsToMix.put(edge, colors);
 							}
@@ -226,13 +233,11 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			@Override
 			public Map<Color, String> getNodeColorLegend() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-				List<ColorPalette> colorPalettes = getAppliedColorPalettes();
+				List<ColorPalette> colorPalettes = getColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute color legend for the active color palettes
 				Map<Color, String> legend = new HashMap<Color, String>();
-				legend.putAll(baseColorPalette.getNodeColorLegend());
 				for(ColorPalette colorPalette : colorPalettes){
 					for(Entry<Color,String> entry : colorPalette.getNodeColorLegend().entrySet()){
 						Color color = entry.getKey();
@@ -269,13 +274,11 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			@Override
 			public Map<Color, String> getEdgeColorLegend() {
 				// get the color palettes and conflict resolution strategy
-				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-				List<ColorPalette> colorPalettes = getAppliedColorPalettes();
+				List<ColorPalette> colorPalettes = getColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute color legend for the active color palettes
 				Map<Color, String> legend = new HashMap<Color, String>();
-				legend.putAll(baseColorPalette.getEdgeColorLegend());
 				for(ColorPalette colorPalette : colorPalettes){
 					for(Entry<Color,String> entry : colorPalette.getEdgeColorLegend().entrySet()){
 						Color color = entry.getKey();
@@ -316,34 +319,37 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		return activeColorPalette;
 	}
 	
-	public List<ColorPalette> getAppliedColorPalettes(){
-		return new ArrayList<ColorPalette>(appliedColorPalettes);
+	/**
+	 * Returns an ordered list of color palettes
+	 * The 0th element represents the first layer of coloring
+	 * @return
+	 */
+	public List<ColorPalette> getColorPalettes(){
+		return new ArrayList<ColorPalette>(colorPalettes);
 	}
 	
 	public void addColorPalette(ColorPalette palette){
 		if(palette != null){
-			ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-			if(!baseColorPalette.equals(palette)){
-				appliedColorPalettes.add(palette);
+			if(!colorPalettes.contains(palette)){
+				colorPalettes.add(palette);
 			}
 		}
 	}
 	
 	public void addColorPalette(ColorPalette palette, int index){
 		if(palette != null){
-			ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-			if(!baseColorPalette.equals(palette)){
-				appliedColorPalettes.add(index, palette);
+			if(!colorPalettes.contains(palette)){
+				colorPalettes.add(index, palette);
 			}
 		}
 	}
 	
 	public void removeColorPalette(ColorPalette palette){
-		appliedColorPalettes.remove(palette);
+		colorPalettes.remove(palette);
 	}
 	
 	public void removeColorPalette(int index){
-		appliedColorPalettes.remove(index);
+		colorPalettes.remove(index);
 	}
 	
 	public abstract String getTitle();
@@ -442,10 +448,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		}
 		
 		// update the canvas of each color palette
-		if(this.getComputationSpecificColorPalette() != null){
-			this.getComputationSpecificColorPalette().setCanvas(frontierResult.getResult());
-		}
-		for(ColorPalette palette : appliedColorPalettes){
+		for(ColorPalette palette : colorPalettes){
 			palette.setCanvas(frontierResult.getResult());
 		}
 		

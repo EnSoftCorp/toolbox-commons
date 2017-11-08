@@ -15,6 +15,13 @@ public class Configurable {
 	private HashSet<String> flags = new HashSet<String>();
 	
 	/**
+	 * Restores default configurations
+	 */
+	public void restoreDefaultConfigurations(){
+		parameters = new HashMap<String,Object>();
+	}
+	
+	/**
 	 * Flags are booleans that are always true
 	 * @param name
 	 * @param description
@@ -117,6 +124,40 @@ public class Configurable {
 	}
 	
 	/**
+	 * Sets a parameter value
+	 * @param name
+	 * @param value
+	 */
+	public void setParameterValue(String name, Object value){
+		parameters.put(name, value);
+	}
+	
+	/**
+	 * Removes a parameter setting
+	 * @param name
+	 * @param value
+	 */
+	public void unsetParameter(String name){
+		parameters.remove(name);
+	}
+	
+	/**
+	 * Enables a flag
+	 * @param name
+	 */
+	public void setFlag(String name){
+		setParameterValue(name, null);
+	}
+	
+	/**
+	 * Disables a flag
+	 * @param name
+	 */
+	public void unsetFlag(String name){
+		unsetParameter(name);
+	}
+	
+	/**
 	 * Type checks expected parameters and rejects undeclared passed parameters
 	 * Also checks that all required parameters have been specified
 	 * @return
@@ -133,7 +174,7 @@ public class Configurable {
 	 * @param name
 	 * @param value
 	 */
-	private void checkParameter(String name, Object value) throws IllegalArgumentException {
+	public void checkParameter(String name, Object value) throws IllegalArgumentException {
 		if(!parameterNames.containsKey(name)){
 			throw new IllegalArgumentException(name + " is not a valid parameter.");
 		} else if(parameterNames.get(name) != value.getClass()){
