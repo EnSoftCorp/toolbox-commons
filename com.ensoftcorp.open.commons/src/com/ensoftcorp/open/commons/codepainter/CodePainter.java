@@ -103,10 +103,9 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 
 			@Override
 			public Map<Node, Color> getNodeColors() {
-				
 				// get the color palettes and conflict resolution strategy
 				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
+				List<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute node colorings for the active color palettes
@@ -167,7 +166,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			public Map<Edge, Color> getEdgeColors() {
 				// get the color palettes and conflict resolution strategy
 				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
+				List<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute edge colorings for the active color palettes
@@ -228,7 +227,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			public Map<Color, String> getNodeColorLegend() {
 				// get the color palettes and conflict resolution strategy
 				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
+				List<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute color legend for the active color palettes
@@ -271,7 +270,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			public Map<Color, String> getEdgeColorLegend() {
 				// get the color palettes and conflict resolution strategy
 				ColorPalette baseColorPalette = getComputationSpecificColorPalette() != null ? getComputationSpecificColorPalette() : ColorPalette.getEmptyColorPalette();
-				ArrayList<ColorPalette> colorPalettes = getAppliedColorPalettes();
+				List<ColorPalette> colorPalettes = getAppliedColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute color legend for the active color palettes
@@ -317,7 +316,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		return activeColorPalette;
 	}
 	
-	protected ArrayList<ColorPalette> getAppliedColorPalettes(){
+	public List<ColorPalette> getAppliedColorPalettes(){
 		return new ArrayList<ColorPalette>(appliedColorPalettes);
 	}
 	

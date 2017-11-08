@@ -41,6 +41,8 @@ import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 import com.ensoftcorp.open.commons.codepainter.ColorPalettes;
 import com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterSmartView.CodePainterSmartViewEventListener;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderView;
+import org.eclipse.swt.events.ExpandAdapter;
+import org.eclipse.swt.events.ExpandEvent;
 
 public class CodePainterControlPanel extends GraphSelectionProviderView {
 
@@ -207,15 +209,15 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			}
 		});
 		
-		Group grpControls = new Group(codePainterColorPalettesComposite, SWT.NONE);
-		grpControls.setText("Applicable Color Palettes");
-		grpControls.setLayout(new GridLayout(2, false));
-		grpControls.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Group colorPalettesGroup = new Group(codePainterColorPalettesComposite, SWT.NONE);
+		colorPalettesGroup.setText("Color Palettes");
+		colorPalettesGroup.setLayout(new GridLayout(2, false));
+		colorPalettesGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Combo applicableColorPalettesCombo = new Combo(grpControls, SWT.NONE);
+		Combo applicableColorPalettesCombo = new Combo(colorPalettesGroup, SWT.NONE);
 		applicableColorPalettesCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Button addColorPaletteLayerCombo = new Button(grpControls, SWT.NONE);
+		Button addColorPaletteLayerCombo = new Button(colorPalettesGroup, SWT.NONE);
 		addColorPaletteLayerCombo.setText("Add Layer");
 		
 		Group colorPaletteLayersGroup = new Group(codePainterColorPalettesComposite, SWT.NONE);
@@ -228,6 +230,128 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		colorPaletteLayersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		colorPaletteLayersScrolledComposite.setExpandHorizontal(true);
 		colorPaletteLayersScrolledComposite.setExpandVertical(true);
+		
+		refreshColorPaletteLayers(applicableColorPalettesCombo, colorPaletteLayersScrolledComposite);
+		
+		// initialized the empty legend
+		SashForm codePainterLegendSashForm = new SashForm(folder, SWT.NONE);
+		codePainterLegendTab.setControl(codePainterLegendSashForm);
+		codePainterLegendSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		Group legendNodesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
+		legendNodesGroup.setText("Nodes");
+		legendNodesGroup.setLayout(new GridLayout(1, false));
+		
+		ScrolledComposite legendNodesScrolledComposite = new ScrolledComposite(legendNodesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		legendNodesScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+		legendNodesScrolledComposite.setExpandHorizontal(true);
+		legendNodesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		legendNodesScrolledComposite.setExpandVertical(true);
+		
+		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
+		legendNodesContentComposite.setLayout(new GridLayout(1, false));
+		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
+		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		Group legendEdgesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
+		legendEdgesGroup.setText("Edges");
+		legendEdgesGroup.setLayout(new GridLayout(1, false));
+		
+		ScrolledComposite legendEdgesScrolledComposite = new ScrolledComposite(legendEdgesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		legendEdgesScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+		legendEdgesScrolledComposite.setExpandHorizontal(true);
+		legendEdgesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		legendEdgesScrolledComposite.setExpandVertical(true);
+		
+		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
+		legendEdgesContentComposite.setLayout(new GridLayout(1, false));
+		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
+		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		codePainterLegendSashForm.setWeights(new int[] {1, 1});
+
+		// set the default tab
+		folder.setSelection(codePainterSelectionTab);
+		
+		// add index listeners to disable UI when index is changing
+		final Display display = parent.getShell().getDisplay();
+		
+		IndexingUtil.addListener(new IIndexListener(){
+			@Override
+			public void indexOperationCancelled(IndexOperation op) {}
+
+			@Override
+			public void indexOperationComplete(IndexOperation op) {
+				display.syncExec(new Runnable(){
+					@Override
+					public void run() {
+						folder.setSelection(codePainterSelectionTab);
+						searchCodePaintersCheckbox.setEnabled(true);
+						categorizedCodePaintersTree.setEnabled(true);
+					}
+				});
+			}
+
+			@Override
+			public void indexOperationError(IndexOperation op, Throwable error) {}
+
+			@Override
+			public void indexOperationScheduled(IndexOperation op) {}
+
+			@Override
+			public void indexOperationStarted(IndexOperation op) {
+				display.syncExec(new Runnable(){
+					@Override
+					public void run() {
+						folder.setSelection(codePainterSelectionTab);
+						searchCodePaintersCheckbox.setSelection(false);
+						searchCodePaintersCheckbox.setEnabled(false);
+						selectedCodePainterCombo.setEnabled(false);
+						categorizedCodePaintersTree.setEnabled(false);
+					}
+				});
+			}
+		});
+
+		// register code painter smart view listeners
+		CodePainterSmartView.addListener(new CodePainterSmartViewEventListener(){
+			@Override
+			public void selectionChanged(IAtlasSelectionEvent event, int reverse, int forward) {
+				display.asyncExec(new Runnable(){
+					@Override
+					public void run() {
+						refreshLegend(legendNodesScrolledComposite, legendEdgesScrolledComposite);
+					}
+				});
+			}
+
+			@Override
+			public void codePainterChanged(CodePainter codePainter) {
+				display.asyncExec(new Runnable(){
+					@Override
+					public void run() {
+						refreshLegend(legendNodesScrolledComposite, legendEdgesScrolledComposite);
+						refreshColorPaletteLayers(applicableColorPalettesCombo, colorPaletteLayersScrolledComposite);
+					}
+				});
+			}
+		});
+		
+		// register as a graph selection provider
+		registerGraphSelectionProvider();
+	}
+
+	private void refreshColorPaletteLayers(Combo applicableColorPalettesCombo, ScrolledComposite colorPaletteLayersScrolledComposite) {
+		// populate the applicable color palettes that are not already applied
+		CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+		applicableColorPalettesCombo.removeAll();
+		if(activeCodePainter != null){
+			for(ColorPalette colorPalette : ColorPalettes.getRegisteredColorPalettes()){
+				if(!activeCodePainter.getAppliedColorPalettes().contains(colorPalette)){
+					applicableColorPalettesCombo.add(colorPalette.getName());
+					applicableColorPalettesCombo.setData(colorPalette);
+				}
+			}
+		}
 		
 		Composite colorPaletteLayersContentComposite = new Composite(colorPaletteLayersScrolledComposite, SWT.NONE);
 		colorPaletteLayersContentComposite.setLayout(new GridLayout(1, false));
@@ -323,119 +447,26 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		});
 		deleteButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
 		deleteButton.setText("Delete");
-		colorPaletteLayersScrolledComposite.setContent(colorPaletteLayersContentComposite);
-		colorPaletteLayersScrolledComposite.setMinSize(colorPaletteLayersContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
 		// compute the expand bar item height
 		colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
-		// initialized the empty legend
-		SashForm codePainterLegendSashForm = new SashForm(folder, SWT.NONE);
-		codePainterLegendTab.setControl(codePainterLegendSashForm);
-		codePainterLegendSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		Group legendNodesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
-		legendNodesGroup.setText("Nodes");
-		legendNodesGroup.setLayout(new GridLayout(1, false));
+//		colorPaletteExpandBar.addExpandListener(new ExpandAdapter() {
+//			@Override
+//			public void itemExpanded(ExpandEvent e) {
+//				refreshColorPaletteLayers(applicableColorPalettesCombo, colorPaletteLayersScrolledComposite);
+//			}
+//			@Override
+//			public void itemCollapsed(ExpandEvent e) {
+//				refreshColorPaletteLayers(applicableColorPalettesCombo, colorPaletteLayersScrolledComposite);
+//			}
+//		});
 		
-		ScrolledComposite legendNodesScrolledComposite = new ScrolledComposite(legendNodesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
-		legendNodesScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		legendNodesScrolledComposite.setExpandHorizontal(true);
-		legendNodesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		legendNodesScrolledComposite.setExpandVertical(true);
-		
-		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
-		legendNodesContentComposite.setLayout(new GridLayout(1, false));
-		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
-		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
-		Group legendEdgesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
-		legendEdgesGroup.setText("Edges");
-		legendEdgesGroup.setLayout(new GridLayout(1, false));
-		
-		ScrolledComposite legendEdgesScrolledComposite = new ScrolledComposite(legendEdgesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
-		legendEdgesScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-		legendEdgesScrolledComposite.setExpandHorizontal(true);
-		legendEdgesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		legendEdgesScrolledComposite.setExpandVertical(true);
-		
-		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
-		legendEdgesContentComposite.setLayout(new GridLayout(1, false));
-		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
-		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
-		codePainterLegendSashForm.setWeights(new int[] {1, 1});
-
-		// set the default tab
-		folder.setSelection(codePainterSelectionTab);
-		
-		// add index listeners to disable UI when index is changing
-		final Display display = parent.getShell().getDisplay();
-		
-		IndexingUtil.addListener(new IIndexListener(){
-			@Override
-			public void indexOperationCancelled(IndexOperation op) {}
-
-			@Override
-			public void indexOperationComplete(IndexOperation op) {
-				display.syncExec(new Runnable(){
-					@Override
-					public void run() {
-						folder.setSelection(codePainterSelectionTab);
-						searchCodePaintersCheckbox.setEnabled(true);
-						categorizedCodePaintersTree.setEnabled(true);
-					}
-				});
-			}
-
-			@Override
-			public void indexOperationError(IndexOperation op, Throwable error) {}
-
-			@Override
-			public void indexOperationScheduled(IndexOperation op) {}
-
-			@Override
-			public void indexOperationStarted(IndexOperation op) {
-				display.syncExec(new Runnable(){
-					@Override
-					public void run() {
-						folder.setSelection(codePainterSelectionTab);
-						searchCodePaintersCheckbox.setSelection(false);
-						searchCodePaintersCheckbox.setEnabled(false);
-						selectedCodePainterCombo.setEnabled(false);
-						categorizedCodePaintersTree.setEnabled(false);
-					}
-				});
-			}
-		});
-
-		// register code painter smart view listeners
-		CodePainterSmartView.addListener(new CodePainterSmartViewEventListener(){
-			@Override
-			public void selectionChanged(IAtlasSelectionEvent event, int reverse, int forward) {
-				display.asyncExec(new Runnable(){
-					@Override
-					public void run() {
-						updateLegend(legendNodesScrolledComposite, legendEdgesScrolledComposite);
-					}
-				});
-			}
-
-			@Override
-			public void codePainterChanged(CodePainter codePainter) {
-				display.asyncExec(new Runnable(){
-					@Override
-					public void run() {
-						updateLegend(legendNodesScrolledComposite, legendEdgesScrolledComposite);
-					}
-				});
-			}
-		});
-		
-		// register as a graph selection provider
-		registerGraphSelectionProvider();
+		colorPaletteLayersScrolledComposite.setContent(colorPaletteLayersContentComposite);
+		colorPaletteLayersScrolledComposite.setMinSize(colorPaletteLayersContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
 
-	private void updateLegend(ScrolledComposite legendNodesScrolledComposite, ScrolledComposite legendEdgesScrolledComposite) {
+	private void refreshLegend(ScrolledComposite legendNodesScrolledComposite, ScrolledComposite legendEdgesScrolledComposite) {
 		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
 		legendNodesContentComposite.setLayout(new GridLayout(1, false));
 		

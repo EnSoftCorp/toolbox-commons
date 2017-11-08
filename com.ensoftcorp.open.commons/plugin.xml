@@ -128,7 +128,7 @@
    
    <!-- adds color palette definitions -->
    <extension point="com.ensoftcorp.open.commons.colorpalette">
-      <colorpalette class="com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeColorPalette"></colorpalette>
+      <colorpalette class="com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeTypeColorPalette"></colorpalette>
       <colorpalette class="com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowLoopDepthColorPalette"></colorpalette>
    </extension>
    

@@ -9,7 +9,7 @@ import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
-import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeColorPalette;
+import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeTypeColorPalette;
 import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowLoopDepthColorPalette;
 
 /**
@@ -23,7 +23,7 @@ public class ControlFlowCodePainter extends CodePainter {
 	
 	public ControlFlowCodePainter(){
 		// add some default coloring palettes
-		this.addColorPalette(new ControlFlowEdgeColorPalette());
+		this.addColorPalette(new ControlFlowEdgeTypeColorPalette());
 		this.addColorPalette(new ControlFlowLoopDepthColorPalette());
 		
 		// add optional parameters and flags

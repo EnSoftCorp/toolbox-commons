@@ -52,7 +52,7 @@ public class ControlFlowLoopDepthColorPalette extends ColorPalette {
 
 	@Override
 	public String getName() {
-		return "Control Flow Loop Depth Color Palette";
+		return "Control Flow Loop Depth";
 	}
 
 	@Override

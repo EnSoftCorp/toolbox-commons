@@ -12,7 +12,7 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 
-public class ControlFlowEdgeColorPalette extends ColorPalette {
+public class ControlFlowEdgeTypeColorPalette extends ColorPalette {
 
 	public static final Color CONDITIONAL_TRUE_CONTROL_FLOW_COLOR = Color.WHITE;
 	public static final Color CONDITIONAL_FALSE_CONTROL_FLOW_COLOR = Color.BLACK;
@@ -65,7 +65,7 @@ public class ControlFlowEdgeColorPalette extends ColorPalette {
 
 	@Override
 	public String getName() {
-		return "Control Flow Edge Color Palette";
+		return "Control Flow Edge Type";
 	}
 
 	@Override
