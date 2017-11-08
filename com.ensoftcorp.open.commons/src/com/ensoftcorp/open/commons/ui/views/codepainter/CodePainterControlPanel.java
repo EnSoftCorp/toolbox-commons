@@ -95,11 +95,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		final CTabItem codePainterLegendTab = new CTabItem(folder, SWT.NONE);
 		codePainterLegendTab.setText("Legend");
 		
-		ScrolledComposite codePainterLegendScrolledComposite = new ScrolledComposite(folder, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
-		codePainterLegendTab.setControl(codePainterLegendScrolledComposite);
-		codePainterLegendScrolledComposite.setExpandHorizontal(true);
-		codePainterLegendScrolledComposite.setExpandVertical(true);
-		
 		Button searchCodePaintersCheckbox = new Button(searchCodePaintersComposite, SWT.CHECK);
 		searchCodePaintersCheckbox.setText("Search Code Painters: ");
 		searchCodePaintersCheckbox.setEnabled(indexExists);
@@ -229,6 +224,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		colorPaletteLayersGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		ScrolledComposite colorPaletteLayersScrolledComposite = new ScrolledComposite(colorPaletteLayersGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		colorPaletteLayersScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		colorPaletteLayersScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		colorPaletteLayersScrolledComposite.setExpandHorizontal(true);
 		colorPaletteLayersScrolledComposite.setExpandVertical(true);
@@ -334,7 +330,40 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
 		// initialized the empty legend
-		updateLegend(codePainterLegendScrolledComposite);
+		SashForm codePainterLegendSashForm = new SashForm(folder, SWT.NONE);
+		codePainterLegendTab.setControl(codePainterLegendSashForm);
+		codePainterLegendSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		Group legendNodesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
+		legendNodesGroup.setText("Nodes");
+		legendNodesGroup.setLayout(new GridLayout(1, false));
+		
+		ScrolledComposite legendNodesScrolledComposite = new ScrolledComposite(legendNodesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		legendNodesScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+		legendNodesScrolledComposite.setExpandHorizontal(true);
+		legendNodesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		legendNodesScrolledComposite.setExpandVertical(true);
+		
+		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
+		legendNodesContentComposite.setLayout(new GridLayout(1, false));
+		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
+		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		Group legendEdgesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
+		legendEdgesGroup.setText("Edges");
+		legendEdgesGroup.setLayout(new GridLayout(1, false));
+		
+		ScrolledComposite legendEdgesScrolledComposite = new ScrolledComposite(legendEdgesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+		legendEdgesScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+		legendEdgesScrolledComposite.setExpandHorizontal(true);
+		legendEdgesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		legendEdgesScrolledComposite.setExpandVertical(true);
+		
+		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
+		legendEdgesContentComposite.setLayout(new GridLayout(1, false));
+		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
+		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		codePainterLegendSashForm.setWeights(new int[] {1, 1});
 
 		// set the default tab
 		folder.setSelection(codePainterSelectionTab);
@@ -386,7 +415,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				display.asyncExec(new Runnable(){
 					@Override
 					public void run() {
-						updateLegend(codePainterLegendScrolledComposite);
+						updateLegend(legendNodesScrolledComposite, legendEdgesScrolledComposite);
 					}
 				});
 			}
@@ -396,7 +425,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				display.asyncExec(new Runnable(){
 					@Override
 					public void run() {
-						updateLegend(codePainterLegendScrolledComposite);
+						updateLegend(legendNodesScrolledComposite, legendEdgesScrolledComposite);
 					}
 				});
 			}
@@ -406,36 +435,9 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		registerGraphSelectionProvider();
 	}
 
-	private void updateLegend(ScrolledComposite codePainterLegendScrolledComposite) {
-		Composite codePainterLegendContentComposite = new Composite(codePainterLegendScrolledComposite, SWT.NONE);
-		codePainterLegendContentComposite.setLayout(new GridLayout(1, false));
-		
-		SashForm codePainterLegendSashForm = new SashForm(codePainterLegendContentComposite, SWT.NONE);
-		codePainterLegendSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		Group legendNodesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
-		legendNodesGroup.setText("Nodes");
-		legendNodesGroup.setLayout(new GridLayout(1, false));
-		
-		ScrolledComposite legendNodesScrolledComposite = new ScrolledComposite(legendNodesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
-		legendNodesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		legendNodesScrolledComposite.setExpandHorizontal(true);
-		legendNodesScrolledComposite.setExpandVertical(true);
-		
+	private void updateLegend(ScrolledComposite legendNodesScrolledComposite, ScrolledComposite legendEdgesScrolledComposite) {
 		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
 		legendNodesContentComposite.setLayout(new GridLayout(1, false));
-		
-		Group legendEdgesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
-		legendEdgesGroup.setText("Edges");
-		legendEdgesGroup.setLayout(new GridLayout(1, false));
-		
-		ScrolledComposite legendEdgesScrolledComposite = new ScrolledComposite(legendEdgesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
-		legendEdgesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		legendEdgesScrolledComposite.setExpandHorizontal(true);
-		legendEdgesScrolledComposite.setExpandVertical(true);
-		
-		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
-		legendEdgesContentComposite.setLayout(new GridLayout(1, false));
 		
 		// colors must be unique, names should be, but may not be unique
 		// sort first by name then color
@@ -504,6 +506,9 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
 		
+		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
+		legendEdgesContentComposite.setLayout(new GridLayout(1, false));
+		
 		// sort edge colors for consistency and add to panel
 		List<Entry<Color,String>> edgeLegendEntries = new ArrayList<Entry<Color,String>>(activeColorPalette.getEdgeColorLegend().entrySet());
 		Collections.sort(edgeLegendEntries, legendOrdering);
@@ -544,11 +549,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		}
 		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
 		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
-		codePainterLegendSashForm.setWeights(new int[] {1, 1});
-		
-		codePainterLegendScrolledComposite.setContent(codePainterLegendContentComposite);
-		codePainterLegendScrolledComposite.setMinSize(codePainterLegendContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
 
 	@Override
