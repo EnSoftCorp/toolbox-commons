@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -33,10 +34,12 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.CodePainters;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 import com.ensoftcorp.open.commons.codepainter.ColorPalettes;
+import com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterSmartView.CodePainterSmartViewEventListener;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderView;
 
 public class CodePainterControlPanel extends GraphSelectionProviderView {
@@ -125,7 +128,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					if(codePainter != null){
 						if(CodePainterSmartView.setCodePainter(codePainter)){
 							selectedCodePainterCombo.setText(codePainter.getTitle());
-							updateLegend(codePainterLegendScrolledComposite);
 							refreshSelection();
 						}
 					}
@@ -204,7 +206,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				CodePainter codePainter = (CodePainter) selectedCodePainterCombo.getData(selectedCodePainterCombo.getText());
 				if(codePainter != null){
 					if(CodePainterSmartView.setCodePainter(codePainter)){
-						updateLegend(codePainterLegendScrolledComposite);
 						refreshSelection();
 					}
 				}
@@ -332,10 +333,15 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		// compute the expand bar item height
 		colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
+		// initialized the empty legend
 		updateLegend(codePainterLegendScrolledComposite);
+
+		// set the default tab
+		folder.setSelection(codePainterSelectionTab);
 		
 		// add index listeners to disable UI when index is changing
 		final Display display = parent.getShell().getDisplay();
+		
 		IndexingUtil.addListener(new IIndexListener(){
 			@Override
 			public void indexOperationCancelled(IndexOperation op) {}
@@ -372,9 +378,29 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				});
 			}
 		});
-		
-		// set the default tab
-		folder.setSelection(codePainterSelectionTab);
+
+		// register code painter smart view listeners
+		CodePainterSmartView.addListener(new CodePainterSmartViewEventListener(){
+			@Override
+			public void selectionChanged(IAtlasSelectionEvent event, int reverse, int forward) {
+				display.asyncExec(new Runnable(){
+					@Override
+					public void run() {
+						updateLegend(codePainterLegendScrolledComposite);
+					}
+				});
+			}
+
+			@Override
+			public void codePainterChanged(CodePainter codePainter) {
+				display.asyncExec(new Runnable(){
+					@Override
+					public void run() {
+						updateLegend(codePainterLegendScrolledComposite);
+					}
+				});
+			}
+		});
 		
 		// register as a graph selection provider
 		registerGraphSelectionProvider();
@@ -411,11 +437,22 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
 		legendEdgesContentComposite.setLayout(new GridLayout(1, false));
 		
-		Comparator<Color> colorSorter = new Comparator<Color>() {
+		// colors must be unique, names should be, but may not be unique
+		// sort first by name then color
+		Comparator<Entry<Color,String>> legendOrdering = new Comparator<Entry<Color,String>>() {
 			@Override
-			public int compare(Color c1, Color c2) {
-				return Integer.compare((c1.getRed() + c1.getGreen() + c1.getBlue()), 
-						(c2.getRed() + c2.getGreen() + c2.getBlue()));
+			public int compare(Entry<Color,String> e1, Entry<Color,String> e2) {
+				String n1 = e1.getValue();
+				String n2 = e2.getValue();
+				int nameComparison = n1.compareTo(n2);
+				if(nameComparison == 0){
+					Color c1 = e1.getKey();
+					Color c2 = e2.getKey();
+					return Integer.compare((c1.getRed() + c1.getGreen() + c1.getBlue()), 
+							(c2.getRed() + c2.getGreen() + c2.getBlue()));
+				} else {
+					return nameComparison;
+				}
 			}
 		};
 		
@@ -425,11 +462,14 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			activeColorPalette = activeCodePainter.getActiveColorPalette();
 		}
 		
-		// sort node colors by color (mostly for consistency) and add to panel
-		List<Color> nodeColorKeys = new ArrayList<Color>(activeColorPalette.getNodeColorLegend().keySet());
-		Collections.sort(nodeColorKeys, colorSorter);
+		// sort node colors for consistency and add to panel
+		List<Entry<Color,String>> nodeLegendEntries = new ArrayList<Entry<Color,String>>(activeColorPalette.getNodeColorLegend().entrySet());
+		Collections.sort(nodeLegendEntries, legendOrdering);
 		boolean isFirstNode = true;
-		for(Color nodeColorKey : nodeColorKeys){
+		for(Entry<Color,String> legendEntry : nodeLegendEntries){
+			Color legendColor = legendEntry.getKey();
+			String legendName = legendEntry.getValue();
+			
 			if(!isFirstNode){
 				Label nodesSeparator = new Label(legendNodesContentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
 				nodesSeparator.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -442,7 +482,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			legendNodesColorComposite.setLayout(new GridLayout(2, false));
 			
 			Composite nodesColorComposite = new Composite(legendNodesColorComposite, SWT.BORDER);
-			nodesColorComposite.setBackground(SWTResourceManager.getColor(nodeColorKey.getRed(), nodeColorKey.getGreen(), nodeColorKey.getBlue()));
+			nodesColorComposite.setBackground(SWTResourceManager.getColor(legendColor.getRed(), legendColor.getGreen(), legendColor.getBlue()));
 			GridData gd_nodesColorComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 			gd_nodesColorComposite.widthHint = 20;
 			gd_nodesColorComposite.heightHint = 20;
@@ -450,7 +490,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			
 			Label nodesColorLabel = new Label(legendNodesColorComposite, SWT.NONE);
 			nodesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-			String text = activeColorPalette.getNodeColorLegend().get(nodeColorKey);
+			String text = legendName;
 			nodesColorLabel.setText(text != null ? text : "");
 			
 			nodesColorComposite.addMouseListener(new MouseAdapter() {
@@ -464,11 +504,14 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
 		
-		// sort edge colors by color (mostly for consistency) and add to panel
-		List<Color> edgeColorKeys = new ArrayList<Color>(activeColorPalette.getEdgeColorLegend().keySet());
-		Collections.sort(edgeColorKeys, colorSorter);
+		// sort edge colors for consistency and add to panel
+		List<Entry<Color,String>> edgeLegendEntries = new ArrayList<Entry<Color,String>>(activeColorPalette.getEdgeColorLegend().entrySet());
+		Collections.sort(edgeLegendEntries, legendOrdering);
 		boolean isFirstEdge = true;
-		for(Color edgeColorKey : edgeColorKeys){
+		for(Entry<Color,String> legendEntry : edgeLegendEntries){
+			Color legendColor = legendEntry.getKey();
+			String legendName = legendEntry.getValue();
+			
 			if(!isFirstEdge){
 				Label edgesSeparator = new Label(legendEdgesContentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
 				edgesSeparator.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -481,7 +524,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			legendEdgesColorComposite.setLayout(new GridLayout(2, false));
 			
 			Composite edgesColorComposite = new Composite(legendEdgesColorComposite, SWT.BORDER);
-			edgesColorComposite.setBackground(SWTResourceManager.getColor(edgeColorKey.getRed(), edgeColorKey.getGreen(), edgeColorKey.getBlue()));
+			edgesColorComposite.setBackground(SWTResourceManager.getColor(legendColor.getRed(), legendColor.getGreen(), legendColor.getBlue()));
 			GridData gd_edgesColorComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 			gd_edgesColorComposite.widthHint = 20;
 			gd_edgesColorComposite.heightHint = 20;
@@ -489,7 +532,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			
 			Label edgesColorLabel = new Label(legendEdgesColorComposite, SWT.NONE);
 			edgesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-			String text = activeColorPalette.getEdgeColorLegend().get(edgeColorKey);
+			String text = legendName;
 			edgesColorLabel.setText(text != null ? text : "");
 			
 			edgesColorComposite.addMouseListener(new MouseAdapter() {

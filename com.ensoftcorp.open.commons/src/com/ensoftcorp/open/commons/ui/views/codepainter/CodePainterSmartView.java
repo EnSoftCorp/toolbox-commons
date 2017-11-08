@@ -1,5 +1,8 @@
 package com.ensoftcorp.open.commons.ui.views.codepainter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
 import com.ensoftcorp.atlas.core.script.StyledResult;
@@ -14,6 +17,23 @@ import com.ensoftcorp.open.commons.codepainter.CodePainter;
 public final class CodePainterSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
 	private static CodePainter codePainter = null;
+	private static Set<CodePainterSmartViewEventListener> listeners = new HashSet<CodePainterSmartViewEventListener>();
+	
+	/**
+	 * A listener class to handle callbacks for smart view events
+	 */
+	public static interface CodePainterSmartViewEventListener {
+		public void selectionChanged(IAtlasSelectionEvent event, int reverse, int forward);
+		public void codePainterChanged(CodePainter codePainter);
+	}
+	
+	public static void addListener(CodePainterSmartViewEventListener listener){
+		listeners.add(listener);
+	}
+	
+	public static void removeListener(CodePainterSmartViewEventListener listener){
+		listeners.remove(listener);
+	}
 	
 	/**
 	 * Sets the active code painter. Setting code painter to null effectively
@@ -26,19 +46,28 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 			if(codePainter == null){
 				// assigning null again
 				CodePainterSmartView.codePainter = null;
+				notifyListenersCodePainterChanged();
 				return true;
 			} else if(CodePainterSmartView.codePainter == null){
 				// first non-null assignment
 				CodePainterSmartView.codePainter = codePainter;
+				notifyListenersCodePainterChanged();
 				return true;
 			} else if(!CodePainterSmartView.codePainter.equals(codePainter)){
 				// new non-equal assignment (code painter change)
 				CodePainterSmartView.codePainter = codePainter;
+				notifyListenersCodePainterChanged();
 				return true;
 			}
 			
 			// no change
 			return false;
+		}
+	}
+
+	private static void notifyListenersCodePainterChanged() {
+		for(CodePainterSmartViewEventListener listener : listeners){
+			listener.codePainterChanged(CodePainterSmartView.codePainter);
 		}
 	}
 	
@@ -99,12 +128,16 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 
 	@Override
 	public final synchronized FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
+		FrontierStyledResult result = null;
 		synchronized (CodePainter.class){
 			if(codePainter != null){
-				return codePainter.evaluate(event, reverse, forward);
+				result = codePainter.evaluate(event, reverse, forward);
 			}
 		}
-		return null;
+		for(CodePainterSmartViewEventListener listener : listeners){
+			listener.selectionChanged(event, reverse, forward);
+		}
+		return result;
 	}
 
 	@Override

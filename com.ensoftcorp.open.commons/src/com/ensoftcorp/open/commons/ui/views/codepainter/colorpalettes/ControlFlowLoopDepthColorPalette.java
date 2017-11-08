@@ -32,12 +32,12 @@ public class ControlFlowLoopDepthColorPalette extends ColorPalette {
 			if(shade.equals(CONTROL_FLOW_NODE_DEFAULT_COLOR)){
 				nodeLegend.put(shade, "Loop Depth: 0");
 			} else {
-				int depth = 0;
-				String displayDepth = "";
+				int depth = 1;
+				String displayDepth = new Integer(depth).toString();
 				Color color = CONTROL_FLOW_NODE_DEFAULT_COLOR.darker();
 				while(!shade.equals(color)){
 					depth++;
-					displayDepth = "" + depth;
+					displayDepth = new Integer(depth).toString();
 					color = color.darker();
 					if(color.equals(Color.BLACK)){
 						// can't get any darker

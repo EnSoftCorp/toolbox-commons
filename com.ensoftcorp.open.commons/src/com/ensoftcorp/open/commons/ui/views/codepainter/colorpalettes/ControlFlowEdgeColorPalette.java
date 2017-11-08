@@ -95,6 +95,7 @@ public class ControlFlowEdgeColorPalette extends ColorPalette {
 		legend.put(CONDITIONAL_FALSE_CONTROL_FLOW_COLOR, "Conditional False Control Flow");
 		legend.put(UNCONDITIONAL_CONTROL_FLOW_COLOR, "Unconditional Control Flow");
 		legend.put(EXCEPTIONAL_CONTROL_FLOW_COLOR, "Exceptional Control Flow");
+		legend.put(LOOPBACK_EDGE_CONTROL_FLOW_COLOR, "Loopback Control Flow");
 		return legend;
 	}
 
