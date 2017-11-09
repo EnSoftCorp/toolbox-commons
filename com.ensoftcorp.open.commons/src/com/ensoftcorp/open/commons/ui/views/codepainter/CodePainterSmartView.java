@@ -100,7 +100,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	public final synchronized int getDefaultStepTop() {
 		synchronized (CodePainter.class){
 			if(codePainter != null){
-				return codePainter.getDefaultStepTop();
+				return codePainter.getDefaultStepReverse();
 			}
 		}
 		return 1;
@@ -110,7 +110,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	public final synchronized int getDefaultStepBottom() {
 		synchronized (CodePainter.class){
 			if(codePainter != null){
-				return codePainter.getDefaultStepBottom();
+				return codePainter.getDefaultStepForward();
 			}
 		}
 		return 1;

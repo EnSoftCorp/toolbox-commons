@@ -22,27 +22,32 @@ public class UniversalGraphExplorerCodePainter extends CodePainter {
 	}
 	
 	@Override
+	public String getDescription() {
+		return "Explores the universe by traversing all edge types from any node selection.";
+	}
+	
+	@Override
 	public String getCategory() {
 		return "Basic";
 	}
 	
 	@Override
-	protected String[] getSupportedNodeTags() {
+	public String[] getSupportedNodeTags() {
 		return EVERYTHING;
 	}
 	
 	@Override
-	protected String[] getSupportedEdgeTags() {
+	public String[] getSupportedEdgeTags() {
 		return NOTHING;
 	}
 
 	@Override
-	public int getDefaultStepTop() {
+	public int getDefaultStepReverse() {
 		return 1;
 	}
 
 	@Override
-	public int getDefaultStepBottom() {
+	public int getDefaultStepForward() {
 		return 1;
 	}
 

@@ -35,17 +35,22 @@ public class ControlFlowCodePainter extends CodePainter {
 	}
 	
 	@Override
+	public String getDescription() {
+		return "Explores control flow graphs.";
+	}
+	
+	@Override
 	public String getCategory() {
 		return "Basic";
 	}
 	
 	@Override
-	protected String[] getSupportedNodeTags() {
+	public String[] getSupportedNodeTags() {
 		return new String[]{ XCSG.DataFlow_Node, XCSG.ControlFlow_Node, XCSG.Function };
 	}
 	
 	@Override
-	protected String[] getSupportedEdgeTags() {
+	public String[] getSupportedEdgeTags() {
 		return NOTHING;
 	}
 	
@@ -60,12 +65,12 @@ public class ControlFlowCodePainter extends CodePainter {
 	}
 
 	@Override
-	public int getDefaultStepTop() {
+	public int getDefaultStepReverse() {
 		return 1;
 	}
 
 	@Override
-	public int getDefaultStepBottom() {
+	public int getDefaultStepForward() {
 		return 1;
 	}
 

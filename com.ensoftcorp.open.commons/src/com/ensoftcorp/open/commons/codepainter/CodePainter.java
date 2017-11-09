@@ -430,6 +430,12 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	public abstract String getTitle();
 	
 	/**
+	 * Returns a plaintext description of the code painter
+	 * @return
+	 */
+	public abstract String getDescription();
+	
+	/**
 	 * Defines the category this code painter is classified under.
 	 * Optionally categories can be qualified for multiple levels with "/"
 	 * @return
@@ -440,18 +446,47 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	 * Returns the supported node types this code painter can respond to
 	 * @return
 	 */
-	protected abstract String[] getSupportedNodeTags();
+	public abstract String[] getSupportedNodeTags();
 	
 	/**
 	 * Returns the supported edge types this code painter can respond to
 	 * @return
 	 */
-	protected abstract String[] getSupportedEdgeTags();
+	public abstract String[] getSupportedEdgeTags();
 
-	public abstract int getDefaultStepTop();
-
-	public abstract int getDefaultStepBottom();
+	/**
+	 * Returns the number of reverse steps out of the graph to compute
+	 * @return
+	 */
+	public abstract int getDefaultStepReverse();
 	
+	/**
+	 * This is a legacy interface to get the number of steps to reverse
+	 * Use getDefaultStepReverse method instead.
+	 */
+	@Deprecated
+	@Override
+	public int getDefaultStepTop() {
+		return getDefaultStepReverse();
+	}
+
+	/**
+	 * This is a legacy interface to get the number of steps to forward
+	 * Use getDefaultStepForward method instead.
+	 */
+	@Deprecated
+	@Override
+	public int getDefaultStepBottom() {
+		return getDefaultStepForward();
+	}
+	
+	/**
+	 * Returns the number of forward steps out of the graph to compute
+	 * @return
+	 */
+	public abstract int getDefaultStepForward();
+	
+	@Override
 	public FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
 		return SimpleScriptUtil.explore(this, event, oldResult);
 	}
@@ -514,6 +549,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	 * Computes a new styled frontier result for a given selection event and the
 	 * number of steps forward and reverse to explore on the frontier.
 	 */
+	@Override
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward){
 		// do not update the result if selection is invalid or empty
 		Q filteredSelection = filter(event);
@@ -563,8 +599,24 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		return filteredSelections;
 	}
 	
+	/**
+	 * Computes an unstyled frontier result for the given selection and steps
+	 * reverse/forward.
+	 * 
+	 * @param filteredSelections
+	 * @param reverse
+	 * @param forward
+	 * @return
+	 */
 	public abstract UnstyledFrontierResult computeFrontierResult(Q filteredSelections, int reverse, int forward);
 
+	/**
+	 * Computes an unstyled result for the given selection. This method is
+	 * equivalent to computing a frontier result with 0 steps reverse/forward.
+	 * 
+	 * @param filteredSelections
+	 * @return
+	 */
 	public UnstyledResult computeResult(Q filteredSelections) {
 		return new UnstyledResult(computeFrontierResult(filteredSelections, 0, 0).getResult());
 	}

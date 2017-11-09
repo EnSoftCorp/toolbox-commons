@@ -2,6 +2,7 @@ package com.ensoftcorp.open.commons.ui.views.codepainter;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -58,6 +59,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	private ScrolledComposite colorPaletteLayersScrolledComposite;
 	private ScrolledComposite legendNodesScrolledComposite;
 	private ScrolledComposite legendEdgesScrolledComposite;
+	private StyledText codePainterDetailsText;
 	
 	public CodePainterControlPanel(){
 		setPartName("Code Painter Control Panel");
@@ -83,10 +85,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		codePainterSelectionTab.setControl(codePainterSelectionComposite);
 		codePainterSelectionComposite.setLayout(new GridLayout(1, false));
 		
-		Composite searchCodePaintersComposite = new Composite(codePainterSelectionComposite, SWT.NONE);
-		searchCodePaintersComposite.setLayout(new GridLayout(2, false));
-		searchCodePaintersComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
+		final CTabItem codePainterDetailsTab = new CTabItem(folder, SWT.NONE);
+		codePainterDetailsTab.setText("Details");
+		Composite codePainterDetailsComposite = new Composite(folder, SWT.NONE);
+		codePainterDetailsTab.setControl(codePainterDetailsComposite);
+		codePainterDetailsComposite.setLayout(new GridLayout(1, false));
+
 		final CTabItem codePainterConfigurationsTab = new CTabItem(folder, SWT.NONE);
 		codePainterConfigurationsTab.setText("Configurations");
 		Composite codePainterConfigurationComposite = new Composite(folder, SWT.NONE);
@@ -95,17 +99,27 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		
 		final CTabItem codePainterColorPalettesTab = new CTabItem(folder, SWT.NONE);
 		codePainterColorPalettesTab.setText("Color Palettes");
-		
 		Composite codePainterColorPalettesComposite = new Composite(folder, SWT.NONE);
 		codePainterColorPalettesTab.setControl(codePainterColorPalettesComposite);
 		codePainterColorPalettesComposite.setLayout(new GridLayout(1, false));
 		
 		final CTabItem codePainterLegendTab = new CTabItem(folder, SWT.NONE);
 		codePainterLegendTab.setText("Legend");
-		
 		Composite codePainterLegendComposite = new Composite(folder, SWT.NONE);
 		codePainterLegendTab.setControl(codePainterLegendComposite);
 		codePainterLegendComposite.setLayout(new GridLayout(1, false));
+		
+		// setup code painter details tab
+		codePainterDetailsText = new StyledText(codePainterDetailsComposite, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
+		codePainterDetailsText.setMargins(5, 5, 5, 5);
+		codePainterDetailsText.setEditable(false);
+		codePainterDetailsText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		refreshCodePainterDetails();
+		
+		// setup code painters selection tab
+		Composite searchCodePaintersComposite = new Composite(codePainterSelectionComposite, SWT.NONE);
+		searchCodePaintersComposite.setLayout(new GridLayout(2, false));
+		searchCodePaintersComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Button searchCodePaintersCheckbox = new Button(searchCodePaintersComposite, SWT.CHECK);
 		searchCodePaintersCheckbox.setText("Search Code Painters: ");
@@ -398,6 +412,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					@Override
 					public void run() {
 						// reset the code painter layer state
+						refreshCodePainterDetails();
 						initializeColorPaletteState();
 						refreshColorPaletteLayers();
 						refreshLegend();
@@ -408,6 +423,36 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		
 		// register as a graph selection provider
 		registerGraphSelectionProvider();
+	}
+
+	private void refreshCodePainterDetails() {
+		CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+		if(activeCodePainter == null){
+			codePainterDetailsText.setText("No code painter selected.");
+		} else {
+			StringBuilder details = new StringBuilder();
+			details.append(activeCodePainter.getTitle() + " - " + activeCodePainter.getDescription() + "\n\n");
+
+			details.append("Supported Selections: \n");
+			String[] supportedNodes = activeCodePainter.getSupportedNodeTags();
+			if(supportedNodes == null){
+				details.append("Node Type: Node selections are ignored.\n");
+			} else if(supportedNodes.length == 0){
+				details.append("Node Types: Responds to any node selection.\n");
+			} else {
+				details.append("Node Types: " + Arrays.toString(supportedNodes) + "\n");
+			}
+			String[] supportedEdges = activeCodePainter.getSupportedEdgeTags();
+			if(supportedEdges == null){
+				details.append("Edge Types: Edge selections are ignored.\n");
+			} else if(supportedEdges.length == 0){
+				details.append("Edge Types: Responds to any edge selection.\n");
+			} else {
+				details.append("Edge Types: " + Arrays.toString(supportedEdges) + "\n");
+			}
+			
+			codePainterDetailsText.setText(details.toString());
+		}
 	}
 
 	/*
