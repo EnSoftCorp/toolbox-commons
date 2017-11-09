@@ -66,9 +66,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	}
 	
 	public CodePainter(){
-		for(ColorPalette colorPalette : getDefaultColorPalettes()){
-			colorPalettes.add(colorPalette);
-		}
+		restoreDefaultColorPalettes();
 	}
 	
 	/**
@@ -78,8 +76,9 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		CHOOSE_FIRST_MATCH, CHOOSE_LAST_MATCH, MIX_COLORS
 	}
 	
-	protected ArrayList<ColorPalette> colorPalettes = new ArrayList<ColorPalette>();
-	protected ColorPaletteConflictStrategy conflictStrategy = ColorPaletteConflictStrategy.CHOOSE_FIRST_MATCH;
+	private ArrayList<ColorPalette> colorPalettes = new ArrayList<ColorPalette>();
+	private Map<ColorPalette,Boolean> enabledColorPalettes = new HashMap<ColorPalette,Boolean>(); 
+	private ColorPaletteConflictStrategy conflictStrategy = ColorPaletteConflictStrategy.CHOOSE_FIRST_MATCH;
 	
 	/**
 	 * Returns a default list of ordered color palettes
@@ -93,6 +92,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	 */
 	public void restoreDefaultColorPalettes(){
 		this.colorPalettes.clear();
+		this.enabledColorPalettes.clear();
 		for(ColorPalette colorPalette : getDefaultColorPalettes()){
 			this.addColorPalette(colorPalette);
 		}
@@ -121,7 +121,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			@Override
 			public Map<Node, Color> getNodeColors() {
 				// get the color palettes and conflict resolution strategy
-				List<ColorPalette> colorPalettes = getColorPalettes();
+				List<ColorPalette> colorPalettes = getEnabledColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute node colorings for the active color palettes
@@ -177,7 +177,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			@Override
 			public Map<Edge, Color> getEdgeColors() {
 				// get the color palettes and conflict resolution strategy
-				List<ColorPalette> colorPalettes = getColorPalettes();
+				List<ColorPalette> colorPalettes = getEnabledColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute edge colorings for the active color palettes
@@ -233,7 +233,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			@Override
 			public Map<Color, String> getNodeColorLegend() {
 				// get the color palettes and conflict resolution strategy
-				List<ColorPalette> colorPalettes = getColorPalettes();
+				List<ColorPalette> colorPalettes = getEnabledColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute color legend for the active color palettes
@@ -274,7 +274,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			@Override
 			public Map<Color, String> getEdgeColorLegend() {
 				// get the color palettes and conflict resolution strategy
-				List<ColorPalette> colorPalettes = getColorPalettes();
+				List<ColorPalette> colorPalettes = getEnabledColorPalettes();
 				ColorPaletteConflictStrategy currentConflictStrategy = conflictStrategy;
 				
 				// compute color legend for the active color palettes
@@ -328,30 +328,105 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		return new ArrayList<ColorPalette>(colorPalettes);
 	}
 	
+	/**
+	 * Returns an ordered list of color palettes that are enabled.
+	 * This result is a subset of the result produced by getColorPalettes()
+	 * The 0th element represents the first layer of coloring
+	 * @return
+	 */
+	public List<ColorPalette> getEnabledColorPalettes(){
+		List<ColorPalette> enabledColorPalettes = new LinkedList<ColorPalette>();
+		for(ColorPalette colorPalette : getColorPalettes()){
+			if(isColorPaletteEnabled(colorPalette)){
+				enabledColorPalettes.add(colorPalette);
+			}
+		}
+		return enabledColorPalettes;
+	}
+	
+	/**
+	 * Adds a color palette to the code painter and enables the color palette
+	 * @param palette
+	 */
 	public void addColorPalette(ColorPalette palette){
 		if(palette != null){
 			if(!colorPalettes.contains(palette)){
 				colorPalettes.add(palette);
+				enabledColorPalettes.put(palette, true);
 			}
 		}
 	}
 	
+	/**
+	 * Adds a color palette to the code painter at the given index and shifts
+	 * any subsequent color palettes to the right of the index
+	 * 
+	 * @param palette
+	 * @param index
+	 */
 	public void addColorPalette(ColorPalette palette, int index){
 		if(palette != null){
 			if(!colorPalettes.contains(palette)){
 				colorPalettes.add(index, palette);
+				enabledColorPalettes.put(palette, true);
 			}
 		}
 	}
 	
+	/**
+	 * Removes a color palette from the code painter
+	 * @param palette
+	 */
 	public void removeColorPalette(ColorPalette palette){
 		colorPalettes.remove(palette);
+		enabledColorPalettes.remove(palette);
 	}
 	
+	/**
+	 * Removes a color palette at the given index and shifts any subsequent
+	 * methods to the left of the index
+	 * 
+	 * @param index
+	 */
 	public void removeColorPalette(int index){
-		colorPalettes.remove(index);
+		enabledColorPalettes.remove(colorPalettes.remove(index));
 	}
 	
+	/**
+	 * Returns true if the color palette exists in the code painter and the
+	 * palette is enabled
+	 * 
+	 * @param palette
+	 * @return
+	 */
+	public boolean isColorPaletteEnabled(ColorPalette palette){
+		return enabledColorPalettes.containsKey(palette) && enabledColorPalettes.get(palette);
+	}
+	
+	/**
+	 * Enables the color palette if the color palette exists and isn't already enabled
+	 * @param palette
+	 */
+	public void enableColorPalette(ColorPalette palette){
+		if(enabledColorPalettes.containsKey(palette)){
+			enabledColorPalettes.put(palette, true);
+		}
+	}
+	
+	/**
+	 * Disables the color palette if the color palette exists and isn't already disabled
+	 * @param palette
+	 */
+	public void disableColorPalette(ColorPalette palette){
+		if(enabledColorPalettes.containsKey(palette)){
+			enabledColorPalettes.put(palette, false);
+		}
+	}
+	
+	/**
+	 * Returns the title name of the code painter
+	 * @return
+	 */
 	public abstract String getTitle();
 	
 	/**
@@ -361,8 +436,16 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	 */
 	public abstract String getCategory();
 
+	/**
+	 * Returns the supported node types this code painter can respond to
+	 * @return
+	 */
 	protected abstract String[] getSupportedNodeTags();
 	
+	/**
+	 * Returns the supported edge types this code painter can respond to
+	 * @return
+	 */
 	protected abstract String[] getSupportedEdgeTags();
 
 	public abstract int getDefaultStepTop();
