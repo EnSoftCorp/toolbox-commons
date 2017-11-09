@@ -17,6 +17,8 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ExpandAdapter;
 import org.eclipse.swt.events.ExpandEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -31,6 +33,7 @@ import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wb.swt.ResourceManager;
@@ -38,6 +41,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.CodePainters;
@@ -48,28 +52,34 @@ import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderVie
 
 public class CodePainterControlPanel extends GraphSelectionProviderView {
 
+	private static final int FONT_SIZE = 11;
+	
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "com.ensoftcorp.open.commons.ui.views.codepainter.controlpanel"; //$NON-NLS-1$
 	
+	private Display display;
 	private CTabFolder folder;
 	private Combo availableColorPalettesCombo;
+	private StyledText codePainterDetailsText;
+	private Label codePainterConfigurationErrorLabel;
 	private Button addColorPaletteLayerButton;
 	private ScrolledComposite colorPaletteLayersScrolledComposite;
 	private ScrolledComposite legendNodesScrolledComposite;
 	private ScrolledComposite legendEdgesScrolledComposite;
-	private StyledText codePainterDetailsText;
+	private ScrolledComposite codePainterConfigurationsScrolledComposite;
 	
 	public CodePainterControlPanel(){
 		setPartName("Code Painter Control Panel");
-		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/toolbox.gif"));
+		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/brush.gif"));
 		CodePainters.loadCodePainterContributions();
 		ColorPalettes.loadColorPaletteContributions();
 	}
 	
 	@Override
 	public void createPartControl(Composite parent) {
+		display = parent.getShell().getDisplay();
 		boolean indexExists = IndexingUtil.indexExists();
 		
 		parent.setLayout(new GridLayout(1, false));
@@ -97,6 +107,26 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		codePainterConfigurationsTab.setControl(codePainterConfigurationComposite);
 		codePainterConfigurationComposite.setLayout(new GridLayout(1, false));
 		
+		codePainterConfigurationsScrolledComposite = new ScrolledComposite(codePainterConfigurationComposite, SWT.H_SCROLL | SWT.V_SCROLL);
+		codePainterConfigurationsScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+		codePainterConfigurationsScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		codePainterConfigurationsScrolledComposite.setExpandHorizontal(true);
+		codePainterConfigurationsScrolledComposite.setExpandVertical(true);
+		
+		refreshCodePainterConfigurations();
+		
+		Composite codePainterConfigurationsControlComposite = new Composite(codePainterConfigurationComposite, SWT.NONE);
+		codePainterConfigurationsControlComposite.setLayout(new GridLayout(2, false));
+		codePainterConfigurationsControlComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		
+		codePainterConfigurationErrorLabel = new Label(codePainterConfigurationsControlComposite, SWT.NONE);
+		codePainterConfigurationErrorLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
+		codePainterConfigurationErrorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Button restoreDefaultConfigurationsButton = new Button(codePainterConfigurationsControlComposite, SWT.NONE);
+		restoreDefaultConfigurationsButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		restoreDefaultConfigurationsButton.setText("Restore Defaults");
+		
 		final CTabItem codePainterColorPalettesTab = new CTabItem(folder, SWT.NONE);
 		codePainterColorPalettesTab.setText("Color Palettes");
 		Composite codePainterColorPalettesComposite = new Composite(folder, SWT.NONE);
@@ -109,8 +139,19 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		codePainterLegendTab.setControl(codePainterLegendComposite);
 		codePainterLegendComposite.setLayout(new GridLayout(1, false));
 		
+		restoreDefaultConfigurationsButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+				if(activeCodePainter != null){
+					activeCodePainter.restoreDefaultConfigurations();
+					refreshSelection();
+				}
+			}
+		});
+		
 		// setup code painter details tab
-		codePainterDetailsText = new StyledText(codePainterDetailsComposite, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
+		codePainterDetailsText = new StyledText(codePainterDetailsComposite, SWT.READ_ONLY | SWT.WRAP);
 		codePainterDetailsText.setMargins(5, 5, 5, 5);
 		codePainterDetailsText.setEditable(false);
 		codePainterDetailsText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -285,7 +326,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					activeCodePainter.restoreDefaultColorPalettes();
 					initializeColorPaletteState();
 					refreshColorPaletteLayers();
-					refreshLegend();
 					refreshSelection();
 				}
 			}
@@ -355,8 +395,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		folder.setSelection(codePainterSelectionTab);
 		
 		// add index listeners to disable UI when index is changing
-		final Display display = parent.getShell().getDisplay();
-		
 		IndexingUtil.addListener(new IIndexListener(){
 			@Override
 			public void indexOperationCancelled(IndexOperation op) {}
@@ -396,14 +434,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 
 		// register code painter smart view listeners
 		CodePainterSmartView.addListener(new CodePainterSmartViewEventListener(){
+			
 			@Override
 			public void selectionChanged(IAtlasSelectionEvent event, int reverse, int forward) {
-				display.asyncExec(new Runnable(){
-					@Override
-					public void run() {
-						refreshLegend();
-					}
-				});
+				// ignoring selection change reported by smart view, we will
+				// monitor selection changes directly from the event stream
+				// since smart view may not be open
 			}
 
 			@Override
@@ -413,6 +449,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					public void run() {
 						// reset the code painter layer state
 						refreshCodePainterDetails();
+						refreshCodePainterConfigurations();
 						initializeColorPaletteState();
 						refreshColorPaletteLayers();
 						refreshLegend();
@@ -425,6 +462,345 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		registerGraphSelectionProvider();
 	}
 
+	@Override
+	public void selectionChanged() {
+		display.asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				refreshLegend();
+			}
+		});
+	}
+	
+	private void refreshCodePainterConfigurations() {
+		CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
+		
+		if(activeCodePainter != null){
+			if (activeCodePainter.getPossibleParameters().isEmpty()) {
+				Label noParamsLabel = new Label(codePainterConfigurationsScrolledComposite, SWT.NONE);
+				noParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				noParamsLabel.setAlignment(SWT.CENTER);
+				noParamsLabel.setText("No parameters available for this code painter.");
+				codePainterConfigurationsScrolledComposite.setContent(noParamsLabel);
+				codePainterConfigurationsScrolledComposite.setMinSize(noParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			} else {
+				Composite inputComposite = new Composite(codePainterConfigurationsScrolledComposite, SWT.NONE);
+				inputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				inputComposite.setLayout(new GridLayout(1, false));
+				
+				// add the parameters in alphabetical order for UI consistency (flags are ordered first)
+				LinkedList<String> parameterNames = new LinkedList<String>(activeCodePainter.getPossibleParameters().keySet());
+				Collections.sort(parameterNames, new Comparator<String>(){
+					@Override
+					public int compare(String p1, String p2) {
+						boolean p1Flag = activeCodePainter.getPossibleFlags().contains(p1);
+						boolean p2Flag = activeCodePainter.getPossibleFlags().contains(p2);
+						if(p1Flag && !p2Flag){
+							return -1;
+						} else if(p1Flag && p2Flag){
+							return p1.compareTo(p2);
+						} else {
+							return 1;
+						}
+					}
+				});
+				
+				for(String parameterName : parameterNames){
+					final Class<? extends Object> parameterType = activeCodePainter.getPossibleParameters().get(parameterName);
+					
+					if(parameterType == Boolean.class){
+						Composite booleanInputComposite = new Composite(inputComposite, SWT.NONE);
+						booleanInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						booleanInputComposite.setLayout(new GridLayout(3, false));
+						booleanInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 1, 1));
+
+						final Button enableBooleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
+						enableBooleanInputCheckbox.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+						enableBooleanInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
+						booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						if(activeCodePainter.getPossibleFlags().contains(parameterName)){
+							booleanInputLabel.setText(parameterName);
+							booleanInputLabel.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+							enableBooleanInputCheckbox.setSelection(activeCodePainter.isFlagSet(parameterName));
+							
+							enableBooleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									boolean enabled = enableBooleanInputCheckbox.getSelection();
+									booleanInputLabel.setEnabled(enabled);
+									try {
+										if(enabled){
+											activeCodePainter.setFlag(parameterName);
+										} else {
+											activeCodePainter.unsetFlag(parameterName);
+										}
+										clearCodePainterValidationErrorMessage();
+										refreshSelection();
+									} catch (Throwable t){
+										setCodePainterValidationErrorMessage(t.getMessage());
+									}
+								}
+							});
+						} else {
+							booleanInputLabel.setText(parameterName + ":");
+							booleanInputLabel.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+							
+							final Button booleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
+							booleanInputCheckbox.setEnabled(false);
+							booleanInputCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							booleanInputCheckbox.setSelection((Boolean) activeCodePainter.getParameterValue(parameterName));
+							
+							booleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									try {
+										activeCodePainter.setParameterValue(parameterName, booleanInputCheckbox.getSelection());
+										clearCodePainterValidationErrorMessage();
+										refreshSelection();
+									} catch (Throwable t){
+										setCodePainterValidationErrorMessage(t.getMessage());
+									}
+								}
+							});
+							
+							enableBooleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									boolean enabled = enableBooleanInputCheckbox.getSelection();
+									booleanInputLabel.setEnabled(enabled);
+									booleanInputCheckbox.setEnabled(enabled);
+									try {
+										if(enabled){
+											activeCodePainter.setParameterValue(parameterName, booleanInputCheckbox.getSelection());
+										} else {
+											activeCodePainter.unsetParameter(parameterName);
+										}
+										clearCodePainterValidationErrorMessage();
+										refreshSelection();
+									} catch (Throwable t){
+										setCodePainterValidationErrorMessage(t.getMessage());
+									}
+								}
+							});
+						}
+					} else if(parameterType == String.class){
+						Composite stringInputComposite = new Composite(inputComposite, SWT.NONE);
+						stringInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						stringInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						stringInputComposite.setLayout(new GridLayout(3, false));
+
+						final Button enableStringInputCheckbox = new Button(stringInputComposite, SWT.CHECK);
+						enableStringInputCheckbox.setEnabled(false);
+						enableStringInputCheckbox.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+						enableStringInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+
+						final Label stringInputLabel = new Label(stringInputComposite, SWT.NONE);
+						stringInputLabel.setEnabled(false);
+						stringInputLabel.setText(parameterName + ":");
+						stringInputLabel.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+						stringInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+
+						final Text stringInputText = new Text(stringInputComposite, SWT.BORDER);
+						stringInputText.setEnabled(false);
+						stringInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						stringInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						stringInputText.setText((String) activeCodePainter.getParameterValue(parameterName));
+
+						enableStringInputCheckbox.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {
+								boolean enabled = enableStringInputCheckbox.getSelection();
+								stringInputLabel.setEnabled(enabled);
+								stringInputText.setEnabled(enabled);
+								if(enabled){
+									String text = stringInputText.getText();
+									if(!text.equals("")){
+										try {
+											activeCodePainter.setParameterValue(parameterName, text);
+											clearCodePainterValidationErrorMessage();
+											refreshSelection();
+										} catch (Throwable t){
+											setCodePainterValidationErrorMessage(t.getMessage());
+										}
+									} else {
+										setCodePainterValidationErrorMessage(parameterName + " must be an non-empty string.");
+									}
+								} else {
+									try {
+										activeCodePainter.unsetParameter(parameterName);
+									} catch (Throwable t){
+										setCodePainterValidationErrorMessage(t.getMessage());
+									}
+								}
+							}
+						});
+
+						stringInputText.addKeyListener(new KeyAdapter() {
+							@Override
+							public void keyReleased(KeyEvent e) {
+								String text = stringInputText.getText();
+								if(!text.equals("")){
+									try {
+										activeCodePainter.setParameterValue(parameterName, text);
+										clearCodePainterValidationErrorMessage();
+										refreshSelection();
+									} catch (Throwable t){
+										setCodePainterValidationErrorMessage(t.getMessage());
+									}
+								} else {
+									setCodePainterValidationErrorMessage(parameterName + " must be an non-empty string.");
+								}
+							}
+						});
+					} else if(parameterType == Integer.class){
+						Composite integerInputComposite = new Composite(inputComposite, SWT.NONE);
+						integerInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						integerInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						integerInputComposite.setLayout(new GridLayout(3, false));
+
+						final Button enableIntegerInputCheckbox = new Button(integerInputComposite, SWT.CHECK);
+						enableIntegerInputCheckbox.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+						enableIntegerInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Label integerInputLabel = new Label(integerInputComposite, SWT.NONE);
+						integerInputLabel.setEnabled(false);
+						integerInputLabel.setText(parameterName + ":");
+						integerInputLabel.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+						integerInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Text integerInputText = new Text(integerInputComposite, SWT.BORDER);
+						integerInputText.setEnabled(false);
+						integerInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						integerInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						integerInputText.setText(((Integer) activeCodePainter.getParameterValue(parameterName)).toString());
+						
+						enableIntegerInputCheckbox.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {
+								boolean enabled = enableIntegerInputCheckbox.getSelection();
+								integerInputLabel.setEnabled(enabled);
+								integerInputText.setEnabled(enabled);
+								try {
+									if(enabled){
+										try {
+											Integer value = Integer.parseInt(integerInputText.getText());
+											activeCodePainter.setParameterValue(parameterName, value);
+											clearCodePainterValidationErrorMessage();
+											refreshSelection();
+										} catch (NumberFormatException ex){
+											setCodePainterValidationErrorMessage(parameterName + " must be an integer.");
+										}
+									} else {
+										activeCodePainter.unsetParameter(parameterName);
+										clearCodePainterValidationErrorMessage();
+										refreshSelection();
+									}
+								} catch (Throwable t){
+									setCodePainterValidationErrorMessage(t.getMessage());
+								}
+							}
+						});
+
+						integerInputText.addKeyListener(new KeyAdapter() {
+							@Override
+							public void keyReleased(KeyEvent e) {
+								try {
+									Integer value = Integer.parseInt(integerInputText.getText());
+									activeCodePainter.setParameterValue(parameterName, value);
+									clearCodePainterValidationErrorMessage();
+									refreshSelection();
+								} catch (NumberFormatException ex){
+									setCodePainterValidationErrorMessage(parameterName + " must be an integer.");
+								}
+							}
+						});
+					} else if(parameterType == Double.class){
+						Composite doubleInputComposite = new Composite(inputComposite, SWT.NONE);
+						doubleInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						doubleInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						doubleInputComposite.setLayout(new GridLayout(3, false));
+
+						final Button enableDoubleInputCheckbox = new Button(doubleInputComposite, SWT.CHECK);
+						enableDoubleInputCheckbox.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+						enableDoubleInputCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Label doubleInputLabel = new Label(doubleInputComposite, SWT.NONE);
+						doubleInputLabel.setEnabled(false);
+						doubleInputLabel.setText(parameterName + ":");
+						doubleInputLabel.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+						doubleInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						final Text doubleInputText = new Text(doubleInputComposite, SWT.BORDER);
+						doubleInputText.setEnabled(false);
+						doubleInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						doubleInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						doubleInputText.setText(((Double) activeCodePainter.getParameterValue(parameterName)).toString());
+						
+						enableDoubleInputCheckbox.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {
+								boolean enabled = enableDoubleInputCheckbox.getSelection();
+								doubleInputLabel.setEnabled(enabled);
+								doubleInputText.setEnabled(enabled);
+								if(enabled){
+									try {
+										Double value = Double.parseDouble(doubleInputText.getText());
+										activeCodePainter.setParameterValue(parameterName, value);
+										clearCodePainterValidationErrorMessage();
+										refreshSelection();
+									} catch (NumberFormatException ex){
+										setCodePainterValidationErrorMessage(parameterName + " must be an double.");
+									}
+								} else {
+									activeCodePainter.unsetParameter(parameterName);
+									clearCodePainterValidationErrorMessage();
+									refreshSelection();
+								}
+							}
+						});
+
+						doubleInputText.addKeyListener(new KeyAdapter() {
+							@Override
+							public void keyReleased(KeyEvent e) {
+								try {
+									Double value = Double.parseDouble(doubleInputText.getText());
+									activeCodePainter.setParameterValue(parameterName, value);
+									clearCodePainterValidationErrorMessage();
+									refreshSelection();
+								} catch (NumberFormatException ex){
+									setCodePainterValidationErrorMessage(parameterName + " must be an double.");
+								}
+							}
+						});
+					} else {
+						Log.warning(activeCodePainter.getTitle() + " code painter has unsupported parameter types!");
+					}
+				}
+				
+				codePainterConfigurationsScrolledComposite.setContent(inputComposite);
+				codePainterConfigurationsScrolledComposite.setMinSize(inputComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			}
+		} else {
+			Label noCodePainterLabel = new Label(codePainterConfigurationsScrolledComposite, SWT.NONE);
+			noCodePainterLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+			noCodePainterLabel.setAlignment(SWT.LEFT);
+			noCodePainterLabel.setText("No code painter selected.");
+			codePainterConfigurationsScrolledComposite.setContent(noCodePainterLabel);
+			codePainterConfigurationsScrolledComposite.setMinSize(noCodePainterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		}
+	}
+	
+	private void clearCodePainterValidationErrorMessage(){
+		codePainterConfigurationErrorLabel.setText("");
+	}
+	
+	private void setCodePainterValidationErrorMessage(String message){
+		codePainterConfigurationErrorLabel.setText(message);
+	}
+		
 	private void refreshCodePainterDetails() {
 		CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
 		if(activeCodePainter == null){
@@ -595,7 +971,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 							activeCodePainter.disableColorPalette(colorPalette);
 							colorPaletteExpandItem.setText("[DISABLED] " + colorPalette.getName());
 						}
-						refreshLegend();
 						refreshSelection();
 					}
 				});
@@ -639,7 +1014,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 						activeCodePainter.removeColorPalette(colorPalette);
 						colorPaletteStates.remove(colorPaletteState);
 						refreshColorPaletteLayers();
-						refreshLegend();
 						refreshSelection();
 					}
 				});

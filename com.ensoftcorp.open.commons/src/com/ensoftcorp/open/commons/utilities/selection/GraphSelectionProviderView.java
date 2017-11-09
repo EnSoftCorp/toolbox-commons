@@ -34,12 +34,22 @@ public abstract class GraphSelectionProviderView extends ViewPart {
 				} catch (Exception e){
 					selection = Common.empty().eval();
 				}
-			}				
+				selectionChangedHandler();
+			}			
 		};
 		
 		// add the selection listener
 		SelectionUtil.addSelectionListener(selectionListener);
 	}
+	
+	private void selectionChangedHandler(){
+		selectionChanged();
+	}
+	
+	/**
+	 * This method can be overridden to handle selection changed events
+	 */
+	public void selectionChanged(){}
 	
 	public void enableGraphSelectionProvider(){
 		graphSelectionProvider.enable();

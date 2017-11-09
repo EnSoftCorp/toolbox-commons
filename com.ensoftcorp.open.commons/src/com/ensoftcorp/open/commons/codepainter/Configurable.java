@@ -3,7 +3,6 @@ package com.ensoftcorp.open.commons.codepainter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 public class Configurable {
@@ -17,7 +16,7 @@ public class Configurable {
 	/**
 	 * Restores default configurations
 	 */
-	public void restoreDefaultConfigurations(){
+	public final void restoreDefaultConfigurations(){
 		parameters = new HashMap<String,Object>();
 	}
 	
@@ -26,7 +25,7 @@ public class Configurable {
 	 * @param name
 	 * @param description
 	 */
-	protected void addPossibleFlag(String name, String description, boolean enabledByDefault){
+	protected final void addPossibleFlag(String name, String description, boolean enabledByDefault){
 		parameterNames.put(name, Boolean.class);
 		parameterDescriptions.put(name, description);
 		defaultParameterValues.put(name, enabledByDefault);
@@ -38,7 +37,7 @@ public class Configurable {
 	 * @param name
 	 * @param type
 	 */
-	protected void addPossibleParameter(String name, Class<? extends Object> type, String description, Object defaultValue){
+	protected final void addPossibleParameter(String name, Class<? extends Object> type, String description, Object defaultValue){
 		parameterNames.put(name, type);
 		parameterDescriptions.put(name, description);
 		defaultParameterValues.put(name, defaultValue);
@@ -48,7 +47,7 @@ public class Configurable {
 	 * Returns a copy of all possible parameter types
 	 * @return
 	 */
-	public Map<String,Class<? extends Object>> getPossibleParameters(){
+	public final Map<String,Class<? extends Object>> getPossibleParameters(){
 		Map<String,Class<? extends Object>> possibleParams = new HashMap<String,Class<? extends Object>>();
 		possibleParams.putAll(parameterNames);
 		return possibleParams;
@@ -58,7 +57,7 @@ public class Configurable {
 	 * Returns the set of possible flags
 	 * @return
 	 */
-	public Set<String> getPossibleFlags(){
+	public final Set<String> getPossibleFlags(){
 		return new HashSet<String>(flags);
 	}
 	
@@ -67,7 +66,7 @@ public class Configurable {
 	 * @param parameter
 	 * @return
 	 */
-	public String getParameterDescription(String parameter){
+	public final String getParameterDescription(String parameter){
 		return parameterDescriptions.get(parameter);
 	}
 	
@@ -76,7 +75,7 @@ public class Configurable {
 	 * @param parameter
 	 * @return
 	 */
-	public String getFlagDescription(String parameter){
+	public final String getFlagDescription(String parameter){
 		return getParameterDescription(parameter);
 	}
 	
@@ -86,7 +85,7 @@ public class Configurable {
 	 * @param parameters
 	 * @return
 	 */
-	public boolean isParameterSet(String name){
+	public final boolean isParameterSet(String name){
 		return parameters.containsKey(name);
 	}
 	
@@ -96,7 +95,7 @@ public class Configurable {
 	 * @param parameters
 	 * @return
 	 */
-	public boolean isFlagSet(String name){
+	public final boolean isFlagSet(String name){
 		if(isParameterSet(name)){
 			return true;
 		} else {
@@ -115,7 +114,7 @@ public class Configurable {
 	 * @param parameters
 	 * @return
 	 */
-	public Object getParameterValue(String name){
+	public final Object getParameterValue(String name){
 		if(parameters.containsKey(name)){
 			return parameters.get(name);
 		} else {
@@ -128,7 +127,8 @@ public class Configurable {
 	 * @param name
 	 * @param value
 	 */
-	public void setParameterValue(String name, Object value){
+	public final void setParameterValue(String name, Object value){
+		checkParameter(name, value);
 		parameters.put(name, value);
 	}
 	
@@ -137,7 +137,7 @@ public class Configurable {
 	 * @param name
 	 * @param value
 	 */
-	public void unsetParameter(String name){
+	public final void unsetParameter(String name){
 		parameters.remove(name);
 	}
 	
@@ -145,7 +145,8 @@ public class Configurable {
 	 * Enables a flag
 	 * @param name
 	 */
-	public void setFlag(String name){
+	public final void setFlag(String name){
+		checkFlag(name);
 		setParameterValue(name, null);
 	}
 	
@@ -153,20 +154,17 @@ public class Configurable {
 	 * Disables a flag
 	 * @param name
 	 */
-	public void unsetFlag(String name){
+	public final void unsetFlag(String name){
 		unsetParameter(name);
 	}
 	
 	/**
-	 * Type checks expected parameters and rejects undeclared passed parameters
-	 * Also checks that all required parameters have been specified
-	 * @return
-	 * @throws IllegalArgumentException  
+	 * Checks a flag name
+	 * @param name
+	 * @param value
 	 */
-	public void checkParameters(Map<String,Object> parameters) throws IllegalArgumentException {
-		for(Entry<String,Object> parameter : parameters.entrySet()){
-			checkParameter(parameter.getKey(), parameter.getValue());
-		}
+	private final void checkFlag(String name) throws IllegalArgumentException {
+		checkParameter(name, null);
 	}
 	
 	/**
@@ -174,10 +172,10 @@ public class Configurable {
 	 * @param name
 	 * @param value
 	 */
-	public void checkParameter(String name, Object value) throws IllegalArgumentException {
+	private final void checkParameter(String name, Object value) throws IllegalArgumentException {
 		if(!parameterNames.containsKey(name)){
-			throw new IllegalArgumentException(name + " is not a valid parameter.");
-		} else if(parameterNames.get(name) != value.getClass()){
+			throw new IllegalArgumentException(name + " is not a valid parameter or flag.");
+		} else if(flags.contains(name) && parameterNames.get(name) != value.getClass()){
 			throw new IllegalArgumentException(name + " must be a " + parameterNames.get(name).getName() + " type.");
 		}
 	}

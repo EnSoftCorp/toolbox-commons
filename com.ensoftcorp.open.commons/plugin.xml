@@ -114,7 +114,7 @@
       <view
             category="com.ensoftcorp.open.commons.views.categories.toolbox"
             class="com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterControlPanel"
-            icon="icons/funnel.gif"
+            icon="icons/brush.gif"
             id="com.ensoftcorp.open.commons.ui.views.codepainter.controlpanel"
             name="Code Painter Control Panel">
       </view>
