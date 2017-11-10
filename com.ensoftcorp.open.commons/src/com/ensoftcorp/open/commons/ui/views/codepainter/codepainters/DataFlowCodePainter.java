@@ -3,17 +3,12 @@ package com.ensoftcorp.open.commons.ui.views.codepainter.codepainters;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
-import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeTypeColorPalette;
-import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowLoopDepthColorPalette;
 
 /**
  * A Data Flow code painter
