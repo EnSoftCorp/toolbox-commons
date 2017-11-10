@@ -28,9 +28,11 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -720,22 +722,22 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 							}
 						});
 					} else if(parameterType == Double.class){
-						Composite integerInputComposite = new Composite(inputComposite, SWT.NONE);
-						integerInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-						integerInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-						integerInputComposite.setLayout(new GridLayout(3, false));
+						Composite doubleInputComposite = new Composite(inputComposite, SWT.NONE);
+						doubleInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						doubleInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						doubleInputComposite.setLayout(new GridLayout(3, false));
 						
-						final Label doubleInputLabel = new Label(integerInputComposite, SWT.NONE);
+						final Label doubleInputLabel = new Label(doubleInputComposite, SWT.NONE);
 						doubleInputLabel.setText(parameterName + ":");
 						doubleInputLabel.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
 						doubleInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						
-						final Text doubleInputText = new Text(integerInputComposite, SWT.BORDER);
+						final Text doubleInputText = new Text(doubleInputComposite, SWT.BORDER);
 						doubleInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 						doubleInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
 						doubleInputText.setText(((Double) activeCodePainter.getParameterValue(parameterName)).toString());
 
-						Button applyConfigurationButton = new Button(integerInputComposite, SWT.NONE);
+						Button applyConfigurationButton = new Button(doubleInputComposite, SWT.NONE);
 						applyConfigurationButton.setText("Apply");
 						applyConfigurationButton.setEnabled(false);
 						applyConfigurationButton.addSelectionListener(new SelectionAdapter() {
@@ -772,6 +774,49 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 								} catch (NumberFormatException ex){
 									applyConfigurationButton.setEnabled(false);
 									setCodePainterValidationErrorMessage(parameterName + " must be a double.");
+								}
+							}
+						});
+					} else if(parameterType == Color.class){
+						Composite colorInputComposite = new Composite(inputComposite, SWT.NONE);
+						colorInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+						colorInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+						colorInputComposite.setLayout(new GridLayout(3, false));
+
+						Color currentColor = (Color) activeCodePainter.getParameterValue(parameterName);
+						
+						Composite colorComposite = new Composite(colorInputComposite, SWT.BORDER);
+						colorComposite.setBackground(SWTResourceManager.getColor(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue()));
+						GridData colorCompositeSizeHint = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+						colorCompositeSizeHint.widthHint = 20;
+						colorCompositeSizeHint.heightHint = 20;
+						colorComposite.setLayoutData(colorCompositeSizeHint);
+						
+						final Label colorInputLabel = new Label(colorInputComposite, SWT.NONE);
+						colorInputLabel.setText(parameterName);
+						colorInputLabel.setToolTipText(activeCodePainter.getParameterDescription(parameterName));
+						colorInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+						
+						colorComposite.addMouseListener(new MouseAdapter() {
+							@Override
+							public void mouseUp(MouseEvent e) {
+								ColorDialog colorPickerDialog = new ColorDialog(display.getActiveShell());
+
+						        // set the current color
+								colorPickerDialog.setRGB(new RGB(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue()));
+
+						        // set the title
+								colorPickerDialog.setText("Choose a Color");
+
+						        // open the dialog and retrieve the selected color
+								RGB rgb = colorPickerDialog.open();
+								if (rgb != null) {
+									Color newColor = new Color(rgb.red, rgb.green, rgb.blue);
+									if(!currentColor.equals(newColor)){
+										colorComposite.setBackground(SWTResourceManager.getColor(newColor.getRed(), newColor.getGreen(), newColor.getBlue()));
+										activeCodePainter.setParameterValue(parameterName, newColor);
+										refreshSelection();
+									}
 								}
 							}
 						});
@@ -1274,6 +1319,49 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 									} catch (NumberFormatException ex){
 										applyConfigurationButton.setEnabled(false);
 										setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, parameterName + " must be a double.");
+									}
+								}
+							});
+						} else if(parameterType == Color.class){
+							Composite colorInputComposite = new Composite(inputComposite, SWT.NONE);
+							colorInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+							colorInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							colorInputComposite.setLayout(new GridLayout(3, false));
+							
+							Color currentColor = (Color) colorPalette.getParameterValue(parameterName);
+							
+							Composite colorComposite = new Composite(colorInputComposite, SWT.BORDER);
+							colorComposite.setBackground(SWTResourceManager.getColor(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue()));
+							GridData colorCompositeSizeHint = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+							colorCompositeSizeHint.widthHint = 20;
+							colorCompositeSizeHint.heightHint = 20;
+							colorComposite.setLayoutData(colorCompositeSizeHint);
+							
+							final Label colorInputLabel = new Label(colorInputComposite, SWT.NONE);
+							colorInputLabel.setText(parameterName);
+							colorInputLabel.setToolTipText(colorPalette.getParameterDescription(parameterName));
+							colorInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+							
+							colorComposite.addMouseListener(new MouseAdapter() {
+								@Override
+								public void mouseUp(MouseEvent e) {
+									ColorDialog colorPickerDialog = new ColorDialog(display.getActiveShell());
+
+							        // set the current color
+									colorPickerDialog.setRGB(new RGB(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue()));
+
+							        // set the title
+									colorPickerDialog.setText("Choose a Color");
+
+							        // open the dialog and retrieve the selected color
+									RGB rgb = colorPickerDialog.open();
+									if (rgb != null) {
+										Color newColor = new Color(rgb.red, rgb.green, rgb.blue);
+										if(!currentColor.equals(newColor)){
+											colorComposite.setBackground(SWTResourceManager.getColor(newColor.getRed(), newColor.getGreen(), newColor.getBlue()));
+											colorPalette.setParameterValue(parameterName, newColor);
+											refreshSelection();
+										}
 									}
 								}
 							});
