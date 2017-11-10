@@ -70,6 +70,25 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	private ScrolledComposite legendEdgesScrolledComposite;
 	private ScrolledComposite codePainterConfigurationsScrolledComposite;
 	
+	// colors must be unique, names should be, but may not be unique
+	// sort first by name then color
+	private Comparator<Entry<Color,String>> legendOrdering = new Comparator<Entry<Color,String>>() {
+		@Override
+		public int compare(Entry<Color,String> e1, Entry<Color,String> e2) {
+			String n1 = e1.getValue();
+			String n2 = e2.getValue();
+			int nameComparison = n1.compareTo(n2);
+			if(nameComparison == 0){
+				Color c1 = e1.getKey();
+				Color c2 = e2.getKey();
+				return Integer.compare((c1.getRed() + c1.getGreen() + c1.getBlue()), 
+						(c2.getRed() + c2.getGreen() + c2.getBlue()));
+			} else {
+				return nameComparison;
+			}
+		}
+	};
+	
 	public CodePainterControlPanel(){
 		setPartName("Code Painter Control Panel");
 		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/brush.gif"));
@@ -468,6 +487,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		display.asyncExec(new Runnable() {
 			@Override
 			public void run() {
+				refreshColorPaletteLayers();
 				refreshLegend();
 			}
 		});
@@ -480,7 +500,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			if (activeCodePainter.getPossibleParameters().isEmpty()) {
 				Label noParamsLabel = new Label(codePainterConfigurationsScrolledComposite, SWT.NONE);
 				noParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-				noParamsLabel.setAlignment(SWT.CENTER);
+				noParamsLabel.setAlignment(SWT.LEFT);
 				noParamsLabel.setText("No parameters available for this code painter.");
 				codePainterConfigurationsScrolledComposite.setContent(noParamsLabel);
 				codePainterConfigurationsScrolledComposite.setMinSize(noParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -652,7 +672,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 							@Override
 							public void keyReleased(KeyEvent e) {
 								try {
-									Integer value = Integer.parseInt(integerInputText.getText());
+									Integer.parseInt(integerInputText.getText());
 									clearCodePainterValidationErrorMessage();
 									applyConfigurationButton.setEnabled(true);
 								} catch (NumberFormatException ex){
@@ -704,11 +724,10 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 							@Override
 							public void keyReleased(KeyEvent e) {
 								try {
-									Double value;
 									try {
-										value = (double) Integer.parseInt(doubleInputText.getText());
+										Integer.parseInt(doubleInputText.getText());
 									} catch (NumberFormatException ex){
-										value = Double.parseDouble(doubleInputText.getText());
+										Double.parseDouble(doubleInputText.getText());
 									}
 									clearCodePainterValidationErrorMessage();
 									applyConfigurationButton.setEnabled(true);
@@ -770,7 +789,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				details.append("Edge Types: " + Arrays.toString(supportedEdges) + "\n");
 			}
 			
-			codePainterDetailsText.setText(details.toString());
+			codePainterDetailsText.setText(details.toString().trim());
 		}
 	}
 
@@ -778,12 +797,22 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	 * Small helper class to visually track the state of the color palette layers
 	 */
 	private static class ColorPaletteState {
-		public ColorPalette colorPalette;
-		public boolean expanded;
+		private ColorPalette colorPalette;
+		private boolean expanded;
+		private int selectedTab;
 		
 		public ColorPaletteState(ColorPalette colorPalette) {
 			this.colorPalette = colorPalette;
 			this.expanded = false;
+			this.selectedTab = 0;
+		}
+		
+		public void setSelectedTab(int selectedTab){
+			this.selectedTab = selectedTab;
+		}
+		
+		public int getSelectedTab(){
+			return selectedTab;
 		}
 
 		public boolean isExpanded() {
@@ -839,6 +868,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	
 	private void refreshColorPaletteLayers() {
 		// reset the view
+		colorPaletteLayersScrolledComposite.setEnabled(false);
+		
+		// save the old scroll position and content origin
+		int scrollPosition = colorPaletteLayersScrolledComposite.getVerticalBar().getSelection();
+		org.eclipse.swt.graphics.Point origin = colorPaletteLayersScrolledComposite.getOrigin();
+		
 		Composite colorPaletteLayersContentComposite = new Composite(colorPaletteLayersScrolledComposite, SWT.NONE);
 		colorPaletteLayersContentComposite.setLayout(new GridLayout(1, false));
 		availableColorPalettesCombo.removeAll();
@@ -923,27 +958,57 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				colorPaletteTabFolder.setBorderVisible(true);
 				colorPaletteTabFolder.setSimple(false); // adds the Eclipse style "swoosh"
 				
+				colorPaletteTabFolder.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						colorPaletteState.setSelectedTab(colorPaletteTabFolder.getSelectionIndex());
+					}
+				});
+				
 				CTabItem colorPaletteConfigurationsTabItem = new CTabItem(colorPaletteTabFolder, SWT.NONE);
 				colorPaletteConfigurationsTabItem.setText("Configurations");
-				colorPaletteTabFolder.setSelection(colorPaletteConfigurationsTabItem);
 				
-				Composite composite = new Composite(colorPaletteTabFolder, SWT.NONE);
-				colorPaletteConfigurationsTabItem.setControl(composite);
-				composite.setLayout(new GridLayout(1, false));
+				Composite colorPaletteConfigurationsComposite = new Composite(colorPaletteTabFolder, SWT.NONE);
+				colorPaletteConfigurationsTabItem.setControl(colorPaletteConfigurationsComposite);
+				colorPaletteConfigurationsComposite.setLayout(new GridLayout(1, false));
 				
-				Label lblTodo = new Label(composite, SWT.NONE);
+				Label lblTodo = new Label(colorPaletteConfigurationsComposite, SWT.NONE);
 				lblTodo.setText("TODO");
 				
 				CTabItem colorPaletteColoringTabItem = new CTabItem(colorPaletteTabFolder, SWT.NONE);
 				colorPaletteColoringTabItem.setText("Coloring");
 				
-				Composite composite_1 = new Composite(colorPaletteTabFolder, SWT.NONE);
-				colorPaletteColoringTabItem.setControl(composite_1);
-				composite_1.setLayout(new GridLayout(1, false));
+				Composite colorPaletteColoringComposite = new Composite(colorPaletteTabFolder, SWT.NONE);
+				colorPaletteColoringTabItem.setControl(colorPaletteColoringComposite);
+				colorPaletteColoringComposite.setLayout(new GridLayout(1, false));
 				
-				Label lblNewLabel = new Label(composite_1, SWT.NONE);
-				lblNewLabel.setText("TODO");
+				SashForm codePainterLegendSashForm = new SashForm(colorPaletteColoringComposite, SWT.NONE);
+				codePainterLegendSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
+				Group legendNodesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
+				legendNodesGroup.setText("Nodes");
+				legendNodesGroup.setLayout(new GridLayout(1, false));
+				
+				ScrolledComposite legendNodesScrolledComposite = new ScrolledComposite(legendNodesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+				legendNodesScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				legendNodesScrolledComposite.setExpandHorizontal(true);
+				legendNodesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				legendNodesScrolledComposite.setExpandVertical(true);
+				
+				Group legendEdgesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
+				legendEdgesGroup.setText("Edges");
+				legendEdgesGroup.setLayout(new GridLayout(1, false));
+				
+				ScrolledComposite legendEdgesScrolledComposite = new ScrolledComposite(legendEdgesGroup, SWT.H_SCROLL | SWT.V_SCROLL);
+				legendEdgesScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				legendEdgesScrolledComposite.setExpandHorizontal(true);
+				legendEdgesScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				legendEdgesScrolledComposite.setExpandVertical(true);
+				
+				codePainterLegendSashForm.setWeights(new int[] {1, 1});
+
+				refreshColorPaletteLegend(colorPalette, legendNodesScrolledComposite, legendEdgesScrolledComposite);
+
 				Composite colorPaletteControlsComposite = new Composite(colorPaletteContentComposite, SWT.NONE);
 				colorPaletteControlsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 				colorPaletteControlsComposite.setLayout(new GridLayout(1, false));
@@ -976,36 +1041,123 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 						refreshColorPaletteLayers();
 					}
 				});
+				
+				colorPaletteTabFolder.setSelection(colorPaletteState.getSelectedTab());
 			}
 		}
 		
 		// update the color palette layer content
 		colorPaletteLayersScrolledComposite.setContent(colorPaletteLayersContentComposite);
 		colorPaletteLayersScrolledComposite.setMinSize(colorPaletteLayersContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		// set the scroll position on redraw
+		colorPaletteLayersScrolledComposite.getVerticalBar().setSelection(scrollPosition);
+		colorPaletteLayersScrolledComposite.setOrigin(origin);
+		
+		colorPaletteLayersScrolledComposite.setEnabled(true);			
 	}
 
-	private void refreshLegend() {
+	private void refreshColorPaletteLegend(ColorPalette colorPalette, ScrolledComposite legendNodesScrolledComposite,
+			ScrolledComposite legendEdgesScrolledComposite) {
 		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
 		legendNodesContentComposite.setLayout(new GridLayout(1, false));
 		
-		// colors must be unique, names should be, but may not be unique
-		// sort first by name then color
-		Comparator<Entry<Color,String>> legendOrdering = new Comparator<Entry<Color,String>>() {
-			@Override
-			public int compare(Entry<Color,String> e1, Entry<Color,String> e2) {
-				String n1 = e1.getValue();
-				String n2 = e2.getValue();
-				int nameComparison = n1.compareTo(n2);
-				if(nameComparison == 0){
-					Color c1 = e1.getKey();
-					Color c2 = e2.getKey();
-					return Integer.compare((c1.getRed() + c1.getGreen() + c1.getBlue()), 
-							(c2.getRed() + c2.getGreen() + c2.getBlue()));
-				} else {
-					return nameComparison;
-				}
+		// sort node colors for consistency and add to panel
+		List<Entry<Color,String>> nodeLegendEntries = new ArrayList<Entry<Color,String>>(colorPalette.getNodeColorLegend().entrySet());
+		Collections.sort(nodeLegendEntries, legendOrdering);
+		boolean isFirstNode = true;
+		for(Entry<Color,String> legendEntry : nodeLegendEntries){
+			Color legendColor = legendEntry.getKey();
+			String legendName = legendEntry.getValue();
+			
+			if(!isFirstNode){
+				Label nodesSeparator = new Label(legendNodesContentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
+				nodesSeparator.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			} else {
+				isFirstNode = false;
 			}
-		};
+			
+			Composite legendNodesColorComposite = new Composite(legendNodesContentComposite, SWT.NONE);
+			legendNodesColorComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			legendNodesColorComposite.setLayout(new GridLayout(2, false));
+			
+			Composite nodesColorComposite = new Composite(legendNodesColorComposite, SWT.BORDER);
+			nodesColorComposite.setBackground(SWTResourceManager.getColor(legendColor.getRed(), legendColor.getGreen(), legendColor.getBlue()));
+			GridData gd_nodesColorComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			gd_nodesColorComposite.widthHint = 20;
+			gd_nodesColorComposite.heightHint = 20;
+			nodesColorComposite.setLayoutData(gd_nodesColorComposite);
+			
+			Label nodesColorLabel = new Label(legendNodesColorComposite, SWT.NONE);
+			nodesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			String text = legendName;
+			nodesColorLabel.setText(text != null ? text : "");
+			
+			nodesColorComposite.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseUp(MouseEvent e) {
+					// TODO: implement
+				}
+			});
+		}
+		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
+		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
+		legendEdgesContentComposite.setLayout(new GridLayout(1, false));
+		
+		// sort edge colors for consistency and add to panel
+		List<Entry<Color,String>> edgeLegendEntries = new ArrayList<Entry<Color,String>>(colorPalette.getEdgeColorLegend().entrySet());
+		Collections.sort(edgeLegendEntries, legendOrdering);
+		boolean isFirstEdge = true;
+		for(Entry<Color,String> legendEntry : edgeLegendEntries){
+			Color legendColor = legendEntry.getKey();
+			String legendName = legendEntry.getValue();
+			
+			if(!isFirstEdge){
+				Label edgesSeparator = new Label(legendEdgesContentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
+				edgesSeparator.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			} else {
+				isFirstEdge = false;
+			}
+			
+			Composite legendEdgesColorComposite = new Composite(legendEdgesContentComposite, SWT.NONE);
+			legendEdgesColorComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			legendEdgesColorComposite.setLayout(new GridLayout(2, false));
+			
+			Composite edgesColorComposite = new Composite(legendEdgesColorComposite, SWT.BORDER);
+			edgesColorComposite.setBackground(SWTResourceManager.getColor(legendColor.getRed(), legendColor.getGreen(), legendColor.getBlue()));
+			GridData gd_edgesColorComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			gd_edgesColorComposite.widthHint = 20;
+			gd_edgesColorComposite.heightHint = 20;
+			edgesColorComposite.setLayoutData(gd_edgesColorComposite);
+			
+			Label edgesColorLabel = new Label(legendEdgesColorComposite, SWT.NONE);
+			edgesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			String text = legendName;
+			edgesColorLabel.setText(text != null ? text : "");
+			
+			edgesColorComposite.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseUp(MouseEvent e) {
+					// TODO: implement
+				}
+			});
+		}
+		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
+		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+	}
+
+	private void refreshLegend() {
+		legendNodesScrolledComposite.setEnabled(false);
+		legendEdgesScrolledComposite.setEnabled(false);
+		
+		// save the old scroll position and content origin
+		int legendNodesScrollPosition = legendNodesScrolledComposite.getVerticalBar().getSelection();
+		org.eclipse.swt.graphics.Point legendNodesOrigin = legendNodesScrolledComposite.getOrigin();
+		
+		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
+		legendNodesContentComposite.setLayout(new GridLayout(1, false));
 		
 		ColorPalette activeColorPalette = ColorPalette.getEmptyColorPalette();
 		CodePainter activeCodePainter = CodePainterSmartView.getCodePainter();
@@ -1054,6 +1206,14 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
 		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
+		// set the scroll position on redraw
+		legendNodesScrolledComposite.getVerticalBar().setSelection(legendNodesScrollPosition);
+		legendNodesScrolledComposite.setOrigin(legendNodesOrigin);
+		
+		// save the old scroll position and content origin
+		int legendEdgesScrollPosition = legendEdgesScrolledComposite.getVerticalBar().getSelection();
+		org.eclipse.swt.graphics.Point legendEdgesOrigin = legendEdgesScrolledComposite.getOrigin();
+		
 		Composite legendEdgesContentComposite = new Composite(legendEdgesScrolledComposite, SWT.NONE);
 		legendEdgesContentComposite.setLayout(new GridLayout(1, false));
 		
@@ -1097,6 +1257,13 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		}
 		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
 		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		// set the scroll position on redraw
+		legendEdgesScrolledComposite.getVerticalBar().setSelection(legendEdgesScrollPosition);
+		legendEdgesScrolledComposite.setOrigin(legendEdgesOrigin);
+		
+		legendNodesScrolledComposite.setEnabled(true);
+		legendEdgesScrolledComposite.setEnabled(true);
 	}
 
 	@Override
