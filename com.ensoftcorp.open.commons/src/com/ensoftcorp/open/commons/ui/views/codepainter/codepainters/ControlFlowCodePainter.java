@@ -24,19 +24,9 @@ public class ControlFlowCodePainter extends CodePainter {
 
 	private static String INCLUDE_EXCEPTIONAL_CONTROL_FLOW = "Include Exceptional Control Flow";
 	
-	private static String TEST1 = "Test Boolean";
-	private static String TEST2 = "Test Int";
-	private static String TEST3 = "Test Double";
-	private static String TEST4 = "Test String";
-	
 	public ControlFlowCodePainter(){
 		// add optional parameters and flags
 		this.addPossibleFlag(INCLUDE_EXCEPTIONAL_CONTROL_FLOW, "Includes exceptional control flow paths.", false);
-		
-		this.addPossibleParameter(TEST1, Boolean.class, "Boolean Value", true);
-		this.addPossibleParameter(TEST2, Integer.class, "Integer Value", 1);
-		this.addPossibleParameter(TEST3, Double.class, "Double Value", 1.0);
-		this.addPossibleParameter(TEST4, String.class, "String Value", "test");
 	}
 	
 	@Override
