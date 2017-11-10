@@ -23,11 +23,13 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
@@ -53,7 +55,9 @@ import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderVie
 public class CodePainterControlPanel extends GraphSelectionProviderView {
 
 	private static final int FONT_SIZE = 11;
-	
+	private static final int MAX_COLOR_PALETTE_TAB_FOLDER_HEIGHT = 150;
+	private static final org.eclipse.swt.graphics.Color DEFAULT_FOLDER_TAB_COLOR = SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT);
+
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
@@ -414,6 +418,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		// set the default tab
 		folder.setSelection(codePainterSelectionTab);
 		
+		if(indexExists){
+			enableFolder();
+		} else {
+			disableFolder();
+		}
+		
 		// add index listeners to disable UI when index is changing
 		IndexingUtil.addListener(new IIndexListener(){
 			@Override
@@ -424,9 +434,9 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				display.syncExec(new Runnable(){
 					@Override
 					public void run() {
-						folder.setSelection(codePainterSelectionTab);
 						searchCodePaintersCheckbox.setEnabled(true);
 						categorizedCodePaintersTree.setEnabled(true);
+						enableFolder();
 					}
 				});
 			}
@@ -442,6 +452,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				display.syncExec(new Runnable(){
 					@Override
 					public void run() {
+						disableFolder();
 						folder.setSelection(codePainterSelectionTab);
 						searchCodePaintersCheckbox.setSelection(false);
 						searchCodePaintersCheckbox.setEnabled(false);
@@ -480,6 +491,22 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		
 		// register as a graph selection provider
 		registerGraphSelectionProvider();
+	}
+	
+	private void enableFolder() {
+		Control[] tabs = folder.getTabList();
+		for(Control tab : tabs){
+			tab.setBackground(DEFAULT_FOLDER_TAB_COLOR);
+		}
+		folder.setEnabled(true);
+	}
+	
+	private void disableFolder() {
+		folder.setEnabled(false);
+		Control[] tabs = folder.getTabList();
+		for(Control tab : tabs){
+			tab.setBackground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_LIGHT_SHADOW));
+		}
 	}
 
 	@Override
@@ -974,20 +1001,270 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				colorPaletteConfigurationsTabItem.setControl(colorPaletteConfigurationsComposite);
 				colorPaletteConfigurationsComposite.setLayout(new GridLayout(1, false));
 				
-				Label lblTodo = new Label(colorPaletteConfigurationsComposite, SWT.NONE);
-				lblTodo.setText("TODO");
+				ScrolledComposite colorPaletteConfigurationsScrolledComposite = new ScrolledComposite(colorPaletteConfigurationsComposite, SWT.H_SCROLL | SWT.V_SCROLL);
+				colorPaletteConfigurationsScrolledComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+				colorPaletteConfigurationsScrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				colorPaletteConfigurationsScrolledComposite.setExpandHorizontal(true);
+				colorPaletteConfigurationsScrolledComposite.setExpandVertical(true);
+
+				Label colorPaletteConfigurationErrorLabel = new Label(colorPaletteConfigurationsComposite, SWT.NONE);
+				colorPaletteConfigurationErrorLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
+				colorPaletteConfigurationErrorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
+				if (colorPalette.getPossibleParameters().isEmpty()) {
+					StyledText message = new StyledText(colorPaletteConfigurationsScrolledComposite, SWT.READ_ONLY | SWT.WRAP);
+					message.setMargins(5, 5, 5, 5);
+					message.setEditable(false);
+					message.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+					message.setText("No parameters available for this color palette.");
+					colorPaletteConfigurationsScrolledComposite.setContent(message);
+					colorPaletteConfigurationsScrolledComposite.setMinSize(message.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+				} else {
+					Composite inputComposite = new Composite(colorPaletteConfigurationsScrolledComposite, SWT.NONE);
+					inputComposite.setLayout(new GridLayout(1, false));
+					inputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+					
+					// add the parameters in alphabetical order for UI consistency (flags are ordered first)
+					LinkedList<String> parameterNames = new LinkedList<String>(colorPalette.getPossibleParameters().keySet());
+					Collections.sort(parameterNames, new Comparator<String>(){
+						@Override
+						public int compare(String p1, String p2) {
+							boolean p1Flag = colorPalette.getPossibleFlags().contains(p1);
+							boolean p2Flag = colorPalette.getPossibleFlags().contains(p2);
+							if(p1Flag && !p2Flag){
+								return -1;
+							} else if(p1Flag && p2Flag){
+								return p1.compareTo(p2);
+							} else {
+								return 1;
+							}
+						}
+					});
+					
+					for(String parameterName : parameterNames){
+						final Class<? extends Object> parameterType = colorPalette.getPossibleParameters().get(parameterName);
+						
+						if(parameterType == Boolean.class){
+							Composite booleanInputComposite = new Composite(inputComposite, SWT.NONE);
+							booleanInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+							booleanInputComposite.setLayout(new GridLayout(3, false));
+							booleanInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 1, 1));
+
+							if(colorPalette.getPossibleFlags().contains(parameterName)){
+								final Button enableFlagCheckbox = new Button(booleanInputComposite, SWT.CHECK);
+								enableFlagCheckbox.setToolTipText(colorPalette.getParameterDescription(parameterName));
+								enableFlagCheckbox.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+								
+								final Label flagLabel = new Label(booleanInputComposite, SWT.NONE);
+								flagLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+								
+								flagLabel.setText(parameterName);
+								flagLabel.setToolTipText(colorPalette.getParameterDescription(parameterName));
+								enableFlagCheckbox.setSelection(colorPalette.isFlagSet(parameterName));
+								
+								enableFlagCheckbox.addSelectionListener(new SelectionAdapter() {
+									@Override
+									public void widgetSelected(SelectionEvent e) {
+										boolean enabled = enableFlagCheckbox.getSelection();
+										try {
+											if(enabled){
+												colorPalette.setFlag(parameterName);
+											} else {
+												colorPalette.unsetFlag(parameterName);
+											}
+											clearColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel);
+											refreshSelection();
+										} catch (Throwable t){
+											setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, t.getMessage());
+										}
+									}
+								});
+							} else {
+								final Label booleanInputLabel = new Label(booleanInputComposite, SWT.NONE);
+								booleanInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+								
+								booleanInputLabel.setText(parameterName + ":");
+								booleanInputLabel.setToolTipText(colorPalette.getParameterDescription(parameterName));
+								
+								final Button booleanInputCheckbox = new Button(booleanInputComposite, SWT.CHECK);
+								booleanInputCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+								booleanInputCheckbox.setSelection((Boolean) colorPalette.getParameterValue(parameterName));
+								
+								booleanInputCheckbox.addSelectionListener(new SelectionAdapter() {
+									@Override
+									public void widgetSelected(SelectionEvent e) {
+										try {
+											clearColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel);
+											colorPalette.setParameterValue(parameterName, booleanInputCheckbox.getSelection());
+											refreshSelection();
+										} catch (Throwable t){
+											setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, t.getMessage());
+										}
+									}
+								});
+							}
+						} else if(parameterType == String.class){
+							Composite stringInputComposite = new Composite(inputComposite, SWT.NONE);
+							stringInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+							stringInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							stringInputComposite.setLayout(new GridLayout(3, false));
+
+							final Label stringInputLabel = new Label(stringInputComposite, SWT.NONE);
+							stringInputLabel.setText(parameterName + ":");
+							stringInputLabel.setToolTipText(colorPalette.getParameterDescription(parameterName));
+							stringInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+
+							final Text stringInputText = new Text(stringInputComposite, SWT.BORDER);
+							stringInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							stringInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+							stringInputText.setText((String) colorPalette.getParameterValue(parameterName));
+
+							Button applyConfigurationButton = new Button(stringInputComposite, SWT.NONE);
+							applyConfigurationButton.setText("Apply");
+							applyConfigurationButton.setEnabled(false);
+							applyConfigurationButton.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									try {
+										applyConfigurationButton.setEnabled(false);
+										colorPalette.setParameterValue(parameterName, stringInputText.getText());
+										clearColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel);
+										refreshSelection();
+									} catch (Throwable t){
+										setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, t.getMessage());
+									}
+								}
+							});
+							
+							stringInputText.addKeyListener(new KeyAdapter() {
+								@Override
+								public void keyReleased(KeyEvent e) {
+									String text = stringInputText.getText();
+									if(!text.equals("")){
+										clearColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel);
+										applyConfigurationButton.setEnabled(true);
+									} else {
+										applyConfigurationButton.setEnabled(false);
+										setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, parameterName + " must be an non-empty string.");
+									}
+								}
+							});
+						} else if(parameterType == Integer.class){
+							Composite integerInputComposite = new Composite(inputComposite, SWT.NONE);
+							integerInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+							integerInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							integerInputComposite.setLayout(new GridLayout(3, false));
+							
+							final Label integerInputLabel = new Label(integerInputComposite, SWT.NONE);
+							integerInputLabel.setText(parameterName + ":");
+							integerInputLabel.setToolTipText(colorPalette.getParameterDescription(parameterName));
+							integerInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+							
+							final Text integerInputText = new Text(integerInputComposite, SWT.BORDER);
+							integerInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							integerInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+							integerInputText.setText(((Integer) colorPalette.getParameterValue(parameterName)).toString());
+
+							Button applyConfigurationButton = new Button(integerInputComposite, SWT.NONE);
+							applyConfigurationButton.setText("Apply");
+							applyConfigurationButton.setEnabled(false);
+							applyConfigurationButton.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									try {
+										applyConfigurationButton.setEnabled(false);
+										Integer value = Integer.parseInt(integerInputText.getText());
+										colorPalette.setParameterValue(parameterName, value);
+										clearColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel);
+										refreshSelection();
+									} catch (Throwable t){
+										setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, t.getMessage());
+									}
+								}
+							});
+							
+							integerInputText.addKeyListener(new KeyAdapter() {
+								@Override
+								public void keyReleased(KeyEvent e) {
+									try {
+										Integer.parseInt(integerInputText.getText());
+										clearColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel);
+										applyConfigurationButton.setEnabled(true);
+									} catch (NumberFormatException ex){
+										applyConfigurationButton.setEnabled(false);
+										setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, parameterName + " must be an integer.");
+									}
+								}
+							});
+						} else if(parameterType == Double.class){
+							Composite integerInputComposite = new Composite(inputComposite, SWT.NONE);
+							integerInputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+							integerInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							integerInputComposite.setLayout(new GridLayout(3, false));
+							
+							final Label doubleInputLabel = new Label(integerInputComposite, SWT.NONE);
+							doubleInputLabel.setText(parameterName + ":");
+							doubleInputLabel.setToolTipText(colorPalette.getParameterDescription(parameterName));
+							doubleInputLabel.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+							
+							final Text doubleInputText = new Text(integerInputComposite, SWT.BORDER);
+							doubleInputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+							doubleInputText.setFont(SWTResourceManager.getFont(".SF NS Text", FONT_SIZE, SWT.NORMAL));
+							doubleInputText.setText(((Double) colorPalette.getParameterValue(parameterName)).toString());
+
+							Button applyConfigurationButton = new Button(integerInputComposite, SWT.NONE);
+							applyConfigurationButton.setText("Apply");
+							applyConfigurationButton.setEnabled(false);
+							applyConfigurationButton.addSelectionListener(new SelectionAdapter() {
+								@Override
+								public void widgetSelected(SelectionEvent e) {
+									try {
+										applyConfigurationButton.setEnabled(false);
+										Double value;
+										try {
+											value = (double) Integer.parseInt(doubleInputText.getText());
+										} catch (NumberFormatException ex){
+											value = Double.parseDouble(doubleInputText.getText());
+										}
+										colorPalette.setParameterValue(parameterName, value);
+										clearColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel);
+										refreshSelection();
+									} catch (Throwable t){
+										setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, t.getMessage());
+									}
+								}
+							});
+							
+							doubleInputText.addKeyListener(new KeyAdapter() {
+								@Override
+								public void keyReleased(KeyEvent e) {
+									try {
+										try {
+											Integer.parseInt(doubleInputText.getText());
+										} catch (NumberFormatException ex){
+											Double.parseDouble(doubleInputText.getText());
+										}
+										clearColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel);
+										applyConfigurationButton.setEnabled(true);
+									} catch (NumberFormatException ex){
+										applyConfigurationButton.setEnabled(false);
+										setColorPaletteValidationErrorMessage(colorPaletteConfigurationErrorLabel, parameterName + " must be a double.");
+									}
+								}
+							});
+						} else {
+							Log.warning(colorPalette.getName() + " color palette has unsupported parameter types!");
+						}
+					}
+					
+					Point size = inputComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+					GridData sizeHint = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+					sizeHint.heightHint = size.y > MAX_COLOR_PALETTE_TAB_FOLDER_HEIGHT ? MAX_COLOR_PALETTE_TAB_FOLDER_HEIGHT : size.y;
+					inputComposite.setLayoutData(sizeHint);
+					
+					colorPaletteConfigurationsScrolledComposite.setContent(inputComposite);
+					colorPaletteConfigurationsScrolledComposite.setMinSize(inputComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+				}
 				
 				CTabItem colorPaletteColoringTabItem = new CTabItem(colorPaletteTabFolder, SWT.NONE);
 				colorPaletteColoringTabItem.setText("Coloring");
@@ -997,7 +1274,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				colorPaletteColoringComposite.setLayout(new GridLayout(1, false));
 				
 				SashForm codePainterLegendSashForm = new SashForm(colorPaletteColoringComposite, SWT.NONE);
-				codePainterLegendSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
 				Group legendNodesGroup = new Group(codePainterLegendSashForm, SWT.NONE);
 				legendNodesGroup.setText("Nodes");
@@ -1022,7 +1298,13 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				codePainterLegendSashForm.setWeights(new int[] {1, 1});
 
 				refreshColorPaletteLegend(colorPalette, legendNodesScrolledComposite, legendEdgesScrolledComposite);
-
+				
+				Point legendSize = codePainterLegendSashForm.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				GridData legendSizeHint = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+				legendSizeHint.widthHint = legendSize.x;
+				legendSizeHint.heightHint = legendSize.y > MAX_COLOR_PALETTE_TAB_FOLDER_HEIGHT ? MAX_COLOR_PALETTE_TAB_FOLDER_HEIGHT : legendSize.y;
+				codePainterLegendSashForm.setLayoutData(legendSizeHint);
+				
 				Composite colorPaletteControlsComposite = new Composite(colorPaletteContentComposite, SWT.NONE);
 				colorPaletteControlsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 				colorPaletteControlsComposite.setLayout(new GridLayout(1, false));
@@ -1070,6 +1352,14 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		
 		colorPaletteLayersScrolledComposite.setEnabled(true);			
 	}
+	
+	private void clearColorPaletteValidationErrorMessage(Label colorPaletteConfigurationErrorLabel) {
+		colorPaletteConfigurationErrorLabel.setText("");
+	}
+	
+	private void setColorPaletteValidationErrorMessage(Label colorPaletteConfigurationErrorLabel, String message) {
+		colorPaletteConfigurationErrorLabel.setText(message);
+	}
 
 	private void refreshColorPaletteLegend(ColorPalette colorPalette, ScrolledComposite legendNodesScrolledComposite, ScrolledComposite legendEdgesScrolledComposite) {
 		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
@@ -1113,6 +1403,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				}
 			});
 		}
+		
 		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
 		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
@@ -1157,6 +1448,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				}
 			});
 		}
+		
 		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
 		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
