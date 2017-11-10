@@ -802,15 +802,15 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q getContainingFunctions(Q nodes) {
-		AtlasSet<Node> nodeSet = nodes.eval().nodes();
-		AtlasSet<Node> containingMethods = new AtlasHashSet<Node>();
+		AtlasSet<Node> nodeSet = new AtlasHashSet<Node>(nodes.eval().nodes());
+		AtlasSet<Node> containingFunctions = new AtlasHashSet<Node>();
 		for (Node currentNode : nodeSet) {
 			Node function = getContainingFunction(currentNode);
 			if (function != null){
-				containingMethods.add(function);
+				containingFunctions.add(function);
 			}
 		}
-		return Common.toQ(Common.toGraph(containingMethods));
+		return Common.toQ(Common.toGraph(containingFunctions));
 	}
 	
 	/**
