@@ -498,12 +498,13 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		
 		if(activeCodePainter != null){
 			if (activeCodePainter.getPossibleParameters().isEmpty()) {
-				Label noParamsLabel = new Label(codePainterConfigurationsScrolledComposite, SWT.NONE);
-				noParamsLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-				noParamsLabel.setAlignment(SWT.LEFT);
-				noParamsLabel.setText("No parameters available for this code painter.");
-				codePainterConfigurationsScrolledComposite.setContent(noParamsLabel);
-				codePainterConfigurationsScrolledComposite.setMinSize(noParamsLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+				StyledText message = new StyledText(codePainterConfigurationsScrolledComposite, SWT.READ_ONLY | SWT.WRAP);
+				message.setMargins(5, 5, 5, 5);
+				message.setEditable(false);
+				message.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				message.setText("No parameters available for this code painter.");
+				codePainterConfigurationsScrolledComposite.setContent(message);
+				codePainterConfigurationsScrolledComposite.setMinSize(message.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 			} else {
 				Composite inputComposite = new Composite(codePainterConfigurationsScrolledComposite, SWT.NONE);
 				inputComposite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
@@ -746,12 +747,13 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				codePainterConfigurationsScrolledComposite.setMinSize(inputComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 			}
 		} else {
-			Label noCodePainterLabel = new Label(codePainterConfigurationsScrolledComposite, SWT.NONE);
-			noCodePainterLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
-			noCodePainterLabel.setAlignment(SWT.LEFT);
-			noCodePainterLabel.setText("No code painter selected.");
-			codePainterConfigurationsScrolledComposite.setContent(noCodePainterLabel);
-			codePainterConfigurationsScrolledComposite.setMinSize(noCodePainterLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			StyledText message = new StyledText(codePainterConfigurationsScrolledComposite, SWT.READ_ONLY | SWT.WRAP);
+			message.setMargins(5, 5, 5, 5);
+			message.setEditable(false);
+			message.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			message.setText("No code painter selected.");
+			codePainterConfigurationsScrolledComposite.setContent(message);
+			codePainterConfigurationsScrolledComposite.setMinSize(message.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
 	}
 	
@@ -975,6 +977,18 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				Label lblTodo = new Label(colorPaletteConfigurationsComposite, SWT.NONE);
 				lblTodo.setText("TODO");
 				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 				CTabItem colorPaletteColoringTabItem = new CTabItem(colorPaletteTabFolder, SWT.NONE);
 				colorPaletteColoringTabItem.setText("Coloring");
 				
@@ -1057,8 +1071,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		colorPaletteLayersScrolledComposite.setEnabled(true);			
 	}
 
-	private void refreshColorPaletteLegend(ColorPalette colorPalette, ScrolledComposite legendNodesScrolledComposite,
-			ScrolledComposite legendEdgesScrolledComposite) {
+	private void refreshColorPaletteLegend(ColorPalette colorPalette, ScrolledComposite legendNodesScrolledComposite, ScrolledComposite legendEdgesScrolledComposite) {
 		Composite legendNodesContentComposite = new Composite(legendNodesScrolledComposite, SWT.NONE);
 		legendNodesContentComposite.setLayout(new GridLayout(1, false));
 		
