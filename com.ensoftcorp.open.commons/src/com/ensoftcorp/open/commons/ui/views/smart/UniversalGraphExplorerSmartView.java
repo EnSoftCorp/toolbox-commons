@@ -46,16 +46,16 @@ public class UniversalGraphExplorerSmartView extends FilteringAtlasSmartViewScri
 
 	@Override
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
-		Q filteredSelection = filter(event.getSelection());
-
-		if(filteredSelection.eval().nodes().isEmpty()){
+		Q filteredSelections = filter(event.getSelection());
+		if(filteredSelections.eval().nodes().isEmpty()){
 			return null;
 		}
 		
-		Q origin = filteredSelection;
-		
 		// graph is the entire universe
 		Q graph = Common.universe();
+		
+		// get the selected origin
+		Q origin = filteredSelections;
 		
 		// compute what to show for current steps
 		Q f = origin.forwardStepOn(graph, forward);
@@ -67,7 +67,7 @@ public class UniversalGraphExplorerSmartView extends FilteringAtlasSmartViewScri
 		frontierReverse = frontierReverse.differenceEdges(result).retainEdges();
 		Q frontierForward = origin.forwardStepOn(graph, forward+1);
 		frontierForward = frontierForward.differenceEdges(result).retainEdges();
-		
+
 		// show the result
 		FrontierStyledResult frontier = new FrontierStyledResult(result, frontierReverse, frontierForward, new Markup());
 		
