@@ -345,6 +345,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					}
 					addColorPaletteLayerButton.setEnabled(false);
 					refreshColorPaletteLayers();
+					refreshSelection();
 				}
 			}
 		});
