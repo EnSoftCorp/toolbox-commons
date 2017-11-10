@@ -16,27 +16,22 @@ import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlo
 import com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowLoopDepthColorPalette;
 
 /**
- * A Control Flow code painter
+ * A Data Flow code painter
  * 
  * @author Ben Holland
  */
-public class ControlFlowCodePainter extends CodePainter {
+public class DataFlowCodePainter extends CodePainter {
 
-	private static String INCLUDE_EXCEPTIONAL_CONTROL_FLOW = "Include Exceptional Control Flow";
-	
-	public ControlFlowCodePainter(){
-		// add optional parameters and flags
-		this.addPossibleFlag(INCLUDE_EXCEPTIONAL_CONTROL_FLOW, "Includes exceptional control flow paths.", false);
-	}
+	public DataFlowCodePainter(){}
 	
 	@Override
 	public String getTitle() {
-		return "Control Flow";
+		return "Data Flow";
 	}
 	
 	@Override
 	public String getDescription() {
-		return "Explores control flow graphs.";
+		return "Explores data flow graphs.";
 	}
 	
 	@Override
@@ -46,22 +41,12 @@ public class ControlFlowCodePainter extends CodePainter {
 	
 	@Override
 	public String[] getSupportedNodeTags() {
-		return new String[]{ XCSG.DataFlow_Node, XCSG.ControlFlow_Node, XCSG.Function };
+		return new String[]{ XCSG.DataFlow_Node, XCSG.Function };
 	}
 	
 	@Override
 	public String[] getSupportedEdgeTags() {
 		return NOTHING;
-	}
-	
-	@Override
-	public Q convertSelection(Q filteredSelections){
-		Q dataFlowNodes = filteredSelections.nodes(XCSG.DataFlow_Node);
-		Q controlFlowNodes = filteredSelections.nodes(XCSG.ControlFlow_Node);
-		Q functions = filteredSelections.nodes(XCSG.Function);
-		
-		// convert data flow nodes to control flow nodes
-		return controlFlowNodes.union(functions, dataFlowNodes.parent());
 	}
 
 	@Override
@@ -80,52 +65,41 @@ public class ControlFlowCodePainter extends CodePainter {
 			return null;
 		}
 		
-		AtlasSet<Node> dataFlowNodes = filteredSelections.nodes(XCSG.DataFlow_Node).eval().nodes();
-		AtlasSet<Node> correspondingControlFlowStatements = Common.toQ(dataFlowNodes).parent().nodes(XCSG.ControlFlow_Node).eval().nodes();
-		AtlasSet<Node> functions = filteredSelections.nodes(XCSG.Function).eval().nodes();
-		Q selectedStatements = filteredSelections.difference(Common.toQ(functions), Common.toQ(dataFlowNodes)).union(Common.toQ(correspondingControlFlowStatements));
-		Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
+		Q selectedDataFlowNodes = filteredSelections.nodes(XCSG.DataFlow_Node);
+		Q selectedFunctions = filteredSelections.nodes(XCSG.Function);
+		Q containingFunctions = CommonQueries.getContainingFunctions(selectedDataFlowNodes);
 		
-		if(functions.isEmpty()){
-			// just cfg nodes were selected
-			Q cfgs = getCFG(containingFunctions);
+		if(CommonQueries.isEmpty(selectedFunctions)){
+			// just data nodes were selected
+			Q dfgs = CommonQueries.dfg(containingFunctions);
 
-			UnstyledFrontierResult frontier = computeFrontierResult(selectedStatements, cfgs, reverse, forward);
+			UnstyledFrontierResult frontier = computeFrontierResult(selectedDataFlowNodes, dfgs, reverse, forward);
 			
 			// a selection could include a function, so explicitly include it in the result to be highlighted
 			Q result = frontier.getResult().union(filteredSelections.nodes(XCSG.Function));
 			return new UnstyledFrontierResult(result, frontier.getFrontierReverse(), frontier.getFrontierForward());
 		} else {
-			// a function was selected possibly along with cfg nodes
-			Q cfgs = getCFG(containingFunctions);
-			Q selectedFunctions = Common.toQ(functions);
+			// a function was selected possibly along with dfg nodes
+			Q dfgs = CommonQueries.dfg(containingFunctions);
 			
 			// remove any functions that are selected because callsites were selected
-			Q selectedCallsites = selectedStatements.children().nodes(XCSG.CallSite);
+			Q selectedCallsites = selectedDataFlowNodes.nodes(XCSG.CallSite);
 			Q selectedCallsiteFunctions = CallSiteAnalysis.getTargets(selectedCallsites);
 			selectedFunctions = selectedFunctions.difference(selectedCallsiteFunctions);
 			
-			// get the complete CFGs for any intentionally selected function
-			Q selectedFunctionCFGs = getCFG(selectedFunctions);
+			// get the complete DFGs for any intentionally selected function
+			Q selectedFunctionDFGs = CommonQueries.dfg(selectedFunctions);
 			
 			// just pretend the entire cfg was selected for selected functions
-			selectedStatements = selectedStatements.union(selectedFunctionCFGs);
+			selectedDataFlowNodes = selectedDataFlowNodes.union(selectedFunctionDFGs);
 			
-			Q allCFGs = cfgs.union(selectedFunctionCFGs);
+			Q allDFGs = dfgs.union(selectedFunctionDFGs);
 			
-			UnstyledFrontierResult frontier = computeFrontierResult(selectedStatements, allCFGs, reverse, forward);
+			UnstyledFrontierResult frontier = computeFrontierResult(selectedDataFlowNodes, allDFGs, reverse, forward);
 			
 			// a selection could include a function, so explicitly include it in the result to be highlighted
 			Q result = frontier.getResult().union(filteredSelections.nodes(XCSG.Function));
 			return new UnstyledFrontierResult(result, frontier.getFrontierReverse(), frontier.getFrontierForward());
-		}
-	}
-	
-	private Q getCFG(Q functions){
-		if(this.isFlagSet(INCLUDE_EXCEPTIONAL_CONTROL_FLOW)){
-			return CommonQueries.excfg(functions);
-		} else {
-			return CommonQueries.cfg(functions);
 		}
 	}
 	
@@ -147,10 +121,7 @@ public class ControlFlowCodePainter extends CodePainter {
 
 	@Override
 	public List<ColorPalette> getDefaultColorPalettes() {
-		List<ColorPalette> result = new LinkedList<ColorPalette>();
-		result.add(new ControlFlowEdgeTypeColorPalette());
-		result.add(new ControlFlowLoopDepthColorPalette());
-		return result;
+		return new LinkedList<ColorPalette>();
 	}
 	
 }

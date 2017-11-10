@@ -124,6 +124,7 @@
    <extension point="com.ensoftcorp.open.commons.codepainter">
       <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.UniversalGraphExplorerCodePainter"></codepainter>
       <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.ControlFlowCodePainter"></codepainter>
+      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.DataFlowCodePainter"></codepainter>
    </extension>
    
    <!-- adds color palette definitions -->
