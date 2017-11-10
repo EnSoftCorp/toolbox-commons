@@ -856,7 +856,9 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	}
 	
 	private void setCodePainterValidationErrorMessage(String message){
-		codePainterConfigurationErrorLabel.setText(message);
+		if(message != null){
+			codePainterConfigurationErrorLabel.setText(message);
+		}
 	}
 		
 	private void refreshCodePainterDetails() {
@@ -1487,7 +1489,9 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	}
 	
 	private void setColorPaletteValidationErrorMessage(Label colorPaletteConfigurationErrorLabel, String message) {
-		colorPaletteConfigurationErrorLabel.setText(message);
+		if(message != null){
+			colorPaletteConfigurationErrorLabel.setText(message);
+		}
 	}
 
 	private void refreshColorPaletteLegend(ColorPalette colorPalette, ScrolledComposite legendNodesScrolledComposite, ScrolledComposite legendEdgesScrolledComposite) {
