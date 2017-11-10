@@ -419,9 +419,9 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		folder.setSelection(codePainterSelectionTab);
 		
 		if(indexExists){
-			enableFolder();
+			enableFolder(folder);
 		} else {
-			disableFolder();
+			disableFolder(folder);
 		}
 		
 		// add index listeners to disable UI when index is changing
@@ -436,7 +436,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					public void run() {
 						searchCodePaintersCheckbox.setEnabled(true);
 						categorizedCodePaintersTree.setEnabled(true);
-						enableFolder();
+						enableFolder(folder);
 					}
 				});
 			}
@@ -452,7 +452,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				display.syncExec(new Runnable(){
 					@Override
 					public void run() {
-						disableFolder();
+						disableFolder(folder);
 						folder.setSelection(codePainterSelectionTab);
 						searchCodePaintersCheckbox.setSelection(false);
 						searchCodePaintersCheckbox.setEnabled(false);
@@ -493,7 +493,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		registerGraphSelectionProvider();
 	}
 	
-	private void enableFolder() {
+	private void enableFolder(CTabFolder folder) {
 		Control[] tabs = folder.getTabList();
 		for(Control tab : tabs){
 			tab.setBackground(DEFAULT_FOLDER_TAB_COLOR);
@@ -501,7 +501,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		folder.setEnabled(true);
 	}
 	
-	private void disableFolder() {
+	private void disableFolder(CTabFolder folder) {
 		folder.setEnabled(false);
 		Control[] tabs = folder.getTabList();
 		for(Control tab : tabs){
@@ -965,23 +965,10 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				enabledLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 				enabledLabel.setText("Enabled: ");
 				
+				boolean isColorPaletteEnabled = activeCodePainter.isColorPaletteEnabled(colorPalette);
 				Button enabledCheckbox = new Button(colorPaletteOverviewComposite, SWT.CHECK);
-				enabledCheckbox.setSelection(activeCodePainter.isColorPaletteEnabled(colorPalette));
-				enabledCheckbox.addSelectionListener(new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						boolean enabled = enabledCheckbox.getSelection();
-						if(enabled){
-							activeCodePainter.enableColorPalette(colorPalette);
-							colorPaletteExpandItem.setText(colorPalette.getName());
-						} else {
-							activeCodePainter.disableColorPalette(colorPalette);
-							colorPaletteExpandItem.setText("[DISABLED] " + colorPalette.getName());
-						}
-						refreshSelection();
-					}
-				});
-				
+				enabledCheckbox.setSelection(isColorPaletteEnabled);
+	
 				CTabFolder colorPaletteTabFolder = new CTabFolder(colorPaletteContentComposite, SWT.NONE);
 				colorPaletteTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 				colorPaletteTabFolder.setBorderVisible(true);
@@ -991,6 +978,23 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						colorPaletteState.setSelectedTab(colorPaletteTabFolder.getSelectionIndex());
+					}
+				});
+				
+				enabledCheckbox.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						boolean enabled = enabledCheckbox.getSelection();
+						if(enabled){
+							enableFolder(colorPaletteTabFolder);
+							activeCodePainter.enableColorPalette(colorPalette);
+							colorPaletteExpandItem.setText(colorPalette.getName());
+						} else {
+							disableFolder(colorPaletteTabFolder);
+							activeCodePainter.disableColorPalette(colorPalette);
+							colorPaletteExpandItem.setText("[DISABLED] " + colorPalette.getName());
+						}
+						refreshSelection();
 					}
 				});
 				
@@ -1311,7 +1315,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				
 				Button deleteButton = new Button(colorPaletteControlsComposite, SWT.NONE);
 				deleteButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
-				deleteButton.setText("Delete");
+				deleteButton.setText("Delete Layer");
 				deleteButton.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
@@ -1339,6 +1343,10 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				});
 				
 				colorPaletteTabFolder.setSelection(colorPaletteState.getSelectedTab());
+				
+				if(!isColorPaletteEnabled){
+					disableFolder(colorPaletteTabFolder);
+				}
 			}
 		}
 		
@@ -1386,10 +1394,10 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			
 			Composite nodesColorComposite = new Composite(legendNodesColorComposite, SWT.BORDER);
 			nodesColorComposite.setBackground(SWTResourceManager.getColor(legendColor.getRed(), legendColor.getGreen(), legendColor.getBlue()));
-			GridData gd_nodesColorComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-			gd_nodesColorComposite.widthHint = 20;
-			gd_nodesColorComposite.heightHint = 20;
-			nodesColorComposite.setLayoutData(gd_nodesColorComposite);
+			GridData nodesColorCompositeSizeHint = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			nodesColorCompositeSizeHint.widthHint = 20;
+			nodesColorCompositeSizeHint.heightHint = 20;
+			nodesColorComposite.setLayoutData(nodesColorCompositeSizeHint);
 			
 			Label nodesColorLabel = new Label(legendNodesColorComposite, SWT.NONE);
 			nodesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -1431,10 +1439,10 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			
 			Composite edgesColorComposite = new Composite(legendEdgesColorComposite, SWT.BORDER);
 			edgesColorComposite.setBackground(SWTResourceManager.getColor(legendColor.getRed(), legendColor.getGreen(), legendColor.getBlue()));
-			GridData gd_edgesColorComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-			gd_edgesColorComposite.widthHint = 20;
-			gd_edgesColorComposite.heightHint = 20;
-			edgesColorComposite.setLayoutData(gd_edgesColorComposite);
+			GridData edgesColorCompositeSizeHint = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			edgesColorCompositeSizeHint.widthHint = 20;
+			edgesColorCompositeSizeHint.heightHint = 20;
+			edgesColorComposite.setLayoutData(edgesColorCompositeSizeHint);
 			
 			Label edgesColorLabel = new Label(legendEdgesColorComposite, SWT.NONE);
 			edgesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));

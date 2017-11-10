@@ -22,9 +22,7 @@ public class ControlFlowEdgeTypeColorPalette extends ColorPalette {
 	
 	private Map<Edge, Color> edgeColors = new HashMap<Edge,Color>();
 	
-	public ControlFlowEdgeTypeColorPalette(){
-		this.addPossibleParameter("test", String.class, "test description", "blah");
-	}
+	public ControlFlowEdgeTypeColorPalette(){}
 	
 	@Override
 	protected void canvasChanged() {
