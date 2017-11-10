@@ -30,7 +30,7 @@ public class ControlFlowCodePainter extends CodePainter {
 	}
 	
 	@Override
-	public String getTitle() {
+	public String getName() {
 		return "Control Flow";
 	}
 	

@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.ui.views.codepainter;
+package com.ensoftcorp.open.commons.ui.views.smart;
 
 import java.util.HashSet;
 import java.util.Set;

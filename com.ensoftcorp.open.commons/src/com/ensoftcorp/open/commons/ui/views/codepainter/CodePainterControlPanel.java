@@ -5,8 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import org.eclipse.swt.SWT;
@@ -49,19 +53,25 @@ import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.CodePainters;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 import com.ensoftcorp.open.commons.codepainter.ColorPalettes;
-import com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterSmartView.CodePainterSmartViewEventListener;
+import com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView;
+import com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView.CodePainterSmartViewEventListener;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderView;
 
 public class CodePainterControlPanel extends GraphSelectionProviderView {
-
-	private static final int FONT_SIZE = 11;
-	private static final int MAX_COLOR_PALETTE_TAB_FOLDER_HEIGHT = 150;
-	private static final org.eclipse.swt.graphics.Color DEFAULT_FOLDER_TAB_COLOR = SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT);
 
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "com.ensoftcorp.open.commons.ui.views.codepainter.controlpanel"; //$NON-NLS-1$
+	
+	private static final int FONT_SIZE = 11;
+	private static final int MAX_COLOR_PALETTE_TAB_FOLDER_HEIGHT = 150;
+	private static final org.eclipse.swt.graphics.Color DEFAULT_FOLDER_TAB_COLOR = SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT);
+
+	// just using this to reduce the number of warnings about unsupported configuration options
+	// one warning per instance is enough
+	@SuppressWarnings("rawtypes")
+	private static Map<String,Set<Class>> unsupportedConfigurationsWarnings = new HashMap<String,Set<Class>>();
 	
 	private Display display;
 	private CTabFolder folder;
@@ -73,7 +83,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	private ScrolledComposite legendNodesScrolledComposite;
 	private ScrolledComposite legendEdgesScrolledComposite;
 	private ScrolledComposite codePainterConfigurationsScrolledComposite;
-	
+
 	// colors must be unique, names should be, but may not be unique
 	// sort first by name then color
 	private Comparator<Entry<Color,String>> legendOrdering = new Comparator<Entry<Color,String>>() {
@@ -213,7 +223,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					CodePainter codePainter = (CodePainter) categorizedCodePaintersTree.getSelection()[0].getData();
 					if(codePainter != null){
 						if(CodePainterSmartView.setCodePainter(codePainter)){
-							selectedCodePainterCombo.setText(codePainter.getTitle());
+							selectedCodePainterCombo.setText(codePainter.getName());
 							refreshSelection();
 						}
 					}
@@ -229,15 +239,15 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			public int compare(CodePainter cp1, CodePainter cp2) {
 				int categoryComparison = cp1.getCategory().compareTo(cp2.getCategory());
 				if(categoryComparison == 0){
-					return cp1.getTitle().compareTo(cp2.getTitle());
+					return cp1.getName().compareTo(cp2.getName());
 				} else {
 					return categoryComparison;
 				}
 			}
 		});
 		for(CodePainter codePainter : codePainters){
-			selectedCodePainterCombo.add(codePainter.getTitle());
-			selectedCodePainterCombo.setData(codePainter.getTitle(), codePainter);
+			selectedCodePainterCombo.add(codePainter.getName());
+			selectedCodePainterCombo.setData(codePainter.getName(), codePainter);
 		}
 		for(CodePainter codePainter : codePainters){
 			String qualifiedCategory = codePainter.getCategory();
@@ -271,7 +281,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				}
 			}
 			TreeItem codePainterItem = new TreeItem(category, SWT.NONE);
-			codePainterItem.setText(codePainter.getTitle());
+			codePainterItem.setText(codePainter.getName());
 			codePainterItem.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/brush.gif"));
 			codePainterItem.setData(codePainter);
 		}
@@ -766,7 +776,18 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 							}
 						});
 					} else {
-						Log.warning(activeCodePainter.getTitle() + " code painter has unsupported parameter types!");
+						if(unsupportedConfigurationsWarnings.containsKey(activeCodePainter.getName())){
+							if(!unsupportedConfigurationsWarnings.get(activeCodePainter.getName()).contains(parameterType)){
+								unsupportedConfigurationsWarnings.get(activeCodePainter.getName()).add(parameterType);
+								Log.warning(activeCodePainter.getName() + " code painter has unsupported parameter type " + parameterType.getName() + " !");
+							}
+						} else {
+							@SuppressWarnings("rawtypes")
+							Set<Class> unsupportedTypes = new HashSet<Class>();
+							unsupportedTypes.add(parameterType);
+							unsupportedConfigurationsWarnings.put(activeCodePainter.getName(), unsupportedTypes);
+							Log.warning(activeCodePainter.getName() + " code painter has unsupported parameter type " + parameterType.getName() + " !");
+						}
 					}
 				}
 				
@@ -798,7 +819,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			codePainterDetailsText.setText("No code painter selected.");
 		} else {
 			StringBuilder details = new StringBuilder();
-			details.append(activeCodePainter.getTitle() + " - " + activeCodePainter.getDescription() + "\n\n");
+			details.append(activeCodePainter.getName() + " - " + activeCodePainter.getDescription() + "\n\n");
 
 			details.append("Supported Selections: \n");
 			String[] supportedNodes = activeCodePainter.getSupportedNodeTags();
@@ -1257,7 +1278,18 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 								}
 							});
 						} else {
-							Log.warning(colorPalette.getName() + " color palette has unsupported parameter types!");
+							if(unsupportedConfigurationsWarnings.containsKey(colorPalette.getName())){
+								if(!unsupportedConfigurationsWarnings.get(colorPalette.getName()).contains(parameterType)){
+									unsupportedConfigurationsWarnings.get(colorPalette.getName()).add(parameterType);
+									Log.warning(colorPalette.getName() + " color palette has unsupported parameter type " + parameterType.getName() + " !");
+								}
+							} else {
+								@SuppressWarnings("rawtypes")
+								Set<Class> unsupportedTypes = new HashSet<Class>();
+								unsupportedTypes.add(parameterType);
+								unsupportedConfigurationsWarnings.put(colorPalette.getName(), unsupportedTypes);
+								Log.warning(colorPalette.getName() + " color palette has unsupported parameter type " + parameterType.getName() + " !");
+							}
 						}
 					}
 					

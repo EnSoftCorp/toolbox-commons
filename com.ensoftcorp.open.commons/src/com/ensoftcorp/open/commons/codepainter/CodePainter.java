@@ -424,10 +424,10 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	}
 	
 	/**
-	 * Returns the title name of the code painter
+	 * Returns the name of the code painter
 	 * @return
 	 */
-	public abstract String getTitle();
+	public abstract String getName();
 	
 	/**
 	 * Returns a plaintext description of the code painter

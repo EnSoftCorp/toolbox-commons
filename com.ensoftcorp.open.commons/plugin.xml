@@ -274,7 +274,7 @@
    <extension
          point="com.ensoftcorp.atlas.ui.smartViewScript">
       <script
-            class="com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterSmartView">
+            class="com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView">
       </script>
    </extension>
    

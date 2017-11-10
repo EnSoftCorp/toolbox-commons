@@ -17,7 +17,7 @@ import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 public class UniversalGraphExplorerCodePainter extends CodePainter {
 
 	@Override
-	public String getTitle() {
+	public String getName() {
 		return "Universal Graph Explorer";
 	}
 	

@@ -20,7 +20,7 @@ public class DataFlowCodePainter extends CodePainter {
 	public DataFlowCodePainter(){}
 	
 	@Override
-	public String getTitle() {
+	public String getName() {
 		return "Data Flow";
 	}
 	
