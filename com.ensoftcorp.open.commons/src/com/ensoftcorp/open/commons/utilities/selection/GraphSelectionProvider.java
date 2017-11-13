@@ -8,6 +8,9 @@ import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 
+import com.ensoftcorp.atlas.core.indexing.IIndexListener;
+import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.atlas.core.indexing.IIndexListener.IndexOperation;
 import com.ensoftcorp.atlas.core.query.Q;
 
 public class GraphSelectionProvider implements ISelectionProvider {
