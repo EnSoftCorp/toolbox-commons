@@ -333,6 +333,14 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		colorPaletteLayersScrolledComposite.setExpandHorizontal(true);
 		colorPaletteLayersScrolledComposite.setExpandVertical(true);
 		
+		availableColorPalettesCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ColorPalette selectedColorPalette = (ColorPalette) availableColorPalettesCombo.getData(availableColorPalettesCombo.getText());
+				addColorPaletteLayerButton.setEnabled(selectedColorPalette != null);
+			}
+		});
+		
 		addColorPaletteLayerButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -543,6 +551,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				message.setEditable(false);
 				message.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				message.setText("No parameters available for this code painter.");
+				
+				// dispose of the old content
+				if(codePainterConfigurationsScrolledComposite.getContent() != null){
+					codePainterConfigurationsScrolledComposite.getContent().dispose();
+				}
+				
 				codePainterConfigurationsScrolledComposite.setContent(message);
 				codePainterConfigurationsScrolledComposite.setMinSize(message.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 			} else {
@@ -837,6 +851,11 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					}
 				}
 				
+				// dispose of the old content
+				if(codePainterConfigurationsScrolledComposite.getContent() != null){
+					codePainterConfigurationsScrolledComposite.getContent().dispose();
+				}
+				
 				codePainterConfigurationsScrolledComposite.setContent(inputComposite);
 				codePainterConfigurationsScrolledComposite.setMinSize(inputComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 			}
@@ -846,6 +865,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			message.setEditable(false);
 			message.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			message.setText("No code painter selected.");
+			
+			// dispose of the old content
+			if(codePainterConfigurationsScrolledComposite.getContent() != null){
+				codePainterConfigurationsScrolledComposite.getContent().dispose();
+			}
+			
 			codePainterConfigurationsScrolledComposite.setContent(message);
 			codePainterConfigurationsScrolledComposite.setMinSize(message.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
@@ -963,10 +988,20 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			}
 		}
 	}
+
+	private List<Composite> expandBarComposites = new LinkedList<Composite>();
 	
 	private void refreshColorPaletteLayers() {
 		// reset the view
 		colorPaletteLayersScrolledComposite.setEnabled(false);
+		
+		// dispose of the old content
+		// TODO: ideally we'd be disposing on the content of the scrolled composite
+		// but the expand bar events are causing null pointer exceptions on windows
+		for(Composite composite : expandBarComposites){
+			composite.dispose();
+		}
+		expandBarComposites.clear();
 		
 		// save the old scroll position and content origin
 		int scrollPosition = colorPaletteLayersScrolledComposite.getVerticalBar().getSelection();
@@ -990,15 +1025,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					}
 				}
 			}
-			
-			availableColorPalettesCombo.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					ColorPalette selectedColorPalette = (ColorPalette) availableColorPalettesCombo.getData(availableColorPalettesCombo.getText());
-					addColorPaletteLayerButton.setEnabled(selectedColorPalette != null);
-				}
-			});
-			
 			for(ColorPaletteState colorPaletteState : colorPaletteStates){
 				ColorPalette colorPalette = colorPaletteState.getColorPalette();
 				ExpandBar colorPaletteExpandBar = new ExpandBar(colorPaletteLayersContentComposite, SWT.NONE);
@@ -1013,6 +1039,9 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				}
 				
 				Composite colorPaletteContentComposite = new Composite(colorPaletteExpandBar, SWT.NONE);
+				
+				expandBarComposites.add(colorPaletteContentComposite);
+				
 				colorPaletteExpandItem.setControl(colorPaletteContentComposite);
 				colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 				colorPaletteContentComposite.setLayout(new GridLayout(1, false));
@@ -1090,6 +1119,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					message.setEditable(false);
 					message.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 					message.setText("No parameters available for this color palette.");
+					
+					// dispose of the old content
+					if(colorPaletteConfigurationsScrolledComposite.getContent() != null){
+						colorPaletteConfigurationsScrolledComposite.getContent().dispose();
+					}
+					
 					colorPaletteConfigurationsScrolledComposite.setContent(message);
 					colorPaletteConfigurationsScrolledComposite.setMinSize(message.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 				} else {
@@ -1452,7 +1487,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				// compute the expand bar item height
 				colorPaletteExpandItem.setHeight(colorPaletteExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 				
-				colorPaletteExpandBar.addExpandListener(new ExpandAdapter() {
+				ExpandAdapter expandListener = new ExpandAdapter() {
 					@Override
 					public void itemExpanded(ExpandEvent e) {
 						colorPaletteState.setExpanded(true);
@@ -1463,7 +1498,8 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 						colorPaletteState.setExpanded(false);
 						refreshColorPaletteLayers();
 					}
-				});
+				};
+				colorPaletteExpandBar.addExpandListener(expandListener);
 				
 				colorPaletteTabFolder.setSelection(colorPaletteState.getSelectedTab());
 				
@@ -1472,6 +1508,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				}
 			}
 		}
+		
+		// dispose of the old content
+		// TODO: ideally we should be disposing resources here
+//		if(colorPaletteLayersScrolledComposite.getContent() != null){
+//			colorPaletteLayersScrolledComposite.getContent().dispose();
+//		}
 		
 		// update the color palette layer content
 		colorPaletteLayersScrolledComposite.setContent(colorPaletteLayersContentComposite);
@@ -1537,6 +1579,11 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			});
 		}
 		
+		// dispose of the old content
+		if(legendNodesScrolledComposite.getContent() != null){
+			legendNodesScrolledComposite.getContent().dispose();
+		}
+		
 		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
 		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
@@ -1580,6 +1627,11 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					// TODO: implement
 				}
 			});
+		}
+		
+		// dispose of the old content
+		if(legendEdgesScrolledComposite.getContent() != null){
+			legendEdgesScrolledComposite.getContent().dispose();
 		}
 		
 		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
@@ -1641,6 +1693,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				}
 			});
 		}
+		
+		// dispose of the old content
+		if(legendNodesScrolledComposite.getContent() != null){
+			legendNodesScrolledComposite.getContent().dispose();
+		}
+		
 		legendNodesScrolledComposite.setContent(legendNodesContentComposite);
 		legendNodesScrolledComposite.setMinSize(legendNodesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
@@ -1693,6 +1751,12 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				}
 			});
 		}
+		
+		// dispose of the old content
+		if(legendEdgesScrolledComposite.getContent() != null){
+			legendEdgesScrolledComposite.getContent().dispose();
+		}
+		
 		legendEdgesScrolledComposite.setContent(legendEdgesContentComposite);
 		legendEdgesScrolledComposite.setMinSize(legendEdgesContentComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
