@@ -6,7 +6,6 @@ import org.eclipse.ui.part.ViewPart;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
-import com.ensoftcorp.atlas.core.indexing.IIndexListener.IndexOperation;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
