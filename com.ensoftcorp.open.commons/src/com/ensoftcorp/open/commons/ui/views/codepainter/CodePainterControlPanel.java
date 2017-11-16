@@ -49,12 +49,12 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
-import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.CodePainters;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 import com.ensoftcorp.open.commons.codepainter.ColorPalettes;
+import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView;
 import com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView.CodePainterSmartViewEventListener;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionProviderView;
