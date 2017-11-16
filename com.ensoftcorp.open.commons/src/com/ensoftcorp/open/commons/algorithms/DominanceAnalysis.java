@@ -12,6 +12,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.algorithms.internal.DominanceAnalysisHelper;
@@ -88,7 +89,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	public void performIndexing(IProgressMonitor monitor) {
 		if(CommonsPreferences.isComputeControlFlowGraphDominanceTreesEnabled() || CommonsPreferences.isComputeExceptionalControlFlowGraphDominanceTreesEnabled()){
 			Log.info("Computing Control Flow Graph Dominator Trees");
-			AtlasSet<Node> functions = Common.universe().nodes(XCSG.Function).eval().nodes();
+			AtlasSet<Node> functions = Query.resolve(null, Query.universe().nodes(XCSG.Function).eval().nodes());
 			SubMonitor task = SubMonitor.convert(monitor, (int) functions.size());
 			int functionsCompleted = 0;
 			for(Node function : functions){
