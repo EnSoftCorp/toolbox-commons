@@ -10,8 +10,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -47,8 +47,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import com.ensoftcorp.atlas.core.indexing.IIndexListener;
-import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
 import com.ensoftcorp.open.commons.codepainter.CodePainters;
@@ -77,7 +76,13 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	
 	private Display display;
 	private CTabFolder folder;
+	private CTabItem codePainterSelectionTab;
+	private CTabItem codePainterDetailsTab;
+	private CTabItem codePainterConfigurationsTab;
+	private Button searchCodePaintersCheckbox;
+	private Combo selectedCodePainterCombo;
 	private Combo availableColorPalettesCombo;
+	private Tree categorizedCodePaintersTree;
 	private StyledText codePainterDetailsText;
 	private Label codePainterConfigurationErrorLabel;
 	private Button addColorPaletteLayerButton;
@@ -85,6 +90,8 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	private ScrolledComposite legendNodesScrolledComposite;
 	private ScrolledComposite legendEdgesScrolledComposite;
 	private ScrolledComposite codePainterConfigurationsScrolledComposite;
+	
+	private CodePainterSmartViewEventListener codePainterSmartViewListener;
 
 	// colors must be unique, names should be, but may not be unique
 	// sort first by name then color
@@ -115,7 +122,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	@Override
 	public void createPartControl(Composite parent) {
 		display = parent.getShell().getDisplay();
-		boolean indexExists = IndexingUtil.indexExists();
+		boolean indexExists = indexExists();
 		
 		parent.setLayout(new GridLayout(1, false));
 		
@@ -124,19 +131,19 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		folder.setBorderVisible(true);
 		folder.setSimple(false); // adds the Eclipse style "swoosh"
 		
-		final CTabItem codePainterSelectionTab = new CTabItem(folder, SWT.NONE);
+		codePainterSelectionTab = new CTabItem(folder, SWT.NONE);
 		codePainterSelectionTab.setText("Code Painters");
 		Composite codePainterSelectionComposite = new Composite(folder, SWT.NONE);
 		codePainterSelectionTab.setControl(codePainterSelectionComposite);
 		codePainterSelectionComposite.setLayout(new GridLayout(1, false));
 		
-		final CTabItem codePainterDetailsTab = new CTabItem(folder, SWT.NONE);
+		codePainterDetailsTab = new CTabItem(folder, SWT.NONE);
 		codePainterDetailsTab.setText("Details");
 		Composite codePainterDetailsComposite = new Composite(folder, SWT.NONE);
 		codePainterDetailsTab.setControl(codePainterDetailsComposite);
 		codePainterDetailsComposite.setLayout(new GridLayout(1, false));
 
-		final CTabItem codePainterConfigurationsTab = new CTabItem(folder, SWT.NONE);
+		codePainterConfigurationsTab = new CTabItem(folder, SWT.NONE);
 		codePainterConfigurationsTab.setText("Configurations");
 		Composite codePainterConfigurationComposite = new Composite(folder, SWT.NONE);
 		codePainterConfigurationsTab.setControl(codePainterConfigurationComposite);
@@ -198,11 +205,11 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		searchCodePaintersComposite.setLayout(new GridLayout(2, false));
 		searchCodePaintersComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Button searchCodePaintersCheckbox = new Button(searchCodePaintersComposite, SWT.CHECK);
+		searchCodePaintersCheckbox = new Button(searchCodePaintersComposite, SWT.CHECK);
 		searchCodePaintersCheckbox.setText("Search Code Painters: ");
 		searchCodePaintersCheckbox.setEnabled(indexExists);
 		
-		Combo selectedCodePainterCombo = new Combo(searchCodePaintersComposite, SWT.NONE);
+		selectedCodePainterCombo = new Combo(searchCodePaintersComposite, SWT.NONE);
 		selectedCodePainterCombo.setEnabled(false);
 		selectedCodePainterCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
@@ -211,7 +218,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		browseCodePaintersGroup.setLayout(new GridLayout(1, false));
 		browseCodePaintersGroup.setText("Browse Code Painters:");
 		
-		Tree categorizedCodePaintersTree = new Tree(browseCodePaintersGroup, SWT.NONE);
+		categorizedCodePaintersTree = new Tree(browseCodePaintersGroup, SWT.NONE);
 		categorizedCodePaintersTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		categorizedCodePaintersTree.setEnabled(indexExists);
 		
@@ -444,49 +451,8 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		} else {
 			disableFolder(folder);
 		}
-		
-		// add index listeners to disable UI when index is changing
-		IndexingUtil.addListener(new IIndexListener(){
-			@Override
-			public void indexOperationCancelled(IndexOperation op) {}
 
-			@Override
-			public void indexOperationComplete(IndexOperation op) {
-				display.syncExec(new Runnable(){
-					@Override
-					public void run() {
-						searchCodePaintersCheckbox.setEnabled(true);
-						categorizedCodePaintersTree.setEnabled(true);
-						enableFolder(folder);
-					}
-				});
-			}
-
-			@Override
-			public void indexOperationError(IndexOperation op, Throwable error) {}
-
-			@Override
-			public void indexOperationScheduled(IndexOperation op) {}
-
-			@Override
-			public void indexOperationStarted(IndexOperation op) {
-				display.syncExec(new Runnable(){
-					@Override
-					public void run() {
-						disableFolder(folder);
-						folder.setSelection(codePainterSelectionTab);
-						searchCodePaintersCheckbox.setSelection(false);
-						searchCodePaintersCheckbox.setEnabled(false);
-						selectedCodePainterCombo.setEnabled(false);
-						categorizedCodePaintersTree.setEnabled(false);
-					}
-				});
-			}
-		});
-
-		// register code painter smart view listeners
-		CodePainterSmartView.addListener(new CodePainterSmartViewEventListener(){
-			
+		codePainterSmartViewListener = new CodePainterSmartViewEventListener(){
 			@Override
 			public void selectionChanged(IAtlasSelectionEvent event, int reverse, int forward) {
 				// ignoring selection change reported by smart view, we will
@@ -508,10 +474,13 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 					}
 				});
 			}
-		});
+		};
+		
+		// register code painter smart view listeners
+		CodePainterSmartView.addListener(codePainterSmartViewListener);
 		
 		// register as a graph selection provider
-		registerGraphSelectionProvider();
+		registerGraphHandlers();
 	}
 	
 	private void enableFolder(CTabFolder folder) {
@@ -528,17 +497,6 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		for(Control tab : tabs){
 			tab.setBackground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_LIGHT_SHADOW));
 		}
-	}
-
-	@Override
-	public void selectionChanged() {
-		display.asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				refreshColorPaletteLayers();
-				refreshLegend();
-			}
-		});
 	}
 	
 	private void refreshCodePainterConfigurations() {
@@ -1676,10 +1634,10 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			
 			Composite nodesColorComposite = new Composite(legendNodesColorComposite, SWT.BORDER);
 			nodesColorComposite.setBackground(SWTResourceManager.getColor(legendColor.getRed(), legendColor.getGreen(), legendColor.getBlue()));
-			GridData gd_nodesColorComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-			gd_nodesColorComposite.widthHint = 20;
-			gd_nodesColorComposite.heightHint = 20;
-			nodesColorComposite.setLayoutData(gd_nodesColorComposite);
+			GridData nodesColorCompositeSizeHint = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			nodesColorCompositeSizeHint.widthHint = 20;
+			nodesColorCompositeSizeHint.heightHint = 20;
+			nodesColorComposite.setLayoutData(nodesColorCompositeSizeHint);
 			
 			Label nodesColorLabel = new Label(legendNodesColorComposite, SWT.NONE);
 			nodesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -1734,10 +1692,10 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 			
 			Composite edgesColorComposite = new Composite(legendEdgesColorComposite, SWT.BORDER);
 			edgesColorComposite.setBackground(SWTResourceManager.getColor(legendColor.getRed(), legendColor.getGreen(), legendColor.getBlue()));
-			GridData gd_edgesColorComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-			gd_edgesColorComposite.widthHint = 20;
-			gd_edgesColorComposite.heightHint = 20;
-			edgesColorComposite.setLayoutData(gd_edgesColorComposite);
+			GridData edgesColorCompositeSizeHint = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			edgesColorCompositeSizeHint.widthHint = 20;
+			edgesColorCompositeSizeHint.heightHint = 20;
+			edgesColorComposite.setLayoutData(edgesColorCompositeSizeHint);
 			
 			Label edgesColorLabel = new Label(legendEdgesColorComposite, SWT.NONE);
 			edgesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -1770,4 +1728,35 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 
 	@Override
 	public void setFocus() {}
+
+	@Override
+	public void selectionChanged(Graph selection) {
+		refreshColorPaletteLayers();
+		refreshLegend();
+	}
+	
+	@Override
+	public void indexBecameUnaccessible() {
+		disableFolder(folder);
+		folder.setSelection(codePainterSelectionTab);
+		searchCodePaintersCheckbox.setSelection(false);
+		searchCodePaintersCheckbox.setEnabled(false);
+		selectedCodePainterCombo.setEnabled(false);
+		categorizedCodePaintersTree.setEnabled(false);
+	}
+
+	@Override
+	public void indexBecameAccessible() {
+		searchCodePaintersCheckbox.setEnabled(true);
+		categorizedCodePaintersTree.setEnabled(true);
+		enableFolder(folder);
+	}
+	
+	@Override
+	public void dispose(){
+		if(codePainterSmartViewListener != null){
+			CodePainterSmartView.removeListener(codePainterSmartViewListener);
+		}
+		super.dispose();
+	}
 }

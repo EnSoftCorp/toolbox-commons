@@ -22,7 +22,7 @@ import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 
 public abstract class CodePainter extends Configurable implements IResizableScript, IExplorableScript {
-	
+
 	/**
 	 * Holds an unstyled result
 	 */
@@ -619,6 +619,31 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	 */
 	public UnstyledResult computeResult(Q filteredSelections) {
 		return new UnstyledResult(computeFrontierResult(filteredSelections, 0, 0).getResult());
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CodePainter other = (CodePainter) obj;
+		if (getName() == null) {
+			if (other.getName() != null)
+				return false;
+		} else if (!getName().equals(other.getName()))
+			return false;
+		return true;
 	}
 
 }

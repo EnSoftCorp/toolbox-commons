@@ -1,24 +1,24 @@
 package com.ensoftcorp.open.commons.utilities.selection;
 
 import org.eclipse.ui.IWorkbenchPartSite;
-import org.eclipse.ui.part.ViewPart;
 
-import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.indexing.IIndexListener;
-import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
-import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
-import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.open.commons.log.Log;
 
-public abstract class GraphSelectionProviderView extends ViewPart {
+public abstract class GraphSelectionProviderView extends GraphSelectionListenerView {
 
 	private GraphSelectionProvider graphSelectionProvider = new GraphSelectionProvider();
-	private Graph selection = null;
 	
-	public void registerGraphSelectionProvider(){
+	/**
+	 * This method should be invoked at the end of the ViewPart's
+	 * createPartControl(Composite parent) method. Listener's will 
+	 * automatically be cleaned up when the view is disposed.
+	 */
+	@Override
+	public void registerGraphHandlers(){
+		super.registerGraphHandlers();
+		
 		IWorkbenchPartSite site = getSite();
 		if(site != null){
 			site.setSelectionProvider(graphSelectionProvider);
@@ -26,81 +26,45 @@ public abstract class GraphSelectionProviderView extends ViewPart {
 			String message = "Unable to register graph selection provider";
 			Log.warning(message, new RuntimeException(message));
 		}
-		
-		// add index listeners to disable selection provider on index change
-		IndexingUtil.addListener(new IIndexListener(){
-			@Override
-			public void indexOperationCancelled(IndexOperation op) {}
-
-			@Override
-			public void indexOperationComplete(IndexOperation op) {
-				graphSelectionProvider.enable();
-			}
-
-			@Override
-			public void indexOperationError(IndexOperation op, Throwable error) {}
-
-			@Override
-			public void indexOperationScheduled(IndexOperation op) {}
-
-			@Override
-			public void indexOperationStarted(IndexOperation op) {
-				selection = null;
-				graphSelectionProvider.disable();
-			}
-		});
-		
-		// setup the Atlas selection event listener
-		IAtlasSelectionListener selectionListener = new IAtlasSelectionListener(){
-			@Override
-			public void selectionChanged(IAtlasSelectionEvent atlasSelection) {
-				try {
-					selection = atlasSelection.getSelection().eval();
-				} catch (Exception e){
-					selection = null;
-				}
-				selectionChangedHandler();
-			}			
-		};
-		
-		// add the selection listener
-		SelectionUtil.addSelectionListener(selectionListener);
-	}
-	
-	private void selectionChangedHandler(){
-		selectionChanged();
 	}
 	
 	/**
-	 * This method can be overridden to handle selection changed events
+	 * Enables graph selection providers
 	 */
-	public void selectionChanged(){}
-	
 	public void enableGraphSelectionProvider(){
 		graphSelectionProvider.enable();
 	}
 	
+	/**
+	 * Disables graph selection providers
+	 */
 	public void disableGraphSelectionProvider(){
 		graphSelectionProvider.disable();
 	}
 	
-	public Q getSelection(){
-		if(selection != null){
-			return Common.toQ(selection);
-		} else {
-			return Common.empty();
-		}
-	}
-	
+	/**
+	 * If an index exists and a selection has previously been made this replays the last selection event
+	 */
 	public void refreshSelection(){
-		if(selection != null){
-			setSelection(Common.toQ(selection));
-		} else {
-			setSelection(Common.empty());
+		if(indexExists()){
+			Q selection = getSelection();
+			if(selection != null){
+				setSelection(selection);
+			} else {
+				setSelection(Query.empty());
+			}
 		}
 	}
 	
+	/**
+	 * If an index exists then the given selection event will be fired
+	 * @param selection
+	 */
 	public void setSelection(Q selection){
-		graphSelectionProvider.setSelection(selection);
+		if(indexExists()){
+			if(selection != null){
+				graphSelectionProvider.setSelection(selection);
+			}
+		}
 	}
 }
