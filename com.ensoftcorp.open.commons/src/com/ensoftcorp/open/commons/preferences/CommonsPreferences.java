@@ -11,6 +11,33 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	private static boolean initialized = false;
 	
 	/**
+	 * Enable/disable debug logging
+	 */
+	public static final String DEBUG_LOGGING = "DEBUG_LOGGING";
+	public static final Boolean DEBUG_LOGGING_DEFAULT = false;
+	private static boolean debugLoggingValue = DEBUG_LOGGING_DEFAULT;
+	
+	/**
+	 * Configures debug logging
+	 */
+	public static void enableDebugLogging(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(DEBUG_LOGGING, enabled);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if loop cataloging is enabled
+	 * @return
+	 */
+	public static boolean isDebugLoggingEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return debugLoggingValue;
+	}
+	
+	/**
 	 * Enable/disable computing control flow graph dominance trees
 	 */
 	public static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES = "COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES";
@@ -105,6 +132,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
 		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
@@ -116,6 +144,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	 */
 	public static void restoreDefaults(){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
 		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
@@ -129,6 +158,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	public static void loadPreferences() {
 		try {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+			debugLoggingValue = preferences.getBoolean(DEBUG_LOGGING);
 			computeControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			computeExceptionalControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			addMasterEntryExitContainmentRelationships = preferences.getBoolean(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS);
