@@ -17,7 +17,7 @@ import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
  */
 public class CommonsPreferencesPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	private static final String DEBUG_LOGGING_DESCRIPTION = "Enable debug logging";
+	private static final String DEBUG_LOGGING_DESCRIPTION = "Debug logging";
 	private static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DESCRIPTION = "Compute control flow graph dominance trees";
 	private static final String COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DESCRIPTION = "Compute exceptional control flow graph dominance trees";
 	private static final String ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DESCRIPTION = "Add master entry/exit containment relationships";
