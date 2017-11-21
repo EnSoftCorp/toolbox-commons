@@ -167,7 +167,7 @@ public abstract class GraphSelectionListenerView extends ViewPart {
 			SelectionUtil.removeSelectionListener(selectionListener);
 		}
 		if(indexListener != null){
-			IndexingUtil.addListener(indexListener);
+			IndexingUtil.removeListener(indexListener);
 		}
 		super.dispose();
 	}
