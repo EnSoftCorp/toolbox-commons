@@ -237,15 +237,16 @@
       </page>
    </extension>
    
-   <!-- adds the prioritized codemap stage for computing control flow graph dominance trees -->
-   <extension point="com.ensoftcorp.open.commons.codemap">
-      <codemap class="com.ensoftcorp.open.commons.algorithms.DominanceAnalysis"></codemap>
-   </extension>
    
-   <!-- adds the prioritized codemap stage for subystems tagging -->
    <extension point="com.ensoftcorp.open.commons.codemap">
+   	  <!-- adds the prioritized codemap stage for normalizing graph element addresses -->
+      <codemap class="com.ensoftcorp.open.commons.utilities.address.NormalizedAddress"></codemap>
+   	  <!-- adds the prioritized codemap stage for computing control flow graph dominance trees -->
+      <codemap class="com.ensoftcorp.open.commons.algorithms.DominanceAnalysis"></codemap>
+      <!-- adds the prioritized codemap stage for subystems tagging -->
       <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage"></codemap>
    </extension>
+
    
    <!-- TODO: add a startup hook to register the subsystems tagging hierarchy -->
    

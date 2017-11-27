@@ -38,6 +38,33 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	}
 	
 	/**
+	 * Enable/disable node address normalization
+	 */
+	public static final String NORMALIZE_GRAPH_ELEMENT_ADDRESSES = "NORMALIZE_GRAPH_ELEMENT_ADDRESSES";
+	public static final Boolean NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT = true;
+	private static boolean normalizeGraphElementAddressesValue = NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT;
+	
+	/**
+	 * Configures node address normalization
+	 */
+	public static void enableNodeAddressNormalization(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, enabled);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if node address normalization is enabled
+	 * @return
+	 */
+	public static boolean isNodeAddressNormalizationEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return normalizeGraphElementAddressesValue;
+	}
+	
+	/**
 	 * Enable/disable computing control flow graph dominance trees
 	 */
 	public static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES = "COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES";
@@ -45,7 +72,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	private static boolean computeControlFlowGraphDominanceTreesValue = COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT;
 	
 	/**
-	 * Configures inference rule logging
+	 * Configures dominance analysis
 	 */
 	public static void enableComputeControlFlowGraphDominanceTrees(boolean enabled){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
@@ -53,6 +80,10 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		loadPreferences();
 	}
 	
+	/**
+	 * Returns true if dominance analysis is enabled
+	 * @return
+	 */
 	public static boolean isComputeControlFlowGraphDominanceTreesEnabled(){
 		if(!initialized){
 			loadPreferences();
@@ -133,6 +164,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setDefault(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
+		preferences.setDefault(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
 		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
@@ -145,6 +177,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	public static void restoreDefaults(){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setValue(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
+		preferences.setValue(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
 		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
@@ -159,6 +192,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		try {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 			debugLoggingValue = preferences.getBoolean(DEBUG_LOGGING);
+			normalizeGraphElementAddressesValue = preferences.getBoolean(NORMALIZE_GRAPH_ELEMENT_ADDRESSES);
 			computeControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			computeExceptionalControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			addMasterEntryExitContainmentRelationships = preferences.getBoolean(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS);

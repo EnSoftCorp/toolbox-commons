@@ -33,6 +33,7 @@ Export-Package: com.ensoftcorp.open.commons.algorithms,
  com.ensoftcorp.open.commons.subsystems,
  com.ensoftcorp.open.commons.ui.components,
  com.ensoftcorp.open.commons.utilities,
+ com.ensoftcorp.open.commons.utilities.address,
  com.ensoftcorp.open.commons.utilities.selection,
  com.ensoftcorp.open.commons.xcsg
 Bundle-Activator: com.ensoftcorp.open.commons.Activator

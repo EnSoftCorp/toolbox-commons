@@ -14,10 +14,10 @@ public class NodeSourceCorrespondenceSorter implements Comparator<Node> {
 		SourceCorrespondence sc2 = (SourceCorrespondence) n2.getAttr(XCSG.sourceCorrespondence);
 		int fileComparison = sc1.sourceFile.toString().compareTo(sc2.sourceFile.toString());
 		if(fileComparison == 0){
-			int startComparison = Integer.compare(sc1.startLine, sc2.startLine);
+			int startComparison = Integer.compare(sc1.offset, sc2.offset);
 			if(startComparison == 0){
-				int offsetComparison = Integer.compare(sc1.offset, sc2.offset);
-				return offsetComparison;
+				int lengthComparison = Integer.compare(sc1.length, sc2.length);
+				return lengthComparison;
 			} else {
 				return startComparison;
 			}
