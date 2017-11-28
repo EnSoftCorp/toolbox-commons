@@ -8,6 +8,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import com.ensoftcorp.open.commons.Activator;
+import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
 /**
  * Centralized logging for Eclipse plugins.
@@ -33,6 +34,16 @@ public class Log {
 	
 	public static void warning(String message, Throwable e) {
 		log(Status.WARNING, message, e);
+	}
+	
+	public static void debug(String message) {
+		debug(message, null);
+	}
+	
+	public static void debug(String message, Throwable e) {
+		if(CommonsPreferences.isDebugLoggingEnabled()){
+			log(Status.INFO, ("DEBUG: " + message), e);
+		}
 	}
 	
 	public static void info(String message) {

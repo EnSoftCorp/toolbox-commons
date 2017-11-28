@@ -9,6 +9,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
 
 /**
  * An analyzer for cyclomatic complexity
@@ -39,7 +40,7 @@ public class CyclomaticComplexity extends Property {
 		Q functions = context.nodesTaggedWithAny(XCSG.Function);
 		LinkedList<Result> results = new LinkedList<Result>();
 		for(Node function : functions.eval().nodes()){
-			Integer metric = cyclomaticComplexity(function);
+			Integer metric = cyclomaticComplexity(function, false);
 			Result result = new Result((RESULT_PREFIX + metric), Common.toQ(function));
 			result.setData(metric);
 			results.add(result);
@@ -47,14 +48,24 @@ public class CyclomaticComplexity extends Property {
 		return results;
 	}
 
-	private int cyclomaticComplexity(Node method) {
-		Q controlFlowEdges = Common.universe().edgesTaggedWithAny(XCSG.ControlFlow_Edge);
-		Q declarations = Common.toQ(method).contained();
-		Q controlFlowRoot = declarations.nodesTaggedWithAny(XCSG.controlFlowRoot);
-		Graph methodCFG = controlFlowEdges.forward(controlFlowRoot).eval();
-		long edgesCount = methodCFG.edges().size();
-		long nodesConut = methodCFG.nodes().size();
-		long numExitPoints = methodCFG.nodes().taggedWithAny(XCSG.controlFlowExitPoint).size();
+	/**
+	 * Computes the cyclomatic complexity of a function as defined by
+	 * https://en.wikipedia.org/wiki/Cyclomatic_complexity
+	 * 
+	 * @param function
+	 * @param includeExceptionControlFlows If true exception control flow graph edges will be included in the result
+	 * @return
+	 */
+	public static int cyclomaticComplexity(Node function, boolean includeExceptionControlFlows) {
+		Graph cfg;
+		if(includeExceptionControlFlows){
+			cfg = CommonQueries.excfg(function).eval();
+		} else {
+			cfg = CommonQueries.cfg(function).eval();
+		}
+		long edgesCount = cfg.edges().size();
+		long nodesConut = cfg.nodes().size();
+		long numExitPoints = cfg.nodes().taggedWithAny(XCSG.controlFlowExitPoint).size();
 		return (int) (edgesCount - nodesConut + 2 * numExitPoints);
 	}
 	
