@@ -246,9 +246,6 @@
       <!-- adds the prioritized codemap stage for subystems tagging -->
       <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage"></codemap>
    </extension>
-
-   
-   <!-- TODO: add a startup hook to register the subsystems tagging hierarchy -->
    
    <!-- adds the prioritized codemap stage for caching analyzer results -->
    <extension point="com.ensoftcorp.open.commons.codemap">
