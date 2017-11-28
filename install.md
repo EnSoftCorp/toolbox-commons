@@ -21,8 +21,13 @@ If you want to install from source for bleeding edge changes, first grab a copy 
 ## Changelog
 Note that version numbers are based off [Atlas](http://www.ensoftcorp.com/atlas/download/) version numbers.
 
+### 3.3.0
+- Bug fixes
+- Added selection provider, and managed selection/index related views base classes
+- Added Code Painter and Color Palettes (advanced Smart Views)
+
 ### 3.1.7
-- Optimizations for local delcarations, CFG, and exceptional CFG common queries
+- Optimizations for local declarations, CFG, and exceptional CFG common queries
 - Embedded javadoc with plugin
 
 ### 3.1.6
