@@ -12,6 +12,7 @@ import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 
@@ -80,9 +81,7 @@ public final class CommonQueries {
 	
 	/**
 	 * Returns direct edges of the given kinds which lay immediately between the
-	 * first group and second group of nodes. In the case that the selected edge
-	 * kinds have multiple levels of granularity, only the function level of
-	 * granularity is used.
+	 * first group and second group of nodes.
 	 * 
 	 * @param first
 	 * @param second
@@ -90,14 +89,12 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q interactions(Q first, Q second, String... edgeTags){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.interactions(first, second, edgeTags);
+		return com.ensoftcorp.open.commons.analysis.CommonQueries.interactions(Query.codemap(), first, second, edgeTags);
 	}
 	
 	/**
 	 * Returns direct edges of the given kinds which lay immediately between the
-	 * first group and second group of nodes. In the case that the selected edge
-	 * kinds have multiple levels of granularity, only the function level of
-	 * granularity is used. Uses only the given context for the traversal.
+	 * first group and second group of nodes.
 	 * 
 	 * @param context
 	 * @param first
@@ -106,7 +103,8 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q interactions(Q context, Q first, Q second, String... edgeTags){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.interactions(context, first, second, edgeTags);
+		Q edgeContext = context.edges(edgeTags);
+		return edgeContext.betweenStep(first, second).union(edgeContext.betweenStep(second, first));
 	}
 	
 	/**
