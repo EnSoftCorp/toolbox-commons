@@ -59,11 +59,11 @@ public class Analyzers extends PrioritizedCodemapStage {
 
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
+		boolean logged = false;
+		ANALYZER_RESULTS.clear();
+		ANALYZERS.clear();
 		Analyzers.loadAnalyzerContributions();
 		Set<Analyzer> analyzers = Analyzers.getRegisteredAnalyzers();
-		
-		boolean logged = false;
-		
 		for(Analyzer analyzer : analyzers){
 			if(!logged){
 				Log.info("Running analyzers...");
