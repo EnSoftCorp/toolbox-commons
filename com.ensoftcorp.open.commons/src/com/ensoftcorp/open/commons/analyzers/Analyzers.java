@@ -65,11 +65,11 @@ public class Analyzers extends PrioritizedCodemapStage {
 		Analyzers.loadAnalyzerContributions();
 		Set<Analyzer> analyzers = Analyzers.getRegisteredAnalyzers();
 		for(Analyzer analyzer : analyzers){
-			if(!logged){
-				Log.info("Running analyzers...");
-				logged = true;
-			}
 			if(AnalyzerPreferences.isAnalyzerCachingEnabled(analyzer.getName())){
+				if(!logged){
+					Log.info("Running analyzers...");
+					logged = true;
+				}
 				monitor.subTask("Analyzing " + analyzer.getName());
 				Log.info("Analyzing " + analyzer.getName());
 				// TODO: how to set analyzer context? via preferences maybe?
