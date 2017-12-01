@@ -45,19 +45,19 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	private static boolean normalizeGraphElementAddressesValue = NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT;
 	
 	/**
-	 * Configures node address normalization
+	 * Configures address normalization
 	 */
-	public static void enableNodeAddressNormalization(boolean enabled){
+	public static void enableAddressNormalization(boolean enabled){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setValue(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, enabled);
 		loadPreferences();
 	}
 	
 	/**
-	 * Returns true if node address normalization is enabled
+	 * Returns true if address normalization is enabled
 	 * @return
 	 */
-	public static boolean isNodeAddressNormalizationEnabled(){
+	public static boolean isAddressNormalizationEnabled(){
 		if(!initialized){
 			loadPreferences();
 		}

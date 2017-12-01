@@ -37,7 +37,6 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
-		Log.info("Tagging subsystems...");
 		Subsystems.loadSubsystemContributions();
 
 		Set<Subsystem> subsystems = Subsystems.getRegisteredSubsystems();
@@ -50,8 +49,14 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 			}
 		}
 		
+		boolean logged = false;
+		
 		if(hasEnabledSubystemCategory){
 			for (Subsystem subsystem : subsystems) {
+				if(!logged){
+					Log.info("Tagging subsystems...");
+					logged = true;
+				}
 				if (monitor.isCanceled()) {
 					break;
 				} else {

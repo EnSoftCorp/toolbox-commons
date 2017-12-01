@@ -10,6 +10,7 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.commons.log.Log;
+import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
 public class NormalizedAddress extends PrioritizedCodemapStage {
 
@@ -38,9 +39,11 @@ public class NormalizedAddress extends PrioritizedCodemapStage {
 
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
-		Log.info("Assigning normalized graph element addresses...");
-		normalized = false;
-		assignNormalizedAddresses();
+		if(CommonsPreferences.isAddressNormalizationEnabled()){
+			Log.info("Assigning normalized graph element addresses...");
+			normalized = false;
+			assignNormalizedAddresses();
+		}
 	}
 	
 	/**
