@@ -589,6 +589,9 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		// highlight the selections
 		if(highlightSelections){
 			result.setInput(convertedSelections);
+		} else {
+			// force clearing out any sort of selection highlighting
+			result.setInput(Common.empty());
 		}
 		
 		return result;
