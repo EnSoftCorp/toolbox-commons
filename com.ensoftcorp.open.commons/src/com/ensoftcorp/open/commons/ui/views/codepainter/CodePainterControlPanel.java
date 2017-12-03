@@ -202,7 +202,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		
 		// setup code painters selection tab
 		Composite searchCodePaintersComposite = new Composite(codePainterSelectionComposite, SWT.NONE);
-		searchCodePaintersComposite.setLayout(new GridLayout(2, false));
+		searchCodePaintersComposite.setLayout(new GridLayout(3, false));
 		searchCodePaintersComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		searchCodePaintersCheckbox = new Button(searchCodePaintersComposite, SWT.CHECK);
@@ -212,6 +212,18 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 		selectedCodePainterCombo = new Combo(searchCodePaintersComposite, SWT.NONE);
 		selectedCodePainterCombo.setEnabled(false);
 		selectedCodePainterCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Button highlightSelectionsCheckbox = new Button(searchCodePaintersComposite, SWT.CHECK);
+		highlightSelectionsCheckbox.setSelection(true);
+		highlightSelectionsCheckbox.setText("Highlight Selections");
+		
+		highlightSelectionsCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				CodePainterSmartView.getCodePainter().enableHighlightSelections(highlightSelectionsCheckbox.getSelection());
+				refreshSelection();
+			}
+		});
 		
 		Group browseCodePaintersGroup = new Group(codePainterSelectionComposite, SWT.NONE);
 		browseCodePaintersGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -311,6 +323,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 				CodePainter codePainter = (CodePainter) selectedCodePainterCombo.getData(selectedCodePainterCombo.getText());
 				if(codePainter != null){
 					if(CodePainterSmartView.setCodePainter(codePainter)){
+						highlightSelectionsCheckbox.setSelection(codePainter.isHighlightSelectionsEnabled());
 						refreshSelection();
 					}
 				}

@@ -23,6 +23,16 @@ import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 
 public abstract class CodePainter extends Configurable implements IResizableScript, IExplorableScript {
 
+	private boolean highlightSelections = true;
+	
+	public boolean isHighlightSelectionsEnabled(){
+		return highlightSelections;
+	}
+	
+	public void enableHighlightSelections(boolean enabled){
+		highlightSelections = enabled;
+	}
+	
 	/**
 	 * Holds an unstyled result
 	 */
@@ -577,7 +587,9 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		FrontierStyledResult result = new FrontierStyledResult(frontierResult.getResult(), frontierResult.getFrontierReverse(), frontierResult.getFrontierForward(), markup);
 		
 		// highlight the selections
-		result.setInput(convertedSelections);
+		if(highlightSelections){
+			result.setInput(convertedSelections);
+		}
 		
 		return result;
 	}
