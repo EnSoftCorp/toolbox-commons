@@ -859,25 +859,24 @@ public final class CommonQueries {
 	/**
 	 * Given a function, a branch, and an event of interest returns true if the
 	 * branch governs whether or not the event of interest could be executed. If
-	 * true the branch could prevent the event from being executed. This method
-	 * does not consider exceptional control flow paths.
+	 * true the branch could prevent the event from being executed. The branch
+	 * and event must both be contained in the same function. This method does 
+	 * not consider exceptional control flow paths.
 	 * 
 	 * @param function
 	 * @param branch
 	 * @param event
 	 * @return
 	 */
-	public static boolean isGoverningBranch(Node function, Node branch, Node event){
-		return isGoverningBranch(function, branch, event, true);
+	public static boolean isGoverningBranch(Node branch, Node event){
+		return isGoverningBranch(branch, event, true);
 	}
 	
 	/**
 	 * Given a function, a branch, and an event of interest returns true if the
 	 * branch governs whether or not the event of interest could be executed. If
-	 * true the branch could prevent the event from being executed.
-	 * 
-	 * @param function
-	 *            An XCSG.Function node
+	 * true the branch could prevent the event from being executed. The branch
+	 * and event must both be contained in the same function.
 	 * @param branch
 	 *            An XCSG.ControlFlowCondition node
 	 * @param event
@@ -886,20 +885,23 @@ public final class CommonQueries {
 	 *            If true considers exceptional control flow paths
 	 * @return
 	 */
-	public static boolean isGoverningBranch(Node function, Node branch, Node event, boolean includeExceptionalPaths){
-		if(!function.taggedWith(XCSG.Function)){
-			throw new RuntimeException("function parameter is not a function!");
+	public static boolean isGoverningBranch(Node branch, Node event, boolean includeExceptionalPaths){
+		Node branchFunction = getContainingFunction(branch);
+		Node eventFunction = getContainingFunction(event);
+		if(!branchFunction.equals(eventFunction)){
+			throw new IllegalArgumentException("Branch and event must be contained in the same function.");
 		}
-		if(!function.taggedWith(XCSG.ControlFlowCondition)){
-			throw new RuntimeException("branch parameter is not a control flow condition!");
+		Node function = branchFunction;
+		if(!branch.taggedWith(XCSG.ControlFlowCondition)){
+			throw new IllegalArgumentException("branch parameter is not a control flow condition!");
 		}
-		if(!function.taggedWith(XCSG.ControlFlow_Node)){
-			throw new RuntimeException("event parameter is not a control flow node!");
+		if(!event.taggedWith(XCSG.ControlFlow_Node)){
+			throw new IllegalArgumentException("event parameter is not a control flow node!");
 		}
 		Q cfg = includeExceptionalPaths ? excfg(function) : cfg(function);
 		AtlasSet<Node> roots = cfg.roots().eval().nodes();
 		if(roots.size() != 1){
-			throw new RuntimeException("Function " + function.getAttr(XCSG.name) + " does not have a control flow root.");
+			throw new RuntimeException("Function " + function.getAttr(XCSG.name) + " must only have one control flow root.");
 		}
 		Node root = roots.one();
 		// a lovely rare corner case here, a void method can have a loop
@@ -909,8 +911,7 @@ public final class CommonQueries {
 		// back edges to make the cfg leaves explicit
 		AtlasSet<Node> exits = cfg.differenceEdges(cfg.edges(XCSG.ControlFlowBackEdge)).leaves().eval().nodes();
 		if(exits.isEmpty()){
-			String message = "Control flow graph does not have any exits.";
-			Log.error(message, new RuntimeException(message));
+			throw new RuntimeException("Control flow graph does not have any exits.");
 		}
 		// is there a path from the root to the event that does not go through the branch?
 		// if not then all paths must be going through the branch to reach the event and so the branch dominates the event
