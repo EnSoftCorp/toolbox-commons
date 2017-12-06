@@ -15,6 +15,7 @@ import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.log.Log;
 
 /**
  * Common queries which are useful for writing larger language agnostic analysis
@@ -854,6 +855,75 @@ public final class CommonQueries {
 			node = parent;
 		}
 	}
+	
+	/**
+	 * Given a function, a branch, and an event of interest returns true if the
+	 * branch governs whether or not the event of interest could be executed. If
+	 * true the branch could prevent the event from being executed. This method
+	 * does not consider exceptional control flow paths.
+	 * 
+	 * @param function
+	 * @param branch
+	 * @param event
+	 * @return
+	 */
+	public static boolean isGoverningBranch(Node function, Node branch, Node event){
+		return isGoverningBranch(function, branch, event, true);
+	}
+	
+	/**
+	 * Given a function, a branch, and an event of interest returns true if the
+	 * branch governs whether or not the event of interest could be executed. If
+	 * true the branch could prevent the event from being executed.
+	 * 
+	 * @param function
+	 *            An XCSG.Function node
+	 * @param branch
+	 *            An XCSG.ControlFlowCondition node
+	 * @param event
+	 *            An ControlFlow_Node node
+	 * @param includeExceptionalPaths
+	 *            If true considers exceptional control flow paths
+	 * @return
+	 */
+	public static boolean isGoverningBranch(Node function, Node branch, Node event, boolean includeExceptionalPaths){
+		if(!function.taggedWith(XCSG.Function)){
+			throw new RuntimeException("function parameter is not a function!");
+		}
+		if(!function.taggedWith(XCSG.ControlFlowCondition)){
+			throw new RuntimeException("branch parameter is not a control flow condition!");
+		}
+		if(!function.taggedWith(XCSG.ControlFlow_Node)){
+			throw new RuntimeException("event parameter is not a control flow node!");
+		}
+		Q cfg = includeExceptionalPaths ? excfg(function) : cfg(function);
+		AtlasSet<Node> roots = cfg.roots().eval().nodes();
+		if(roots.size() != 1){
+			throw new RuntimeException("Function " + function.getAttr(XCSG.name) + " does not have a control flow root.");
+		}
+		Node root = roots.one();
+		// a lovely rare corner case here, a void method can have a loop
+		// with no termination conditions that forms a strongly connected
+		// component, so root -> ... SCC, since the SCC will not have any
+		// leaves could be empty. In order to deal with this we remove the
+		// back edges to make the cfg leaves explicit
+		AtlasSet<Node> exits = cfg.differenceEdges(cfg.edges(XCSG.ControlFlowBackEdge)).leaves().eval().nodes();
+		if(exits.isEmpty()){
+			String message = "Control flow graph does not have any exits.";
+			Log.error(message, new RuntimeException(message));
+		}
+		// is there a path from the root to the event that does not go through the branch?
+		// if not then all paths must be going through the branch to reach the event and so the branch dominates the event
+		boolean branchDominatesEvent = CommonQueries.isEmpty(cfg.between(Common.toQ(root), Common.toQ(event), Common.toQ(branch)));
+		if(branchDominatesEvent){
+			// is there a path that could be taken through at this branch where the event cannot occur?
+			// i.e. this branch could potentially block the event from occurring
+			boolean branchCanBlockEvent = !CommonQueries.isEmpty(cfg.between(Common.toQ(branch), Common.toQ(exits), Common.toQ(event)));
+			// returns branchDominatesEvent && branchCanBlockEvent
+			return branchCanBlockEvent;
+		}
+		return false;
+	}
 
 	/**
 	 * Returns the control flow graph between conditional nodes and the given
@@ -1025,7 +1095,7 @@ public final class CommonQueries {
 	}
 	
 	/**
-	 * Returns the single delcarative parent
+	 * Returns the single declarative parent
 	 * Returns null if there is no parent
 	 * Throws an IllegalArgumentException if there is more than one parent
 	 * @param function
