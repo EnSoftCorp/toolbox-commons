@@ -63,7 +63,7 @@ public class Sandbox {
 	 * @return
 	 */
 	public SandboxGraph empty(){
-		return new SandboxGraph(sandboxInstanceID);
+		return new SandboxGraph(this);
 	}
 	
 	/**
@@ -71,7 +71,7 @@ public class Sandbox {
 	 * @return
 	 */
 	public SandboxHashSet<SandboxNode> emptyNodeSet(){
-		return new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		return new SandboxHashSet<SandboxNode>(this);
 	}
 	
 	/**
@@ -79,7 +79,7 @@ public class Sandbox {
 	 * @return
 	 */
 	public SandboxHashSet<SandboxEdge> emptyEdgeSet(){
-		return new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		return new SandboxHashSet<SandboxEdge>(this);
 	}
 	
 	/**
@@ -96,7 +96,7 @@ public class Sandbox {
 	 * @return
 	 */
 	public SandboxGraph toGraph(SandboxHashSet<SandboxNode> nodes, SandboxHashSet<SandboxEdge> edges){
-		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		SandboxGraph result = new SandboxGraph(this);
 		for(SandboxNode node : nodes){
 			result.nodes().add(node);
 		}
@@ -154,7 +154,7 @@ public class Sandbox {
 	 * @return
 	 */
 	public SandboxGraph graph(Graph graph){
-		SandboxGraph result = new SandboxGraph(sandboxInstanceID);
+		SandboxGraph result = new SandboxGraph(this);
 		result.nodes().addAll(nodes(graph.nodes()));
 		result.edges().addAll(edges(graph.edges()));
 		return result;
@@ -169,7 +169,7 @@ public class Sandbox {
 	 * @return the sandbox nodes
 	 */
 	public SandboxHashSet<SandboxNode> nodes(AtlasSet<Node> nodes){
-		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(this);
 		for(Node node : nodes){
 			SandboxGraphElement ge = node(node);
 			if(ge != null && ge instanceof SandboxNode){
@@ -198,7 +198,7 @@ public class Sandbox {
 	 * @return
 	 */
 	public SandboxHashSet<SandboxEdge> edges(AtlasSet<Edge> edges){
-		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(this);
 		for(Edge edge : edges){
 			SandboxEdge ge = edge(edge);
 			if(ge != null && ge instanceof SandboxEdge){
@@ -235,14 +235,14 @@ public class Sandbox {
 	 * @param nodes
 	 */
 	public SandboxHashSet<SandboxNode> addNodes(AtlasSet<Node> nodes) {
-		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(sandboxInstanceID);
+		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(this);
 		for(Node node : nodes){
 			result.add(addNode(node));
 		}
 		return result;
 	}
 
-	private SandboxNode addNode(Node node) {
+	public SandboxNode addNode(Node node) {
 		SandboxNode sandboxNode = new SandboxNode(sandboxInstanceID, node);
 		U.nodes().add(sandboxNode);
 		addresses.put(addrStr(node), sandboxNode);
@@ -254,14 +254,14 @@ public class Sandbox {
 	 * @param edges
 	 */
 	public SandboxHashSet<SandboxEdge> addEdges(AtlasSet<Edge> edges) {
-		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(sandboxInstanceID);
+		SandboxHashSet<SandboxEdge> result = new SandboxHashSet<SandboxEdge>(this);
 		for(Edge edge : edges){
 			result.add(addEdge(edge));
 		}
 		return result;
 	}
 
-	private SandboxEdge addEdge(Edge edge) {
+	public SandboxEdge addEdge(Edge edge) {
 		SandboxNode from = node(edge.from()); 
 		if (from == null) {
 			from = addNode(edge.from());

@@ -21,6 +21,11 @@ import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
+import com.ensoftcorp.open.commons.sandbox.Sandbox;
+import com.ensoftcorp.open.commons.sandbox.SandboxEdge;
+import com.ensoftcorp.open.commons.sandbox.SandboxGraph;
+import com.ensoftcorp.open.commons.sandbox.SandboxHashSet;
+import com.ensoftcorp.open.commons.sandbox.SandboxNode;
 import com.ensoftcorp.open.commons.xcsg.XCSG_Extension;
 
 public class DominanceAnalysis extends PrioritizedCodemapStage {
@@ -121,6 +126,94 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Returns the dominator tree
+	 * 
+	 * Note this method will compute both the dominance frontier and the
+	 * dominator tree. If you want both edges, call the
+	 * computeDominance(UniqueEntryExitGraph ucfg) method directly.
+	 * 
+	 * @param ucfg
+	 * @return
+	 */
+	public static SandboxGraph computeSandboxedForwardDominatorTree(Sandbox sandbox, UniqueEntryExitGraph ucfg){
+		SandboxHashSet<SandboxEdge> treeEdges = new SandboxHashSet<SandboxEdge>(sandbox);
+		SandboxGraph dominance = computeSandboxedDominance(sandbox, ucfg);
+		for(SandboxEdge edge : dominance.edges()){
+			if(edge.taggedWith(IMMEDIATE_FORWARD_DOMINANCE_EDGE)){
+				treeEdges.add(edge);
+			}
+		}
+		return sandbox.toGraph(treeEdges);
+	}
+	
+	/**
+	 * Returns the dominance frontier (each edge represents a frontier node for
+	 * a given from node)
+	 * 
+	 * Note this method will compute both the dominance frontier and the
+	 * dominator tree. If you want both edges, call the
+	 * computeDominance(UniqueEntryExitGraph ucfg) method directly.
+	 * 
+	 * @param ucfg
+	 * @return
+	 */
+	public static SandboxGraph computeSandboxedDominanceFrontier(Sandbox sandbox, UniqueEntryExitGraph ucfg){
+		SandboxHashSet<SandboxEdge> frontierEdges = new SandboxHashSet<SandboxEdge>(sandbox);
+		SandboxGraph dominance = computeSandboxedDominance(sandbox, ucfg);
+		for(SandboxEdge edge : dominance.edges()){
+			if(edge.taggedWith(DOMINANCE_FRONTIER_EDGE)){
+				frontierEdges.add(edge);
+			}
+		}
+		return sandbox.toGraph(frontierEdges);
+	}
+
+	/**
+	 * Returns a graph of ifdom and domfrontier edges
+	 * @param ucfg
+	 * @return
+	 */
+	public static SandboxGraph computeSandboxedDominance(Sandbox sandbox, UniqueEntryExitGraph ucfg) {
+		DominanceAnalysisHelper dominanceAnalysis = new DominanceAnalysisHelper(ucfg, true);
+		// compute the dominator tree
+		Multimap<Node> dominanceTree = dominanceAnalysis.getDominatorTree();
+		SandboxHashSet<SandboxEdge> dominanceEdges = new SandboxHashSet<SandboxEdge>(sandbox);
+		for(Entry<Node, Set<Node>> entry : dominanceTree.entrySet()){
+			Node fromNode = entry.getKey();
+			SandboxNode sandboxFromNode = sandbox.addNode(fromNode);
+			for(Node toNode : entry.getValue()){
+				SandboxNode sandboxToNode = sandbox.addNode(toNode);
+				SandboxGraph forwardDominanceEdges = sandbox.toGraph(sandbox.universe().edges(IMMEDIATE_FORWARD_DOMINANCE_EDGE));
+				SandboxEdge forwardDominanceEdge = forwardDominanceEdges.betweenStep(sandboxFromNode, sandboxToNode).edges().one();
+				if(forwardDominanceEdge == null){
+					forwardDominanceEdge = sandbox.createEdge(sandboxFromNode, sandboxToNode);
+					forwardDominanceEdge.tag(IMMEDIATE_FORWARD_DOMINANCE_EDGE);
+					forwardDominanceEdge.putAttr(XCSG.name, IMMEDIATE_FORWARD_DOMINANCE_EDGE);
+				}
+				dominanceEdges.add(forwardDominanceEdge);
+			}
+		}
+		// compute the dominance frontier
+		Multimap<Node> dominanceFrontier = dominanceAnalysis.getDominanceFrontiers();
+		for(Entry<Node, Set<Node>> entry : dominanceFrontier.entrySet()){
+			Node fromNode = entry.getKey();
+			SandboxNode sandboxFromNode = sandbox.addNode(fromNode);
+			for(Node toNode : entry.getValue()){
+				SandboxNode sandboxToNode = sandbox.addNode(toNode);
+				SandboxGraph dominanceFrontierEdges = sandbox.toGraph(sandbox.universe().edges(DOMINANCE_FRONTIER_EDGE));
+				SandboxEdge dominanceFrontierEdge = dominanceFrontierEdges.betweenStep(sandboxFromNode, sandboxToNode).edges().one();
+				if(dominanceFrontierEdge == null){
+					dominanceFrontierEdge = sandbox.createEdge(sandboxFromNode, sandboxToNode);
+					dominanceFrontierEdge.tag(DOMINANCE_FRONTIER_EDGE);
+					dominanceFrontierEdge.putAttr(XCSG.name, DOMINANCE_FRONTIER_EDGE);
+				}
+				dominanceEdges.add(dominanceFrontierEdge);
+			}
+		}
+		return sandbox.toGraph(dominanceEdges);
 	}
 	
 	/**

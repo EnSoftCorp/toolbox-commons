@@ -12,6 +12,14 @@ public class SandboxHashSet<T extends SandboxGraphElement> extends HashSet<T> {
 		this.sandboxInstanceID = sandboxInstanceID;
 	}
 	
+	public SandboxHashSet(Sandbox sandbox){
+		this(sandbox.getInstanceID());
+	}
+	
+	public SandboxHashSet(SandboxGraph graph) {
+		this(graph.getSandboxInstanceID());
+	}
+
 	/**
 	 * Returns the sandbox instance this graph element set belongs to
 	 * @return
