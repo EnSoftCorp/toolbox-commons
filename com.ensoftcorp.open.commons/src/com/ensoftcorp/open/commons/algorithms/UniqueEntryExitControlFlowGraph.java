@@ -135,6 +135,21 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	 * @param addContains
 	 */
 	public UniqueEntryExitControlFlowGraph(Graph cfg, AtlasSet<Node> roots, AtlasSet<Node> exits, boolean addContains) {
+		this(cfg, roots, false, exits, false, false);
+	}
+	
+	/**
+	 * Constructs a new unique entry/exit control flow graph with the specified
+	 * entry and exit points.
+	 * 
+	 * @param cfg
+	 * @param roots
+	 * @param relaxNonEmptyRootsRequirement Relaxes the requirement that roots must be a non-empty set
+	 * @param exits
+	 * @param relaxNonEmptyExitsRequirement Relaxes the requirement that exist must be a non-empty set
+	 * @param addContains
+	 */
+	public UniqueEntryExitControlFlowGraph(Graph cfg, AtlasSet<Node> roots, boolean relaxNonEmptyRootsRequirement, AtlasSet<Node> exits, boolean relaxNonEmptyExitsRequirement, boolean addContains) {
 		AtlasSet<Node> functions = CommonQueries.getContainingFunctions(Common.toQ(cfg)).eval().nodes();
 		if(functions.isEmpty()){
 			String message = "CFG is empty or is not contained within a function!";
@@ -153,8 +168,8 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 			this.edges = new AtlasHashSet<Edge>(cfg.edges());
 			
 			this.roots = Common.toQ(roots).intersection(Common.toQ(cfg)).eval().nodes();
-			
-			if(this.roots.isEmpty()){
+
+			if(!relaxNonEmptyRootsRequirement && this.roots.isEmpty()){
 				String message = "CFG roots must be a non-empty set contained within the CFG!";
 				IllegalArgumentException e = new IllegalArgumentException(message);
 				Log.error(message, e);
@@ -162,7 +177,7 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 			}
 			
 			this.exits = Common.toQ(exits).intersection(Common.toQ(cfg)).eval().nodes();
-			if(this.exits.isEmpty()){
+			if(!relaxNonEmptyExitsRequirement && this.exits.isEmpty()){
 				String message = "CFG exits must be a non-empty set contained within the CFG!";
 				IllegalArgumentException e = new IllegalArgumentException(message);
 				Log.error(message, e);
