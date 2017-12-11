@@ -54,12 +54,12 @@ public abstract class SandboxGraphElement {
 
 	/**
 	 * Returns whether or not this sandbox graph element was originally a mirror
-	 * or an Atlas graph element
+	 * of an Atlas graph element
 	 * 
 	 * @return
 	 */
 	public boolean isMirror() {
-		return address.startsWith(Sandbox.SANDBOX_ADDRESS_PREFIX);
+		return !address.startsWith(Sandbox.SANDBOX_ADDRESS_PREFIX);
 	}
 
 	/**

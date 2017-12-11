@@ -53,7 +53,7 @@ public class DefaultFlushProvider implements FlushProvider {
 	 * @return
 	 */
 	public GraphElement flush(SandboxGraphElement ge, Map<String,SandboxGraphElement> addresses) {
-		if(ge.isMirror()){
+		if(!ge.isMirror()){
 			if(ge instanceof SandboxNode){
 				Node node = Graph.U.createNode();
 				// add all the sandbox tags
