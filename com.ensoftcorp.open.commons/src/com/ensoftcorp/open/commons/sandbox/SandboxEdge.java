@@ -2,6 +2,7 @@ package com.ensoftcorp.open.commons.sandbox;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
 
 public class SandboxEdge extends SandboxGraphElement {
 
@@ -59,6 +60,14 @@ public class SandboxEdge extends SandboxGraphElement {
 			return FROM;
 		} else {
 			return TO;
+		}
+	}
+	
+	public Edge toAtlasEdge(){
+		if(isMirror()){
+			return CommonQueries.getEdgeByAddress(address);
+		} else {
+			return null;
 		}
 	}
 	

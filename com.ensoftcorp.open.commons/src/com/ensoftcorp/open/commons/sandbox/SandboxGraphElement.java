@@ -5,10 +5,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
+
 public abstract class SandboxGraphElement {
 
 	private final int sandboxInstanceID;
-	private String address;
+	protected String address;
 
 	private final Set<String> tags;
 	private final Map<String, Object> attributes;
@@ -39,6 +42,14 @@ public abstract class SandboxGraphElement {
 	 */
 	public String getAddress() {
 		return address;
+	}
+	
+	public GraphElement toAtlasGraphElement(){
+		if(isMirror()){
+			return CommonQueries.getGraphElementByAddress(address);
+		} else {
+			return null;
+		}
 	}
 
 	/**
