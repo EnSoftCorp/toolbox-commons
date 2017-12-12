@@ -14,6 +14,7 @@ import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
 public class NormalizedAddress extends PrioritizedCodemapStage {
 
+	public static final String IDENTIFIER = "com.ensoftcorp.open.commons.utilities.address.normalization";
 	public static final String NORMALIZED_ADDRESS_ATTRIBUTE = "NORMALIZED_ADDRESS";
 	
 	private static boolean normalized = false;
@@ -29,7 +30,7 @@ public class NormalizedAddress extends PrioritizedCodemapStage {
 
 	@Override
 	public String getIdentifier() {
-		return "com.ensoftcorp.open.commons.utilities.address.normalization";
+		return IDENTIFIER;
 	}
 
 	@Override

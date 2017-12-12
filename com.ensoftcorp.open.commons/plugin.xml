@@ -145,6 +145,12 @@
       </view>
    </extension>
    
+   <!-- defines an extension point schema for contributing project properties initializers definitons -->
+   <extension-point 
+   		id="com.ensoftcorp.open.commons.utilities.project.propertiesinitializer" 
+   		name="Project Properties Initializer" 
+   		schema="schema/com.ensoftcorp.open.commons.propertiesinitializer.exsd"/>
+   
    <!-- defines an extension point schema for contributing subsystem definitons -->
    <extension-point 
    		id="com.ensoftcorp.open.commons.subsystem" 
