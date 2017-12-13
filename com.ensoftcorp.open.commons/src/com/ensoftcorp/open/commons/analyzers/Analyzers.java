@@ -24,7 +24,7 @@ import com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView;
 public class Analyzers extends PrioritizedCodemapStage {
 
 	/**
-	 * The unique identifier for the Subsystem codemap stage
+	 * The unique identifier for analyzer definitions
 	 */
 	public static final String IDENTIFIER = "com.ensoftcorp.open.commons.analyzers";
 	

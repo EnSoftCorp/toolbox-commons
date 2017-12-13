@@ -3,10 +3,10 @@
 <schema targetNamespace="com.ensoftcorp.open.commons" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="com.ensoftcorp.open.commons" id="com.ensoftcorp.open.commons.utilities.project.propertiesinitializer" name="Project Project Initializer"/>
+         <meta.schema plugin="com.ensoftcorp.open.commons" id="com.ensoftcorp.open.commons.project.properties.initializer" name="Project Analysis Properties Initializer"/>
       </appinfo>
       <documentation>
-         This extension point allows plugins to contribute Project Properties Initializer definitions.
+         This extension point allows plugins to contribute Project Analysis Properties Initializer definitions.
       </documentation>
    </annotation>
 

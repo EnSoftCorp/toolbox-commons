@@ -21,6 +21,7 @@ public class Activator extends AbstractUIPlugin {
 	public static final String PLUGIN_LANGUAGE_SPECIFIC_ANALYSIS_EXTENSION_ID = "com.ensoftcorp.open.commons.language.analysis"; //$NON-NLS-1$
 	public static final String PLUGIN_CODE_PAINTER_EXTENSION_ID = "com.ensoftcorp.open.commons.codepainter"; //$NON-NLS-1$
 	public static final String PLUGIN_COLOR_PALETTE_EXTENSION_ID = "com.ensoftcorp.open.commons.colorpalette"; //$NON-NLS-1$
+	public static final String PLUGIN_INITIALIZER_EXTENSION_ID = "com.ensoftcorp.open.commons.project.properties.initializer"; //$NON-NLS-1$
 
 	// The shared instance
 	private static Activator plugin;

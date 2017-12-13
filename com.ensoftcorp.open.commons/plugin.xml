@@ -147,9 +147,9 @@
    
    <!-- defines an extension point schema for contributing project properties initializers definitons -->
    <extension-point 
-   		id="com.ensoftcorp.open.commons.utilities.project.propertiesinitializer" 
-   		name="Project Properties Initializer" 
-   		schema="schema/com.ensoftcorp.open.commons.propertiesinitializer.exsd"/>
+   		id="com.ensoftcorp.open.commons.project.properties.initializer" 
+   		name="Project Analysis Properties Initializer" 
+   		schema="schema/com.ensoftcorp.open.commons.project.properties.initializer.exsd"/>
    
    <!-- defines an extension point schema for contributing subsystem definitons -->
    <extension-point 
@@ -251,6 +251,8 @@
       <codemap class="com.ensoftcorp.open.commons.algorithms.DominanceAnalysis"></codemap>
       <!-- adds the prioritized codemap stage for subystems tagging -->
       <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage"></codemap>
+      <!-- adds the prioritized codemap stage for analysis properties initializers -->
+      <codemap class="com.ensoftcorp.open.commons.codemap.ProjectAnalysisDefaultPropertiesInitializer"></codemap>
    </extension>
    
    <!-- adds the prioritized codemap stage for caching analyzer results -->
