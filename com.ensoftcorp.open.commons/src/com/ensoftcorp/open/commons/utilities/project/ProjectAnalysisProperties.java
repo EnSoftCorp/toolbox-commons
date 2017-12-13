@@ -12,6 +12,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.open.commons.log.Log;
 
 public class ProjectAnalysisProperties {
 
@@ -21,12 +22,17 @@ public class ProjectAnalysisProperties {
 		if(!IndexingUtil.indexExists()){
 			throw new RuntimeException("Index does not exist.");
 		} else {
+			Log.info("Initializing default analysis project properties for " + project.getName() + ".");
 			AnalysisPropertiesInitializers.loadAnalysisPropertiesInitializerContributions();
 			File propertiesFile = new File(project.getFile(PROPERTIES_PATH).getLocation().toOSString());
 			Properties properties = new Properties();
 			for(AnalysisPropertiesInitializer initializer : AnalysisPropertiesInitializers.getRegisteredAnalysisPropertiesInitializers()){
 				if(initializer.supportsProject(project)){
-					initializer.initialize(project, properties);
+					try {
+						initializer.initialize(project, properties);
+					} catch (Exception e){
+						Log.error("Error initializing properties", e);
+					}
 				}
 			}
 			properties.store(new FileWriter(propertiesFile), "Project Analysis Properties");
