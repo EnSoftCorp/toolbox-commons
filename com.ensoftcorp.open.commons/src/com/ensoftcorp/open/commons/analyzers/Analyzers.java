@@ -72,9 +72,12 @@ public class Analyzers extends PrioritizedCodemapStage {
 				}
 				monitor.subTask("Analyzing " + analyzer.getName());
 				Log.info("Analyzing " + analyzer.getName());
+				
 				// TODO: how to set analyzer context? via preferences maybe?
 				List<Result> results = analyzer.getResults(Common.universe());
+				
 				ANALYZER_RESULTS.put(analyzer.getName(), results);
+				
 				DashboardView.refreshRequired();
 			}
 		}
