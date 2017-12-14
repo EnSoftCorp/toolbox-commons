@@ -87,6 +87,10 @@ public class Analyzers extends PrioritizedCodemapStage {
 		return hasCachedResult(analyzer.getName());
 	}
 	
+	public static void cacheResult(Analyzer analyzer, List<Result> results){
+		ANALYZER_RESULTS.put(analyzer.getName(), results);
+	}
+	
 	public static boolean hasCachedResult(String analyzerName) {
 		return ANALYZER_RESULTS.containsKey(analyzerName);
 	}

@@ -469,8 +469,16 @@ public class DashboardView extends ViewPart {
 							protected IStatus run(IProgressMonitor monitor) {
 								Log.info("Analyzing: " + analyzer.getName());
 								List<Result> results = analyzer.getResults(Common.universe()); // TODO: update context
+								
+								// initailize the work item and cache the results
 								workItem.initialize(results);
-								Display.getDefault().asyncExec(new Runnable(){
+								Analyzers.cacheResult(analyzer, results);
+								
+								// show the newly compute results
+								DisplayUtils.show(Analyzer.getAllResults(results), analyzer.getName());
+								
+								// update the work items
+								Display.getDefault().syncExec(new Runnable(){
 									@Override
 									public void run() {
 										refreshWorkItems();
