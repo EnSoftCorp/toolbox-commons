@@ -11,6 +11,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -34,6 +36,7 @@ import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.open.commons.log.Log;
@@ -303,10 +306,46 @@ public class DashboardView extends GraphSelectionListenerView {
 		sashForm.setWeights(new int[] {125, 450});
 		new Label(parent, SWT.NONE);
 		
+		// add a refresh button to rebuild the tree
+		final Action refreshAction = new Action() {
+			public void run() {
+				refreshWorkItems();
+			}
+		};
+		refreshAction.setText("Refresh");
+		refreshAction.setToolTipText("Refresh");
+		ImageDescriptor enabledRelaunchIcon = ImageDescriptor.createFromImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/enabled_relaunch_button.png"));
+		ImageDescriptor disabledRelaunchIcon = ImageDescriptor.createFromImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/disabled_relaunch_button.png"));
+		refreshAction.setImageDescriptor(enabledRelaunchIcon);
+		refreshAction.setDisabledImageDescriptor(disabledRelaunchIcon);
+		refreshAction.setHoverImageDescriptor(enabledRelaunchIcon);
+		getViewSite().getActionBars().getToolBarManager().add(refreshAction);
+
+		// enable UI if index is ready
+		enableUI(indexExists());
+		
 		// add the work items
 		refreshWorkItems();
 		
-		this.registerGraphHandlers();
+		registerGraphHandlers();
+	}
+
+	private void enableUI(boolean indexExists) {
+		for(Button checkbox : filterCheckboxes){
+			checkbox.setEnabled(indexExists);
+		}
+		searchBar.setEnabled(indexExists);
+		searchCheckbox.setEnabled(indexExists);
+		emptyFilterCheckbox.setEnabled(indexExists);
+		nonEmptyFilterCheckbox.setEnabled(indexExists);
+		reviewedFilterCheckbox.setEnabled(indexExists);
+		unreviewedFilterCheckbox.setEnabled(indexExists);
+		initializedFilterCheckbox.setEnabled(indexExists);
+		uninitializedFilterCheckbox.setEnabled(indexExists);
+		workQueueScrolledComposite.setEnabled(indexExists);
+		for(Control control : workQueueScrolledComposite.getChildren()){
+			control.setEnabled(indexExists);
+		}
 	}
 
 	private void loadWorkItems() {
@@ -536,6 +575,7 @@ public class DashboardView extends GraphSelectionListenerView {
 
 	@Override
 	public void indexBecameUnaccessible() {
+		enableUI(false);
 		Analyzers.clearCachedResults();
 		loadWorkItems();
 		categorizeWorkItems();
@@ -543,5 +583,7 @@ public class DashboardView extends GraphSelectionListenerView {
 	}
 
 	@Override
-	public void indexBecameAccessible() {}
+	public void indexBecameAccessible() {
+		enableUI(true);
+	}
 }
