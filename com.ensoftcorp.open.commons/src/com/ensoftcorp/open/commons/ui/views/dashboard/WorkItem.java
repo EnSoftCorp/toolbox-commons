@@ -5,7 +5,7 @@ import java.util.List;
 import com.ensoftcorp.open.commons.analyzers.Analyzer;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 
-public class WorkItem {
+public class WorkItem implements Comparable<WorkItem> {
 
 	private boolean expanded = false;
 	private boolean reviewed = false;
@@ -90,6 +90,11 @@ public class WorkItem {
 		} else if (!analyzer.equals(other.analyzer))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(WorkItem o) {
+		return this.getAnalyzer().getName().compareTo(o.getAnalyzer().getName());
 	}
 	
 }

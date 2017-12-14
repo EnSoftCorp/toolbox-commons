@@ -76,7 +76,7 @@ public class Analyzers extends PrioritizedCodemapStage {
 				// TODO: how to set analyzer context? via preferences maybe?
 				List<Result> results = analyzer.getResults(Common.universe());
 				
-				ANALYZER_RESULTS.put(analyzer.getName(), results);
+				cacheResults(analyzer, results);
 				
 				DashboardView.refreshRequired();
 			}
@@ -91,7 +91,7 @@ public class Analyzers extends PrioritizedCodemapStage {
 		return hasCachedResult(analyzer.getName());
 	}
 	
-	public static void cacheResult(Analyzer analyzer, List<Result> results){
+	public static void cacheResults(Analyzer analyzer, List<Result> results){
 		ANALYZER_RESULTS.put(analyzer.getName(), results);
 	}
 	

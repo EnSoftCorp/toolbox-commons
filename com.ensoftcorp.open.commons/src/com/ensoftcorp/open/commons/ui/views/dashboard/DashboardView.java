@@ -1,6 +1,8 @@
 package com.ensoftcorp.open.commons.ui.views.dashboard;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -371,19 +373,6 @@ public class DashboardView extends GraphSelectionListenerView {
 	}
 
 	private void refreshWorkItems() {
-		loadWorkItems();
-		
-		// update the category sorting
-		for(WorkItem workItem : workItems){
-			String category = workItem.getAnalyzer().getCategory();
-			Set<WorkItem> categories = workItemCategories.remove(category);
-			if(categories == null){
-				categories = new HashSet<WorkItem>();
-			}
-			categories.add(workItem);
-			workItemCategories.put(category, categories);
-		}
-		
 		// mark any work items that are completed as initialized
 		for(WorkItem workItem : workItems){
 			if(!workItem.isInitialized()){
@@ -408,7 +397,8 @@ public class DashboardView extends GraphSelectionListenerView {
 			// but add them by categories to be consistent
 			for(Button filterCheckbox : filterCheckboxes){
 				String category = filterCheckbox.getText();
-				Set<WorkItem> workItems = workItemCategories.get(category);
+				List<WorkItem> workItems = new ArrayList<WorkItem>(workItemCategories.get(category));
+				Collections.sort(workItems);
 				if(workItems != null){
 					for(WorkItem workItem : workItems){
 						Analyzer analyzer = workItem.getAnalyzer();
@@ -423,7 +413,8 @@ public class DashboardView extends GraphSelectionListenerView {
 			for(Button filterCheckbox : filterCheckboxes){
 				if(filterCheckbox.getSelection()){
 					String category = filterCheckbox.getText();
-					Collection<WorkItem> workItems = workItemCategories.get(category);
+					List<WorkItem> workItems = new ArrayList<WorkItem>(workItemCategories.get(category));
+					Collections.sort(workItems);
 					if(workItems != null){
 						for(WorkItem workItem : workItems){
 							// consider reviewed state
@@ -522,7 +513,7 @@ public class DashboardView extends GraphSelectionListenerView {
 								
 								// initailize the work item and cache the results
 								workItem.initialize(results);
-								Analyzers.cacheResult(analyzer, results);
+								Analyzers.cacheResults(analyzer, results);
 								
 								// show the newly compute results
 								DisplayUtils.show(Analyzer.getAllResults(results), analyzer.getName());
