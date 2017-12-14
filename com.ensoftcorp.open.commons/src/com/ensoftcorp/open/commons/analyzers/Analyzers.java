@@ -83,6 +83,10 @@ public class Analyzers extends PrioritizedCodemapStage {
 		}
 	}
 	
+	public static void clearCachedResults(){
+		ANALYZER_RESULTS.clear();
+	}
+	
 	public static boolean hasCachedResult(Analyzer analyzer){
 		return hasCachedResult(analyzer.getName());
 	}

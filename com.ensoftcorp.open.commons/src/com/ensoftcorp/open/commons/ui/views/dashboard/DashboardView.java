@@ -37,13 +37,15 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.ensoftcorp.open.commons.log.Log;
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.analyzers.Analyzer;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 import com.ensoftcorp.open.commons.analyzers.Analyzers;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
+import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionListenerView;
 
-public class DashboardView extends ViewPart {
+public class DashboardView extends GraphSelectionListenerView {
 	
 	/**
 	 * The ID of the view as specified by the extension.
@@ -105,22 +107,11 @@ public class DashboardView extends ViewPart {
 		workQueueScrolledComposite.setExpandVertical(true);
 		
 		// load the contributed work items
-		Analyzers.loadAnalyzerContributions();
-		for(Analyzer analyzer : Analyzers.getRegisteredAnalyzers()){
-			workItems.add(new WorkItem(analyzer));
-		}
+		loadWorkItems();
 		
-		// sort the work items by type
+		// categorize work items
 		workItemCategories = new HashMap<String,Set<WorkItem>>();
-		for(WorkItem workItem : workItems){
-			String category = workItem.getAnalyzer().getCategory();
-			Set<WorkItem> categories = workItemCategories.remove(category);
-			if(categories == null){
-				categories = new HashSet<WorkItem>();
-			}
-			categories.add(workItem);
-			workItemCategories.put(category, categories);
-		}
+		categorizeWorkItems();
 		
 		Label workItemFiltersLabel = new Label(controlPanelComposite, SWT.NONE);
 		workItemFiltersLabel.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
@@ -314,14 +305,34 @@ public class DashboardView extends ViewPart {
 		
 		// add the work items
 		refreshWorkItems();
+		
+		this.registerGraphHandlers();
 	}
 
-	private void refreshWorkItems() {
-		// add new workitems if any are detected
+	private void loadWorkItems() {
+		workItems.clear();
 		Analyzers.loadAnalyzerContributions();
 		for(Analyzer analyzer : Analyzers.getRegisteredAnalyzers()){
 			workItems.add(new WorkItem(analyzer));
 		}
+	}
+
+	private void categorizeWorkItems() {
+		// sort the work items by type
+		workItemCategories.clear();
+		for(WorkItem workItem : workItems){
+			String category = workItem.getAnalyzer().getCategory();
+			Set<WorkItem> categories = workItemCategories.remove(category);
+			if(categories == null){
+				categories = new HashSet<WorkItem>();
+			}
+			categories.add(workItem);
+			workItemCategories.put(category, categories);
+		}
+	}
+
+	private void refreshWorkItems() {
+		loadWorkItems();
 		
 		// update the category sorting
 		for(WorkItem workItem : workItems){
@@ -519,4 +530,18 @@ public class DashboardView extends ViewPart {
 			needsRefresh = false;
 		}
 	}
+
+	@Override
+	public void selectionChanged(Graph selection) {}
+
+	@Override
+	public void indexBecameUnaccessible() {
+		Analyzers.clearCachedResults();
+		loadWorkItems();
+		categorizeWorkItems();
+		refreshWorkItems();
+	}
+
+	@Override
+	public void indexBecameAccessible() {}
 }
