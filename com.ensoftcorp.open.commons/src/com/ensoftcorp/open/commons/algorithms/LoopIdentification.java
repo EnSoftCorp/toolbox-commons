@@ -15,6 +15,7 @@ import com.ensoftcorp.atlas.core.db.graph.operation.ForwardGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.db.set.SingletonAtlasSet;
+import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.log.Log;
 
 /**
@@ -50,6 +51,21 @@ public class LoopIdentification {
 	 * @return
 	 */
 	public LoopIdentification(Graph graph, Node root) {
+		
+		if(graph == null){
+			throw new IllegalArgumentException("Parameter graph is null.");
+		}
+		
+		if(root == null){
+			throw new IllegalArgumentException("Parameter root is null.");
+		}
+		
+		root = Common.toQ(graph).intersection(Common.toQ(root)).eval().nodes().one();
+		
+		if(root == null){
+			throw new IllegalArgumentException("Parameter root is not contained in the graph.");
+		}
+		
 		this.graph = graph;
 		this.root = root;
 		this.traversed = new AtlasHashSet<Node>();
