@@ -112,6 +112,7 @@ public class LoopIdentification {
 	 * @param position
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	private void loopDFSRecursive(Node b0, int position) {
 		traversed.add(b0);
 		dfsp.put(b0, position);
