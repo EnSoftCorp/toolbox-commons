@@ -3,6 +3,7 @@ package com.ensoftcorp.open.commons.ui.views.smart;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
 import com.ensoftcorp.atlas.core.script.StyledResult;
@@ -67,7 +68,11 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 
 	private static void notifyListenersCodePainterChanged() {
 		for(CodePainterSmartViewEventListener listener : listeners){
-			listener.codePainterChanged(CodePainterSmartView.codePainter);
+			try {
+				listener.codePainterChanged(CodePainterSmartView.codePainter);
+			} catch (Throwable t){
+				Log.error("Error notifying code painter changed listeners", t);
+			}
 		}
 	}
 	
