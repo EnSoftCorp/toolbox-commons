@@ -2,30 +2,43 @@ package com.ensoftcorp.open.commons.utilities.project;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Properties;
+import java.io.FileOutputStream;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.open.commons.log.Log;
 
 public class ProjectAnalysisProperties {
 
-	private static final String PROPERTIES_PATH = "/analysis.properties";
+	private static final String PROPERTIES_PATH = "/analysis.properties.xml";
 	
-	private static void initializeDefaultProjectProperties(IProject project) throws IOException {
+	public static final String ROOT_ELEMENT = "properties";
+	
+	private static void initializeDefaultProjectProperties(IProject project) throws Exception {
 		if(!IndexingUtil.indexExists()){
 			throw new RuntimeException("Index does not exist.");
 		} else {
 			Log.info("Initializing default analysis project properties for " + project.getName() + ".");
 			AnalysisPropertiesInitializers.loadAnalysisPropertiesInitializerContributions();
-			File propertiesFile = new File(project.getFile(PROPERTIES_PATH).getLocation().toOSString());
-			Properties properties = new Properties();
+			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			Document properties = builder.newDocument();
+			
+			Element rootElement = properties.createElement(ROOT_ELEMENT);
+			properties.appendChild(rootElement);
+			
 			for(AnalysisPropertiesInitializer initializer : AnalysisPropertiesInitializers.getRegisteredAnalysisPropertiesInitializers()){
 				if(initializer.supportsProject(project)){
 					try {
@@ -35,7 +48,7 @@ public class ProjectAnalysisProperties {
 					}
 				}
 			}
-			properties.store(new FileWriter(propertiesFile), "Project Analysis Properties");
+			setAnalysisProperties(project, properties);
 			try {
 				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 			} catch (Throwable t) {
@@ -44,22 +57,23 @@ public class ProjectAnalysisProperties {
 		}
 	}
 	
-	public static Properties getAnalysisProperties(IProject project) throws Exception {
+	public static Document getAnalysisProperties(IProject project) throws Exception {
 		File propertiesFile = new File(project.getFile(PROPERTIES_PATH).getLocation().toOSString());
-		Properties properties = new Properties();
-		try {
-			properties.load(new FileInputStream(propertiesFile));
-		} catch (FileNotFoundException e) {
+		if(!propertiesFile.exists()){
 			initializeDefaultProjectProperties(project);
-		} catch (Exception e) {
-			throw e;
 		}
-		return properties;
+		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		return builder.parse(new FileInputStream(propertiesFile));
 	}
 	
-	public static void setAnalysisProperties(IProject project, Properties properties) throws IOException {
+	public static void setAnalysisProperties(IProject project, Document properties) throws Exception {
 		File propertiesFile = new File(project.getFile(PROPERTIES_PATH).getLocation().toOSString());
-		properties.store(new FileWriter(propertiesFile), "Project Analysis Properties");
+		Transformer transformer = TransformerFactory.newInstance().newTransformer();
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+		transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "3");
+		transformer.transform(new DOMSource(properties), new StreamResult(new FileOutputStream(propertiesFile)));
 	}
 	
 }
