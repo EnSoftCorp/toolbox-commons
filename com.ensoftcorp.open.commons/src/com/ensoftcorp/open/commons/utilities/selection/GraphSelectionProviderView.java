@@ -43,6 +43,18 @@ public abstract class GraphSelectionProviderView extends GraphSelectionListenerV
 	}
 	
 	/**
+	 * Toggles the graph selection provider state
+	 * from enabled to disabled or vice versa.
+	 */
+	public void toggleGraphSelectionProvider(){
+		if(graphSelectionProvider.isEnabled()){
+			graphSelectionProvider.disable();
+		} else {
+			graphSelectionProvider.enable();
+		}		
+	}
+	
+	/**
 	 * If an index exists and a selection has previously been made this replays the last selection event
 	 */
 	public void refreshSelection(){

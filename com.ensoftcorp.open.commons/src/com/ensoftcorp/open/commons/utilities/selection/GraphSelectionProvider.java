@@ -54,6 +54,10 @@ public class GraphSelectionProvider implements ISelectionProvider {
 	public void setSelection(Q selection){
 		setSelection(new GraphSelectionEvent(selection));
 	}
+	
+	public boolean isEnabled(){
+		return enabled;
+	}
 
 	public void enable() {
 		enabled = true;

@@ -17,10 +17,10 @@ public abstract class GraphSelectionListenerView extends ViewPart {
 
 	private boolean indexExists = IndexingUtil.indexExists();
 	private Graph selection = null;
-	
 	private IIndexListener indexListener = null;
 	private IAtlasSelectionListener selectionListener = null;
 	private Shell shell = null;
+	private boolean selectionListenerEnabled = true;
 	
 	/**
 	 * This method should be invoked at the end of the ViewPart's
@@ -75,19 +75,51 @@ public abstract class GraphSelectionListenerView extends ViewPart {
 		SelectionUtil.addSelectionListener(selectionListener);
 	}
 	
+	/**
+	 * Returns true if the graph selection listener is enabled, false otherwise
+	 * @return
+	 */
+	public boolean isGraphSelectionListenerEnabled(){
+		return selectionListenerEnabled;
+	}
+	
+	/**
+	 * Enables graph selection listener
+	 */
+	public void enableGraphSelectionListener(){
+		selectionListenerEnabled = true;
+	}
+	
+	/**
+	 * Disables graph selection listener
+	 */
+	public void disableGraphSelectionListener(){
+		selectionListenerEnabled = false;
+	}
+	
+	/**
+	 * Toggles the graph selection listener state
+	 * from enabled to disabled or vice versa.
+	 */
+	public void toggleGraphSelectionProvider(){
+		selectionListenerEnabled = !selectionListenerEnabled;	
+	}
+	
 	private void selectionChangedHandler(){
 		if(indexExists && selection != null){
-			try {
-				if(shell != null && !shell.isDisposed()){
-					shell.getDisplay().syncExec(new Runnable(){
-						@Override
-						public void run() {
-							selectionChanged(selection);
-						}
-					});
+			if(selectionListenerEnabled){
+				try {
+					if(shell != null && !shell.isDisposed()){
+						shell.getDisplay().syncExec(new Runnable(){
+							@Override
+							public void run() {
+								selectionChanged(selection);
+							}
+						});
+					}
+				} catch (Throwable t){
+					Log.error("Error handling selection changed event.", t);
 				}
-			} catch (Throwable t){
-				Log.error("Error handling selection changed event.", t);
 			}
 		}
 	}
