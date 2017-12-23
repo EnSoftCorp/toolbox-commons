@@ -101,7 +101,7 @@ public abstract class GraphSelectionListenerView extends ViewPart {
 	 * Toggles the graph selection listener state
 	 * from enabled to disabled or vice versa.
 	 */
-	public void toggleGraphSelectionProvider(){
+	public void toggleGraphSelectionListener(){
 		selectionListenerEnabled = !selectionListenerEnabled;	
 	}
 	
