@@ -17,7 +17,7 @@ public class LoopHighlighter {
 	/** 
 	 * The default blue fill color for CFG nodes
 	 */
-	public static final Color cfgNodeFillColor = new Color(51, 175, 243);
+	public static final Color cfgNodeFillColor = new Color(51, 175, 243).darker();
 
 	/**
 	 * Adds markup for loops and loop children. Nodes are colored a darker color

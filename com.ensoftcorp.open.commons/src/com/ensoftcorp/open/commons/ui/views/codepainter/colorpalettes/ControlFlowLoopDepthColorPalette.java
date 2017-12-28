@@ -18,7 +18,7 @@ public class ControlFlowLoopDepthColorPalette extends ColorPalette {
 	/** 
 	 * The default blue fill color for CFG nodes
 	 */
-	public static final Color CONTROL_FLOW_NODE_DEFAULT_COLOR = new Color(51, 175, 243);
+	public static final Color CONTROL_FLOW_NODE_DEFAULT_COLOR = new Color(51, 175, 243).darker();
 
 	private Map<Node, Color> nodeColors = new HashMap<Node,Color>();
 	private HashMap<Color,String> nodeLegend = new HashMap<Color,String>();
