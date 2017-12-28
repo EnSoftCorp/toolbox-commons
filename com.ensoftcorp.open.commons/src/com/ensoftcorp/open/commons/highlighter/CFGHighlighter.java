@@ -22,7 +22,7 @@ public class CFGHighlighter {
 	 * BLUE  = Exceptional ControlFlow Edge
 	 * @param m
 	 */
-	public static void applyHighlightsForCFEdges(Markup m) {
+	public static void applyHighlightsForCFG(Markup m) {
 		Q cfEdge = Common.universe().edges(XCSG.ControlFlow_Edge);
 		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
 		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, Boolean.TRUE, "true");
@@ -30,19 +30,8 @@ public class CFGHighlighter {
 		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, cfgTrue);
 		m.setEdge(cvFalse, MarkupProperty.EDGE_COLOR, cfgFalse);
 		m.setEdge(Common.universe().edges(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
-	}
-
-	/**
-	 * Adds markup for loops and loop children. Nodes are colored a darker color
-	 * than the normal CFG color, that depend on the nesting depth of the loop
-	 * header.
-	 * 
-	 * @param m
-	 * @return
-	 */
-	public static Markup applyHighlightsForLoopDepth(Markup m) {
-		// TODO: implement
-		return m;
+		
+		LoopHighlighter.applyHighlightsForLoopDepth(m);
 	}
 	
 }
