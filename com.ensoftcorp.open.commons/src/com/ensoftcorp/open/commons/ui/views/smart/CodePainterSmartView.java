@@ -3,6 +3,9 @@ package com.ensoftcorp.open.commons.ui.views.smart;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.ensoftcorp.atlas.core.indexing.IIndexListener;
+import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.atlas.core.indexing.IIndexListener.IndexOperation;
 import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
@@ -14,11 +17,47 @@ import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
+import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 
 public final class CodePainterSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
 	private static CodePainter codePainter = null;
 	private static Set<CodePainterSmartViewEventListener> listeners = new HashSet<CodePainterSmartViewEventListener>();
+	private static IIndexListener indexListener = null;
+	
+	public CodePainterSmartView(){
+		// index listener clears registered code painter color palette canvases on index change
+		if(indexListener == null){
+			indexListener = new IIndexListener(){
+				@Override
+				public void indexOperationCancelled(IndexOperation op) {}
+	
+				@Override
+				public void indexOperationComplete(IndexOperation op) {}
+	
+				@Override
+				public void indexOperationError(IndexOperation op, Throwable error) {}
+	
+				@Override
+				public void indexOperationScheduled(IndexOperation op) {}
+	
+				@Override
+				public void indexOperationStarted(IndexOperation op) {
+					synchronized (CodePainterSmartView.class){
+						if(codePainter != null){
+							for(ColorPalette colorPalette : codePainter.getColorPalettes()){
+								// TODO: clear canvas
+//										colorPalette.clearCanvas();
+							}
+						}
+					}
+				}
+			};
+			
+			// add the index listener
+			IndexingUtil.addListener(indexListener);
+		}
+	}
 	
 	/**
 	 * A listener class to handle callbacks for smart view events
@@ -43,7 +82,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	 * @param codePainter
 	 */
 	public static final synchronized boolean setCodePainter(CodePainter codePainter){
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter == null){
 				// assigning null again
 				CodePainterSmartView.codePainter = null;
@@ -81,7 +120,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	 * @return
 	 */
 	public static final synchronized CodePainter getCodePainter(){
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			return codePainter;
 		}
 	}
@@ -103,7 +142,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 
 	@Override
 	public final synchronized int getDefaultStepTop() {
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter != null){
 				return codePainter.getDefaultStepReverse();
 			}
@@ -113,7 +152,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 
 	@Override
 	public final synchronized int getDefaultStepBottom() {
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter != null){
 				return codePainter.getDefaultStepForward();
 			}
@@ -123,7 +162,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	
 	@Override
 	public final synchronized FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter != null){
 				return codePainter.explore(event, oldResult);
 			}
@@ -134,7 +173,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	@Override
 	public final synchronized FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
 		FrontierStyledResult result = null;
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter != null){
 				result = codePainter.evaluate(event, reverse, forward);
 			}

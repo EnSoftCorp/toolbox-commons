@@ -9,15 +9,49 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
+import com.ensoftcorp.atlas.core.indexing.IIndexListener;
+import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.atlas.core.indexing.IIndexListener.IndexOperation;
 import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.log.Log;
 
 public class ColorPalettes {
-
+	
 	private static Set<ColorPalette> COLOR_PALETTES = Collections.synchronizedSet(new HashSet<ColorPalette>());
+	private static IIndexListener indexListener = null;
+
+	public ColorPalettes(){
+		// index listener clears registered color palette canvases on index change
+		if(indexListener == null){
+			indexListener = new IIndexListener(){
+				@Override
+				public void indexOperationCancelled(IndexOperation op) {}
+	
+				@Override
+				public void indexOperationComplete(IndexOperation op) {}
+	
+				@Override
+				public void indexOperationError(IndexOperation op, Throwable error) {}
+	
+				@Override
+				public void indexOperationScheduled(IndexOperation op) {}
+	
+				@Override
+				public void indexOperationStarted(IndexOperation op) {
+					for(ColorPalette colorPalette : COLOR_PALETTES){
+						// TODO: clear canvas
+//						colorPalette.clearCanvas();
+					}
+				}
+			};
+			
+			// add the index listener
+			IndexingUtil.addListener(indexListener);
+		}
+	}
 
 	/**
-	 * Returns a copy of the currently registered colorPalettes
+	 * Returns a copy of the currently registered color palettes
 	 * 
 	 * @return
 	 */
