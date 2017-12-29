@@ -22,7 +22,6 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 
 	private static CodePainter codePainter = null;
 	private static Set<CodePainterSmartViewEventListener> listeners = new HashSet<CodePainterSmartViewEventListener>();
-	
 	private static IIndexListener indexListener = null;
 	
 	public CodePainterSmartView(){
@@ -85,7 +84,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	 * @param codePainter
 	 */
 	public static final synchronized boolean setCodePainter(CodePainter codePainter){
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter == null){
 				// assigning null again
 				CodePainterSmartView.codePainter = null;
@@ -123,7 +122,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	 * @return
 	 */
 	public static final synchronized CodePainter getCodePainter(){
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			return codePainter;
 		}
 	}
@@ -145,7 +144,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 
 	@Override
 	public final synchronized int getDefaultStepTop() {
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter != null){
 				return codePainter.getDefaultStepReverse();
 			}
@@ -155,7 +154,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 
 	@Override
 	public final synchronized int getDefaultStepBottom() {
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter != null){
 				return codePainter.getDefaultStepForward();
 			}
@@ -165,7 +164,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	
 	@Override
 	public final synchronized FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter != null){
 				return codePainter.explore(event, oldResult);
 			}
@@ -176,7 +175,7 @@ public final class CodePainterSmartView extends FilteringAtlasSmartViewScript im
 	@Override
 	public final synchronized FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
 		FrontierStyledResult result = null;
-		synchronized (CodePainter.class){
+		synchronized (CodePainterSmartView.class){
 			if(codePainter != null){
 				result = codePainter.evaluate(event, reverse, forward);
 			}
