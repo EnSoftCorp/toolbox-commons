@@ -24,6 +24,13 @@ public class ControlFlowLoopDepthColorPalette extends ColorPalette {
 	private HashMap<Color,String> nodeLegend = new HashMap<Color,String>();
 	
 	@Override
+	public void clearCanvas(){
+		nodeColors.clear();
+		nodeLegend.clear();
+		super.clearCanvas();
+	}
+	
+	@Override
 	protected void canvasChanged() {
 		nodeColors.clear();
 		nodeLegend.clear();

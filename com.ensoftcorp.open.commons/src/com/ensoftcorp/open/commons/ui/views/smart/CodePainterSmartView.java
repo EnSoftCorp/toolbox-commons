@@ -3,6 +3,8 @@ package com.ensoftcorp.open.commons.ui.views.smart;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.ensoftcorp.atlas.core.indexing.IIndexListener;
+import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
@@ -14,11 +16,51 @@ import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
+import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 
 public final class CodePainterSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
 	private static CodePainter codePainter = null;
 	private static Set<CodePainterSmartViewEventListener> listeners = new HashSet<CodePainterSmartViewEventListener>();
+	
+	private static IIndexListener indexListener = null;
+	
+	public CodePainterSmartView(){
+		if(indexListener == null){
+			// index listener disables selection listener on index change
+			indexListener = new IIndexListener(){
+				@Override
+				public void indexOperationCancelled(IndexOperation op) {}
+
+				@Override
+				public void indexOperationComplete(IndexOperation op) {}
+
+				@Override
+				public void indexOperationError(IndexOperation op, Throwable error) {}
+
+				@Override
+				public void indexOperationScheduled(IndexOperation op) {}
+
+				@Override
+				public void indexOperationStarted(IndexOperation op) {
+					synchronized (CodePainter.class){
+						if(codePainter != null){
+							for(ColorPalette colorPalette : codePainter.getColorPalettes()){
+								try {
+									colorPalette.clearCanvas();
+								} catch (Exception e){
+									Log.warning("Error clearing current code painter color palette canvas [" + colorPalette.getName() + "]", e);
+								}
+							}
+						}
+					}
+				}
+			};
+			
+			// add the index listener
+			IndexingUtil.addListener(indexListener);
+		}
+	}
 	
 	/**
 	 * A listener class to handle callbacks for smart view events

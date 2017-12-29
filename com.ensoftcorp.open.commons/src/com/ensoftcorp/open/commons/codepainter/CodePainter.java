@@ -3,7 +3,6 @@ package com.ensoftcorp.open.commons.codepainter;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -158,7 +157,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 							if(nodeColorsToMix.containsKey(node)){
 								nodeColorsToMix.get(node).add(color);
 							} else {
-								List<Color> colors = new LinkedList<Color>();
+								List<Color> colors = new ArrayList<Color>();
 								colors.add(color);
 								nodeColorsToMix.put(node, colors);
 							}
@@ -214,7 +213,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 							if(edgeColorsToMix.containsKey(edge)){
 								edgeColorsToMix.get(edge).add(color);
 							} else {
-								List<Color> colors = new LinkedList<Color>();
+								List<Color> colors = new ArrayList<Color>();
 								colors.add(color);
 								edgeColorsToMix.put(edge, colors);
 							}
@@ -345,7 +344,7 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 	 * @return
 	 */
 	public List<ColorPalette> getEnabledColorPalettes(){
-		List<ColorPalette> enabledColorPalettes = new LinkedList<ColorPalette>();
+		List<ColorPalette> enabledColorPalettes = new ArrayList<ColorPalette>();
 		for(ColorPalette colorPalette : getColorPalettes()){
 			if(isColorPaletteEnabled(colorPalette)){
 				enabledColorPalettes.add(colorPalette);
@@ -544,15 +543,6 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 			}
 		}
 		return result;
-	}
-	
-	/**
-	 * Returns true if the input contains nodes or edges supported by the code painter
-	 * @param input
-	 * @return
-	 */
-	public boolean isApplicableTo(Q input){
-		return !CommonQueries.isEmpty(filter(input));
 	}
 	
 	/**

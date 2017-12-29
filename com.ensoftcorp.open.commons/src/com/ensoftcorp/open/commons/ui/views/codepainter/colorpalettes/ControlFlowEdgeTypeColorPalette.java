@@ -25,6 +25,12 @@ public class ControlFlowEdgeTypeColorPalette extends ColorPalette {
 	public ControlFlowEdgeTypeColorPalette(){}
 	
 	@Override
+	public void clearCanvas(){
+		edgeColors.clear();
+		super.clearCanvas();
+	}
+	
+	@Override
 	protected void canvasChanged() {
 		edgeColors.clear();
 		

@@ -68,6 +68,14 @@ public abstract class ColorPalette extends Configurable {
 	protected Graph canvas = Common.empty().eval();
 	
 	/**
+	 * Clears the canvas
+	 * This should be called in the event that the index changes or if graph elements become stale.
+	 */
+	public void clearCanvas(){
+		canvas = Common.empty().eval();
+	}
+	
+	/**
 	 * Updates the canvas (nodes and edges that coloring will be applied to)
 	 * This is required for color palettes that may change dynamically
 	 * @param canvas
