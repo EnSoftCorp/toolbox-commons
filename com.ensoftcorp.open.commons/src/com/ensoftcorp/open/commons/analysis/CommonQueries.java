@@ -1,6 +1,7 @@
 package com.ensoftcorp.open.commons.analysis;
 
 import java.util.Iterator;
+import java.util.regex.Pattern;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
@@ -9,6 +10,7 @@ import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
+import com.ensoftcorp.atlas.core.db.set.AtlasGraphElementHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
@@ -34,7 +36,7 @@ public final class CommonQueries {
 	 * Returns all references to class literals (Type.class) for the given
 	 * types. 
 	 * 
-	 * Equivalent to classLiterals(index(), types).
+	 * Equivalent to classLiterals(universe(), types).
 	 * 
 	 * @param types
 	 * @return the query expression
@@ -57,7 +59,7 @@ public final class CommonQueries {
 	/**
 	 * Produces a declarations (contains) graph. 
 	 * 
-	 * Equivalent to declarations(index(), origin).
+	 * Equivalent to declarations(universe(), origin).
 	 * 
 	 * @param origin
 	 * @return the query expression
@@ -120,7 +122,7 @@ public final class CommonQueries {
 	 * Returns those nodes which are declared by a library. Results are only
 	 * returned if they are within the given context.
 	 * 
-	 * Equivalent to libraryDeclarations(index())
+	 * Equivalent to libraryDeclarations(universe())
 	 * 
 	 * @param context
 	 * @return the query expression
@@ -143,7 +145,7 @@ public final class CommonQueries {
 	 * Returns those nodes which are declared by a library with the given name.
 	 * Results are only returned if they are within the given context.
 	 * 
-	 * Equivalent to libraryDeclarations(index(), name)
+	 * Equivalent to libraryDeclarations(universe(), name)
 	 * 
 	 * @param context
 	 * @param name
@@ -156,13 +158,13 @@ public final class CommonQueries {
 	/**
 	 * Returns the nodes whose names contain the given string.
 	 * 
-	 * Equivalent to nodesContaining(index(), substring).
+	 * Equivalent to nodesContaining(universe(), substring).
 	 * 
 	 * @param substring
 	 * @return the query expression
 	 */
 	public static Q nodesContaining(String substring){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.nodesContaining(substring);
+		return nodesMatchingRegex(Common.universe(), ".*" + Pattern.quote(substring) + ".*");
 	}
 	
 	/**
@@ -174,19 +176,19 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesContaining(Q context, String substring){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.nodesContaining(context, substring);
+		return nodesMatchingRegex(context, ".*" + Pattern.quote(substring) + ".*");
 	}
 	
 	/**
 	 * Returns the nodes whose names end with the given string.
 	 * 
-	 * Equivalent to nodesEndingWith(index(), suffix).
+	 * Equivalent to nodesEndingWith(universe(), suffix).
 	 * 
 	 * @param substring
 	 * @return the query expression
 	 */
 	public static Q nodesEndingWith(String suffix){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.nodesEndingWith(suffix);
+		return nodesMatchingRegex(Common.universe(), ".*" + Pattern.quote(suffix));
 	}
 	
 	/**
@@ -198,43 +200,31 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesEndingWith(Q context, String suffix){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.nodesEndingWith(context, suffix);
+		return nodesMatchingRegex(context, ".*" + Pattern.quote(suffix));
 	}
 	
 	/**
 	 * Returns the nodes whose names match the given regular expression.
 	 * 
-	 * Equivalent to nodesMatchingRegex(index(), regex).
+	 * Equivalent to nodesMatchingRegex(universe(), regex).
 	 * 
 	 * @param substring
 	 * @return the query expression
 	 */
 	public static Q nodesMatchingRegex(String regex){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.nodesMatchingRegex(regex);
-	}
-	
-	/**
-	 * Returns the nodes whose names match the given regular expression within
-	 * the given context.
-	 * 
-	 * @param context
-	 * @param substring
-	 * @return the query expression
-	 */
-	public static Q nodesMatchingRegex(Q context, String regex){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.nodesMatchingRegex(context, regex);
+		return nodesMatchingRegex(Common.universe(), regex);
 	}
 	
 	/**
 	 * Returns the nodes whose names start with the given string.
 	 * 
-	 * Equivalent to nodesStartingWith(index(), prefix).
+	 * Equivalent to nodesStartingWith(universe(), prefix).
 	 * 
 	 * @param substring
 	 * @return the query expression
 	 */
 	public static Q nodesStartingWith(String prefix){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.nodesStartingWith(prefix);
+		return nodesMatchingRegex(Common.universe(), Pattern.quote(prefix) + ".*");
 	}
 	
 	/**
@@ -246,7 +236,129 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesStartingWith(Q context, String prefix){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.nodesStartingWith(context, prefix);
+		return nodesMatchingRegex(context, Pattern.quote(prefix) + ".*");
+	}
+	
+	/**
+	 * Returns the nodes whose names match the given regular expression within
+	 * the given context.
+	 * 
+	 * @param context
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesMatchingRegex(Q context, String regex){
+		return nodesAttributeValuesMatchingRegex(context, XCSG.name, regex);
+	}
+	
+	/**
+	 * Returns the nodes whose attribute values contain the given string.
+	 * 
+	 * Equivalent to nodesAttributeValuesContaining(universe(), attribute, substring).
+	 * 
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesAttributeValuesContaining(String attribute, String substring){
+		return nodesAttributeValuesMatchingRegex(Common.universe(), attribute, ".*" + Pattern.quote(substring) + ".*");
+	}
+	
+	/**
+	 * Returns the nodes whose attribute values contain the given string within the given
+	 * context.
+	 * 
+	 * @param context
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesAttributeValuesContaining(Q context, String attribute, String substring){
+		return nodesAttributeValuesMatchingRegex(context, attribute, ".*" + Pattern.quote(substring) + ".*");
+	}
+	
+	/**
+	 * Returns the nodes whose attribute values end with the given string.
+	 * 
+	 * Equivalent to nodesAttributeValuesEndingWith(universe(), attribute, suffix).
+	 * 
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesAttributeValuesEndingWith(String attribute, String suffix){
+		return nodesAttributeValuesMatchingRegex(Common.universe(), attribute, ".*" + Pattern.quote(suffix));
+	}
+	
+	/**
+	 * Returns the nodes whose attribute values end with the given string within the given
+	 * context.
+	 * 
+	 * @param context
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesAttributeValuesEndingWith(Q context, String attribute, String suffix){
+		return nodesAttributeValuesMatchingRegex(context, attribute, ".*" + Pattern.quote(suffix));
+	}
+	
+	/**
+	 * Returns the nodes whose attribute values match the given regular expression.
+	 * 
+	 * Equivalent to nodesAttributeValuesMatchingRegex(universe(), attribute, regex).
+	 * 
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesAttributeValuesMatchingRegex(String attribute, String regex){
+		return nodesAttributeValuesMatchingRegex(Common.universe(), attribute, regex);
+	}
+	
+	/**
+	 * Returns the nodes whose attribute values start with the given string.
+	 * 
+	 * Equivalent to nodesAttributeValuesStartingWith(universe(), attribute, prefix).
+	 * 
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesAttributeValuesStartingWith(String attribute, String prefix){
+		return nodesAttributeValuesMatchingRegex(Common.universe(), attribute, Pattern.quote(prefix) + ".*");
+	}
+	
+	/**
+	 * Returns the nodes whose attribute values start with the given string within the
+	 * given context.
+	 * 
+	 * @param context
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesAttributeValuesStartingWith(Q context, String attribute, String prefix){
+		return nodesAttributeValuesMatchingRegex(context, attribute, Pattern.quote(prefix) + ".*");
+	}
+	
+	/**
+	 * Returns the nodes whose attribute values match the given regular
+	 * expression within the given context.
+	 * 
+	 * @param context
+	 * @param substring
+	 * @return the query expression
+	 */
+	public static Q nodesAttributeValuesMatchingRegex(Q context, String attribute, String regex){
+		AtlasSet<Node> result = new AtlasHashSet<Node>();
+		Iterator<Node> iterator = context.eval().nodes().iterator();
+		while (iterator.hasNext()) {
+			Node node = iterator.next();
+			Object value = node.getAttr(attribute);
+			if(value != null){
+				if(value instanceof String){
+					String name = (String) value;
+					if (name.matches(regex)) {
+						result.add(node);
+					}
+				}
+			}
+		}
+		return Common.toQ(new NodeGraph(result));
 	}
 	
 	/**
@@ -367,26 +479,26 @@ public final class CommonQueries {
 	/**
 	 * Returns the parameters of the given functions. 
 	 * 
-	 * Equivalent to functionParameter(index(), functions)
+	 * Equivalent to functionParameter(universe(), functions)
 	 * 
 	 * @param functions
 	 * @return the query expression
 	 */
 	public static Q functionParameter(Q functions){
-		return functionParameter(Common.index(), functions);
+		return functionParameter(Common.universe(), functions);
 	}
 	
 	/**
 	 * Returns the parameters of the given functions at the given indices. 
 	 * 
-	 * Equivalent to functionParameter(index(), functions, index)
+	 * Equivalent to functionParameter(universe(), functions, index)
 	 * 
 	 * @param functions
 	 * @param index
 	 * @return the query expression
 	 */
 	public static Q functionParameter(Q functions, Integer... index){
-		return functionParameter(Common.index(), functions, index);
+		return functionParameter(Common.universe(), functions, index);
 	}
 	
 	/**
@@ -417,13 +529,13 @@ public final class CommonQueries {
 	/**
 	 * Returns the return nodes for the given functions.
 	 * 
-	 * Equivalent to functionReturn(index(), functions).
+	 * Equivalent to functionReturn(universe(), functions).
 	 * 
 	 * @param functions
 	 * @return the query expression
 	 */
 	public static Q functionReturn(Q functions){
-		return functionReturn(Common.index(), functions);
+		return functionReturn(Common.universe(), functions);
 	}
 	
 	/**
@@ -439,13 +551,13 @@ public final class CommonQueries {
 	/**
 	 * Returns the functions declared by the given types. 
 	 * 
-	 * Equivalent to functionsOf(index(), types).
+	 * Equivalent to functionsOf(universe(), types).
 	 * 
 	 * @param params
 	 * @return the query expression
 	 */
 	public static Q functionsOf(Q types){
-		return functionsOf(Common.index(), types);
+		return functionsOf(Common.universe(), types);
 	}
 	
 	/**
@@ -522,7 +634,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q localDeclarations(Q functions) {
-		return localDeclarations(Common.index(), functions);
+		return localDeclarations(Common.universe(), functions);
 	}
 
 	/**
@@ -560,7 +672,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q callers(Q origin) {
-		return callers(Common.index(), origin);
+		return callers(Common.universe(), origin);
 	}
 
 	/**
@@ -585,7 +697,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q called(Q origin) {
-		return called(Common.index(), origin);
+		return called(Common.universe(), origin);
 	}
 
 	/**
@@ -610,7 +722,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q calledBy(Q callers, Q called) {
-		return calledBy(Common.index(), callers, called);
+		return calledBy(Common.universe(), callers, called);
 	}
 
 	/**
@@ -637,7 +749,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q firstDeclarator(Q declared, String... declaratorTypes) {
-		return firstDeclarator(Common.index(), declared, declaratorTypes);
+		return firstDeclarator(Common.universe(), declared, declaratorTypes);
 	}
 
 	/**
@@ -680,7 +792,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q readersOf(Q origin) {
-		return readersOf(Common.index(), origin);
+		return readersOf(Common.universe(), origin);
 	}
 
 	/**
@@ -705,7 +817,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q writersOf(Q origin) {
-		return writersOf(Common.index(), origin);
+		return writersOf(Common.universe(), origin);
 	}
 
 	/**
@@ -730,7 +842,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q readBy(Q origin) {
-		return readBy(Common.index(), origin);
+		return readBy(Common.universe(), origin);
 	}
 
 	/**
@@ -755,7 +867,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q writtenBy(Q origin) {
-		return writtenBy(Common.index(), origin);
+		return writtenBy(Common.universe(), origin);
 	}
 
 	/**
@@ -935,7 +1047,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q conditionsAbove(Q origin) {
-		return conditionsAbove(Common.index(), origin);
+		return conditionsAbove(Common.universe(), origin);
 	}
 
 	/**
@@ -963,7 +1075,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q mutators(Q origin) {
-		return mutators(Common.index(), origin);
+		return mutators(Common.universe(), origin);
 	}
 
 	/**
@@ -1009,7 +1121,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q mutatedBy(Q mutators, Q origin) {
-		return mutatedBy(Common.index(), mutators, origin);
+		return mutatedBy(Common.universe(), mutators, origin);
 	}
 
 	/**
