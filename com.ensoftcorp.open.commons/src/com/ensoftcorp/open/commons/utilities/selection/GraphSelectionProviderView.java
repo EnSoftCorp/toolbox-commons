@@ -43,6 +43,13 @@ public abstract class GraphSelectionProviderView extends GraphSelectionListenerV
 	}
 	
 	/**
+	 * Returns true if the graph selection provider is enabled, false otherwise
+	 */
+	public boolean isGraphSelectionProviderEnabled(){
+		return graphSelectionProvider.isEnabled();		
+	}
+	
+	/**
 	 * Toggles the graph selection provider state
 	 * from enabled to disabled or vice versa.
 	 */
