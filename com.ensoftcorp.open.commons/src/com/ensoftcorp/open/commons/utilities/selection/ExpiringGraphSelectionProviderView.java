@@ -6,9 +6,9 @@ import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.open.commons.log.Log;
 
-public abstract class GraphSelectionProviderView extends GraphSelectionListenerView {
+public abstract class ExpiringGraphSelectionProviderView extends GraphSelectionListenerView {
 
-	private GraphSelectionProvider graphSelectionProvider = new GraphSelectionProvider();
+	private ExpiringGraphSelectionProvider graphSelectionProvider = new ExpiringGraphSelectionProvider();
 	
 	/**
 	 * This method should be invoked at the end of the ViewPart's

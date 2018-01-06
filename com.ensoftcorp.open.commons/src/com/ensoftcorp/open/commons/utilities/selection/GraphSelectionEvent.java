@@ -10,11 +10,13 @@ import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 
 public class GraphSelectionEvent extends StructuredSelection {
 
+	private boolean expired = false;
 	private List<GraphElement> graphElements = new LinkedList<GraphElement>();
 	
 	public GraphSelectionEvent(Q selection){
@@ -58,4 +60,14 @@ public class GraphSelectionEvent extends StructuredSelection {
 	public List toList(){
 		return new LinkedList<GraphElement>(graphElements);
 	}
+
+	public void expire() {
+		graphElements.clear();
+		expired = true;
+	}
+
+	public boolean isExpired() {
+		return expired;
+	}
+	
 }
