@@ -24,6 +24,23 @@ public class ControlFlowEdgeTypeColorPalette extends ColorPalette {
 	
 	public ControlFlowEdgeTypeColorPalette(){}
 	
+//	@Override
+//	public Markup getMarkup() {
+//		// add labels for conditionValue
+//		Markup m2 = new Markup(super.getMarkup()) {
+//			@Override
+//			public PropertySet get(GraphElement element) {
+//				if (element instanceof Edge) {
+//					if (element.hasAttr(XCSG.conditionValue)) {
+//						return new PropertySet().set(MarkupProperty.LABEL_TEXT, ""+element.getAttr(XCSG.conditionValue)); //$NON-NLS-1$
+//					}
+//				}
+//				return null;
+//			}
+//		};
+//		return m2;
+//	}
+	
 	@Override
 	public void clearCanvas(){
 		edgeColors.clear();
@@ -57,7 +74,7 @@ public class ControlFlowEdgeTypeColorPalette extends ColorPalette {
 		for(Edge edge : conditionalFalse.eval().edges()){
 			edgeColors.put(edge, CONDITIONAL_FALSE_CONTROL_FLOW_COLOR);
 		}
-		
+
 		// color the exceptional edges
 		Q exceptionalControlFlow = controlFlowEdges.edges(XCSG.ExceptionalControlFlow_Edge);
 		for(Edge edge : exceptionalControlFlow.eval().edges()){

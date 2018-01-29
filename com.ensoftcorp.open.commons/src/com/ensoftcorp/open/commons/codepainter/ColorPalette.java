@@ -7,11 +7,15 @@ import java.util.Map.Entry;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
+import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.markup.MarkupProperty;
+import com.ensoftcorp.atlas.core.markup.PropertySet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.utilities.FormattedSourceCorrespondence;
 
 public abstract class ColorPalette extends Configurable {
 	
@@ -92,7 +96,29 @@ public abstract class ColorPalette extends Configurable {
 	public abstract String getDescription();
 	
 	public final Markup getMarkup(){
-		Markup markup = new Markup();
+		// TODO: move this to CFG specific color palettes and make getMarkup more extensible for labels
+		// add labels for conditionValue
+		Markup labels = new Markup() {
+			@Override
+			public PropertySet get(GraphElement element) {
+				if (element instanceof Edge) {
+					if (element.hasAttr(XCSG.conditionValue)) {
+						return new PropertySet().set(MarkupProperty.LABEL_TEXT, ""+element.getAttr(XCSG.conditionValue)); //$NON-NLS-1$
+					}
+				}
+//				if (element instanceof Node) {
+//					if(element.taggedWith(XCSG.ControlFlow_Node)) {
+//						try {
+//							String prefix = (FormattedSourceCorrespondence.getSourceCorrespondent(element).getStartLineNumber()-4) + ": ";
+//							return new PropertySet().set(MarkupProperty.LABEL_TEXT, "" + prefix + element.getAttr(XCSG.name)); //$NON-NLS-1$
+//						} catch (Exception e) {}
+//					}
+//				}
+				return null;
+			}
+		};
+		
+		Markup markup = new Markup(labels);
 		for(Entry<Node,Color> nodeColoring : getNodeColors().entrySet()){
 			Node node = nodeColoring.getKey();
 			Color color = nodeColoring.getValue();
@@ -103,6 +129,7 @@ public abstract class ColorPalette extends Configurable {
 			Color color = edgeColoring.getValue();
 			markup.setEdge(Common.toQ(edge), MarkupProperty.EDGE_COLOR, color);
 		}
+		
 		return markup;
 	}
 	
