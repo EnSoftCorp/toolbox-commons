@@ -31,11 +31,10 @@ public class SandboxHashSet<T extends SandboxGraphElement> extends HashSet<T> {
 	@Override
 	public boolean add(T ge){
 		if(ge.getSandboxInstanceID() == sandboxInstanceID){
-			super.add(ge);
+			return super.add(ge);
 		} else {
 			throw new RuntimeException("SandboxGraphElement [" + ge.getAddress() + "] is not in this sandbox!");
 		}
-		return false;
 	}
 	
 	/**
