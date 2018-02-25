@@ -15,7 +15,6 @@ import com.ensoftcorp.atlas.core.markup.PropertySet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.commons.utilities.FormattedSourceCorrespondence;
 
 public abstract class ColorPalette extends Configurable {
 	
