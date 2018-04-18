@@ -36,6 +36,7 @@ Export-Package: com.ensoftcorp.open.commons.algorithms,
  com.ensoftcorp.open.commons.utilities.address,
  com.ensoftcorp.open.commons.utilities.project,
  com.ensoftcorp.open.commons.utilities.selection,
- com.ensoftcorp.open.commons.xcsg
+ com.ensoftcorp.open.commons.xcsg,
+ org.eclipse.wb.swt
 Bundle-Activator: com.ensoftcorp.open.commons.Activator
 Automatic-Module-Name: com.ensoftcorp.open.commons
