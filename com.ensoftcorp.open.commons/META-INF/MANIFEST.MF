@@ -38,3 +38,4 @@ Export-Package: com.ensoftcorp.open.commons.algorithms,
  com.ensoftcorp.open.commons.utilities.selection,
  com.ensoftcorp.open.commons.xcsg
 Bundle-Activator: com.ensoftcorp.open.commons.Activator
+Automatic-Module-Name: com.ensoftcorp.open.commons

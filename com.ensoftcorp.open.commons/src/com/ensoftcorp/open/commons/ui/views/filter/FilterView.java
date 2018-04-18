@@ -53,7 +53,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
@@ -63,6 +62,7 @@ import com.ensoftcorp.open.commons.filters.Filter;
 import com.ensoftcorp.open.commons.filters.Filters;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootset;
 import com.ensoftcorp.open.commons.filters.rootset.FilterableRootsets;
+import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 import com.ensoftcorp.open.commons.ui.components.DropdownSelectionListener;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
