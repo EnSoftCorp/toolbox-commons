@@ -41,6 +41,15 @@ public class RecursiveFunctions extends Property {
 	@Override
 	public List<Result> getResults(Q context) {
 		Q callEdges = context.edgesTaggedWithAny(XCSG.Call).retainEdges();
+		
+		// TODO: make this optional
+		// removing Object methods can improve the usability of these results for the general case
+		Q overridesEdges = Common.universe().edges(XCSG.Overrides);
+		Q equalsMethods = overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "equals")).nodes(XCSG.Method);
+		Q toStringMethods = overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "toString")).nodes(XCSG.Method);
+		Q hashCodeMethods = overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "hashCode")).nodes(XCSG.Method);
+		callEdges = callEdges.difference(equalsMethods, toStringMethods, hashCodeMethods);
+		
 		StronglyConnectedComponents adapter = new StronglyConnectedComponents(callEdges.eval().nodes(), callEdges.eval().edges());
 
 		LinkedList<Result> results = new LinkedList<Result>();

@@ -263,6 +263,7 @@
    <!-- adds analyzer definitions -->
    <extension point="com.ensoftcorp.open.commons.analyzer">
       <analyzer class="com.ensoftcorp.open.commons.analyzers.CyclomaticComplexity"></analyzer>
+      <analyzer class="com.ensoftcorp.open.commons.analyzers.RecursiveFunctions"></analyzer>
    </extension>
    
    <!-- adds filter definitions -->
