@@ -385,7 +385,16 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static boolean isEmpty(Q test){
-		return com.ensoftcorp.atlas.core.script.CommonQueries.isEmpty(test);
+		return !isNotEmpty(test);
+	}
+	
+	/**
+	 * Returns whether the given Q is not empty
+	 * @param test
+	 * @return
+	 */
+	public static boolean isNotEmpty(Q test) {
+		return test.eval().nodes().iterator().hasNext();
 	}
 	
 	// begin toolbox commons queries
