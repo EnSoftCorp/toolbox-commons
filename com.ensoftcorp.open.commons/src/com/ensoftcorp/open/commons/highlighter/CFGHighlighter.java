@@ -27,10 +27,16 @@ public class CFGHighlighter {
 		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
 		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, Boolean.TRUE, "true");
 		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, Boolean.FALSE, "false");
-		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, cfgTrue);
-		m.setEdge(cvFalse, MarkupProperty.EDGE_COLOR, cfgFalse);
-		m.setEdge(Common.universe().edges(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
 		
+		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, cfgTrue);
+//		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, Color.BLACK);
+//		m.setEdge(cvTrue, MarkupProperty.EDGE_STYLE, LineStyle.DASHED);
+		m.setEdge(cvTrue, MarkupProperty.LABEL_TEXT, "true");
+		
+		m.setEdge(cvFalse, MarkupProperty.EDGE_COLOR, cfgFalse);
+		m.setEdge(cvFalse, MarkupProperty.LABEL_TEXT, "false");
+		
+		m.setEdge(Common.universe().edges(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
 		LoopHighlighter.applyHighlightsForLoopDepth(m);
 	}
 	
