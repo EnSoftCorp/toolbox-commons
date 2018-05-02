@@ -21,9 +21,14 @@ public class CFGHighlighter {
 	public static final Color cfgFalse = java.awt.Color.BLACK;
 	public static final Color cfgExceptional = java.awt.Color.BLUE;
 	
-	public static void addLineNumbers(Q cfg, Markup m) {
+	/**
+	 * Adds line numbers as a prefix to nodes
+	 * @param q
+	 * @param m
+	 */
+	public static void addPrefixLineNumbers(Q q, Markup m) {
 		Map<Node,String> labels = new HashMap<Node,String>();
-		for(Node node : cfg.eval().nodes()) {
+		for(Node node : q.eval().nodes()) {
 			labels.put(node, "Line: " + getLineNumber(node) + "\n");
 		}
 		LabelMaker.setNodePrefixLabels(m, labels);
