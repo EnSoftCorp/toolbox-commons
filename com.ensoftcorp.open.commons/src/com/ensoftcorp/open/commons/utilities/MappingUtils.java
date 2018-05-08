@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IProject;
 
 import com.ensoftcorp.atlas.core.index.ProjectPropertiesUtil;
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
+import com.ensoftcorp.atlas.core.indexing.IMappingSettings;
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.atlas.core.licensing.AtlasLicenseException;
 
@@ -63,7 +64,7 @@ public class MappingUtils {
 	 * 
 	 * @throws Throwable
 	 */
-	public static void indexWorkspace() throws IndexerError, AtlasLicenseException {
+	public static void mapWorkspace() throws IndexerError, AtlasLicenseException {
 		IndexerErrorListener errorListener = new IndexerErrorListener();
 		IndexingUtil.addListener(errorListener);
 		IndexingUtil.indexWorkspace(true);
@@ -92,11 +93,29 @@ public class MappingUtils {
 		List<IProject> ourProjects = Collections.singletonList(project);
 		ProjectPropertiesUtil.setIndexingEnabledAndDisabled(ourProjects, Collections.<IProject>emptySet());
 	
-		// index in a blocking mode
-		indexWorkspace();
+		IndexerErrorListener errorListener = new IndexerErrorListener();
+		IndexingUtil.addListener(errorListener);
 		
-		// alternatively use the Atlas apis directly
-//		// TODO: set jar indexing mode to: used only (same as default)
-//		IndexingUtil.indexWithSettings(/*saveIndex*/true, /*indexingSettings*/Collections.<IMappingSettings>emptySet(), ourProjects.toArray(new IProject[1]));
+		/*
+		 * Index only the specified projects with the specified settings.
+		 * 
+		 * @param saveIndex schedule saving of index?
+		 * @param indexingSettings if null, default settings
+		 * @param projects List of projects to index
+		 * @throws AtlasLicenseException 
+		 * 
+		 * @see IMappingSettings
+		 */
+		// TODO: Investigate: using null for indexingSettings causes null pointers in Atlas so using an empty set instead, its unclear if this should be the default
+		IndexingUtil.indexWithSettings(/*saveIndex*/false, /*indexingSettings*/Collections.<IMappingSettings>emptySet(), ourProjects.toArray(new IProject[1]));
+		
+		IndexingUtil.removeListener(errorListener);
+		if (errorListener.hasCaughtThrowable()) {
+			try {
+				throw errorListener.getCaughtThrowable();
+			} catch (Throwable t) {
+				throw new IndexerError(t);
+			}
+		}
 	}
 }
