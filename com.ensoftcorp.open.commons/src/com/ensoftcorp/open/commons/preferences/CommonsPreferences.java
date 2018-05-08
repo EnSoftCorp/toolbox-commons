@@ -37,6 +37,33 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		return debugLoggingValue;
 	}
 	
+//	/**
+//	 * Enable/disable initializing analysis properties
+//	 */
+//	public static final String INITIALIZE_ANALYSIS_PROPERTIES = "INITIALIZE_ANALYSIS_PROPERTIES";
+//	public static final Boolean INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT = true;
+//	private static boolean initializeAnalysisPropertiesValue = INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT;
+//	
+//	/**
+//	 * Configures initializing analysis properties
+//	 */
+//	public static void enableInitializingAnalysisProperties(boolean enabled){
+//		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+//		preferences.setValue(INITIALIZE_ANALYSIS_PROPERTIES, enabled);
+//		loadPreferences();
+//	}
+//	
+//	/**
+//	 * Returns true if loop cataloging is enabled
+//	 * @return
+//	 */
+//	public static boolean isInitializingAnalysisPropertiesEnabled(){
+//		if(!initialized){
+//			loadPreferences();
+//		}
+//		return initializeAnalysisPropertiesValue;
+//	}
+	
 	/**
 	 * Enable/disable node address normalization
 	 */
@@ -164,6 +191,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setDefault(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
+//		preferences.setDefault(INITIALIZE_ANALYSIS_PROPERTIES, INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT);
 		preferences.setDefault(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
 		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
@@ -177,6 +205,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	public static void restoreDefaults(){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setValue(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
+//		preferences.setValue(INITIALIZE_ANALYSIS_PROPERTIES, INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT);
 		preferences.setValue(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
 		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
@@ -193,6 +222,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 			debugLoggingValue = preferences.getBoolean(DEBUG_LOGGING);
 			normalizeGraphElementAddressesValue = preferences.getBoolean(NORMALIZE_GRAPH_ELEMENT_ADDRESSES);
+//			initializeAnalysisPropertiesValue = preferences.getBoolean(INITIALIZE_ANALYSIS_PROPERTIES);
 			computeControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			computeExceptionalControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			addMasterEntryExitContainmentRelationships = preferences.getBoolean(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS);

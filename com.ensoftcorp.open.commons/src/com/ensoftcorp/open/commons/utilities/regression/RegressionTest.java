@@ -4,6 +4,8 @@
 package com.ensoftcorp.open.commons.utilities.regression;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.osgi.framework.Bundle;
 
@@ -22,7 +24,14 @@ public class RegressionTest {
 		// delete the project if it exists already
 		IProject project = WorkspaceUtils.getProject(projectName);
 		if(project != null && project.exists()) {
-			WorkspaceUtils.deleteProject(project);
+			try {
+				// refresh the project files
+				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+				// delete project
+				WorkspaceUtils.deleteProject(project);
+			} catch (Throwable e) {
+				Log.error("Could not delete project: " + projectName, e);
+			}
 		}
 		
 		// import a fresh copy of the project
@@ -31,20 +40,15 @@ public class RegressionTest {
 			job.join(); // block and wait until import is complete
 			project = WorkspaceUtils.getProject(projectName);
 			if(project != null && project.exists()) {
+				// refresh the project files
+				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+				// map the project
 				MappingUtils.mapProject(project);
 			} else {
 				throw new RuntimeException("Error importing test project: " + relativeArchivedProjectPath);
 			}			
 		} catch (Exception e) {
 			Log.error("Error searching for project:" + relativeArchivedProjectPath, e);
-		}
-	}
-
-	public static void tearDownAfterClass(String projectName) throws Exception {
-		// clean up and delete the project
-		IProject project = WorkspaceUtils.getProject(projectName);
-		if(project != null && project.exists()) {
-			WorkspaceUtils.deleteProject(project);
 		}
 	}
 

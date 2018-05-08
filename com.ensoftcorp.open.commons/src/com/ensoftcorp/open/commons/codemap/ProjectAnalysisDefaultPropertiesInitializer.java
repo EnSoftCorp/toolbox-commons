@@ -34,17 +34,19 @@ public class ProjectAnalysisDefaultPropertiesInitializer extends PrioritizedCode
 
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
-		for(Node projectNode : Common.universe().nodes(XCSG.Project).eval().nodes()){
-			IProject project = WorkspaceUtils.getProject(projectNode.getAttr(XCSG.name).toString());
-			if(project.exists() && project.isOpen() && project.isAccessible()){
-				try {
-					// initialize project properties if they are not there already
-					ProjectAnalysisProperties.getAnalysisProperties(project);
-				} catch (Exception e) {
-					Log.error("Error initializing " + project.getName() + " analysis properties.", e);
+//		if(CommonsPreferences.isInitializingAnalysisPropertiesEnabled()) {
+			for(Node projectNode : Common.universe().nodes(XCSG.Project).eval().nodes()){
+				IProject project = WorkspaceUtils.getProject(projectNode.getAttr(XCSG.name).toString());
+				if(project.exists() && project.isOpen() && project.isAccessible()){
+					try {
+						// initialize project properties if they are not there already
+						ProjectAnalysisProperties.getAnalysisProperties(project);
+					} catch (Exception e) {
+						Log.error("Error initializing " + project.getName() + " analysis properties.", e);
+					}
 				}
 			}
-		}
+//		}
 	}
 
 }
