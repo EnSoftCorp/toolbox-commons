@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IProject;
 
 import com.ensoftcorp.atlas.core.index.ProjectPropertiesUtil;
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
-import com.ensoftcorp.atlas.core.indexing.IMappingSettings;
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.atlas.core.licensing.AtlasLicenseException;
 
@@ -19,6 +18,14 @@ import com.ensoftcorp.atlas.core.licensing.AtlasLicenseException;
 public class MappingUtils {
 
 	private MappingUtils() {}
+	
+	private static class IndexerError extends Exception {
+		private static final long serialVersionUID = 1L;
+
+		public IndexerError(Throwable t) {
+			super(t);
+		}
+	}
 	
 	private static class IndexerErrorListener implements IIndexListener {
 
@@ -52,16 +59,21 @@ public class MappingUtils {
 
 	/**
 	 * Index the workspace (blocking mode and throws index errors)
+	 * @throws AtlasLicenseException 
 	 * 
 	 * @throws Throwable
 	 */
-	public static void indexWorkspace() throws Throwable {
+	public static void indexWorkspace() throws IndexerError, AtlasLicenseException {
 		IndexerErrorListener errorListener = new IndexerErrorListener();
 		IndexingUtil.addListener(errorListener);
 		IndexingUtil.indexWorkspace(true);
 		IndexingUtil.removeListener(errorListener);
 		if (errorListener.hasCaughtThrowable()) {
-			throw errorListener.getCaughtThrowable();
+			try {
+				throw errorListener.getCaughtThrowable();
+			} catch (Throwable t) {
+				throw new IndexerError(t);
+			}
 		}
 	}
 
@@ -69,8 +81,9 @@ public class MappingUtils {
 	 * Configures a project for indexing
 	 * @param project
 	 * @throws AtlasLicenseException
+	 * @throws IndexerError 
 	 */
-	public static void mapProject(IProject project) throws AtlasLicenseException {
+	public static void mapProject(IProject project) throws AtlasLicenseException, IndexerError {
 		// disable indexing for all projects
 		List<IProject> allEnabledProjects = ProjectPropertiesUtil.getAllEnabledProjects();
 		ProjectPropertiesUtil.setIndexingEnabledAndDisabled(Collections.<IProject>emptySet(), allEnabledProjects);
@@ -79,7 +92,11 @@ public class MappingUtils {
 		List<IProject> ourProjects = Collections.singletonList(project);
 		ProjectPropertiesUtil.setIndexingEnabledAndDisabled(ourProjects, Collections.<IProject>emptySet());
 	
-		// TODO: set jar indexing mode to: used only (same as default)
-		IndexingUtil.indexWithSettings(/*saveIndex*/true, /*indexingSettings*/Collections.<IMappingSettings>emptySet(), ourProjects.toArray(new IProject[1]));
+		// index in a blocking mode
+		indexWorkspace();
+		
+		// alternatively use the Atlas apis directly
+//		// TODO: set jar indexing mode to: used only (same as default)
+//		IndexingUtil.indexWithSettings(/*saveIndex*/true, /*indexingSettings*/Collections.<IMappingSettings>emptySet(), ourProjects.toArray(new IProject[1]));
 	}
 }
