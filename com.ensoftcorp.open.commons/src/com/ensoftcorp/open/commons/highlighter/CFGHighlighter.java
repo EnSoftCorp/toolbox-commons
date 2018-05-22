@@ -56,8 +56,8 @@ public class CFGHighlighter {
 	public static void applyPrintableHighlightsForCFG(Markup m) {
 		Q cfEdge = Common.universe().edges(XCSG.ControlFlow_Edge);
 		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
-		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, Boolean.TRUE, "true");
-		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, Boolean.FALSE, "false");
+		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
+		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
 		
 		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, Color.BLACK);
 		m.setEdge(cvTrue, MarkupProperty.EDGE_STYLE, LineStyle.DASHED);
@@ -80,8 +80,8 @@ public class CFGHighlighter {
 	public static void applyHighlightsForCFG(Markup m) {
 		Q cfEdge = Common.universe().edges(XCSG.ControlFlow_Edge);
 		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
-		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, Boolean.TRUE, "true");
-		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, Boolean.FALSE, "false");
+		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
+		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
 		
 		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, cfgTrue);
 		m.setEdge(cvTrue, MarkupProperty.LABEL_TEXT, "true");
