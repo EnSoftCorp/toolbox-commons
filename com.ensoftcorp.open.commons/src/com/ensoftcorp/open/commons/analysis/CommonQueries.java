@@ -892,6 +892,84 @@ public final class CommonQueries {
 	}
 	
 	/**
+	 * Returns points where there are no competing branch points
+	 * @param roots
+	 * @param leaves
+	 * @param graph
+	 * @return
+	 */
+	public static AtlasSet<Node> syncPoints(AtlasSet<Node> roots, AtlasSet<Node> leaves, Graph graph){
+		Q lcc = Common.toQ(leastCommonChildren(roots, graph));
+		Q lccParents = Common.toQ(graph).predecessors(lcc);
+		Q unsyncedRoots = Common.toQ(graph).reverse(lccParents);
+		Q lca = Common.toQ(leastCommonAncestors(leaves, graph));
+		Q lcaChildren = Common.toQ(graph).successors(lca);
+		Q unsyncedLeaves = Common.toQ(graph).forward(lcaChildren);
+		graph = Common.toQ(graph).difference(unsyncedRoots, unsyncedLeaves).eval();
+		AtlasSet<Node> syncPoints = new AtlasHashSet<Node>();
+		AtlasSet<Node> cutPoints = Common.toQ(graph).leaves().eval().nodes();
+		boolean fixedPoint = false;
+		while(!fixedPoint) {
+			cutPoints = leastCommonAncestors(cutPoints, graph);
+			fixedPoint = syncPoints.addAll(cutPoints);
+		}
+		return syncPoints;
+	}
+	
+	/**
+	 * Returns the least common children of of the given parents within the given graph
+	 * @param child1
+	 * @param child2
+	 * @param graph
+	 * @return
+	 */
+	public static AtlasSet<Node> leastCommonAncestors(AtlasSet<Node> children, Graph graph){
+		Graph intersectingParents = graph;
+		for(Node child : children) {
+			intersectingParents = Common.toQ(graph).reverse(Common.toQ(child)).intersection(Common.toQ(intersectingParents)).eval();
+		}
+		return Common.toQ(intersectingParents).leaves().eval().nodes();
+	}
+	
+	/**
+	 * Returns the least common children of of the given parents within the given graph
+	 * @param child1
+	 * @param child2
+	 * @param graph
+	 * @return
+	 */
+	public static AtlasSet<Node> leastCommonChildren(AtlasSet<Node> parents, Graph graph){
+		Graph intersectingChildren = graph;
+		for(Node parent : parents) {
+			intersectingChildren = Common.toQ(graph).forward(Common.toQ(parent)).intersection(Common.toQ(intersectingChildren)).eval();
+		}
+		return Common.toQ(intersectingChildren).roots().eval().nodes();
+	}
+	
+	/**
+	 * Returns the least common child of both parent1 and parent2 within the given graph
+	 * @param child1
+	 * @param child2
+	 * @param graph
+	 * @return
+	 */
+	public static Node leastCommonChild(Node parent1, Node parent2, Graph graph){
+		return leastCommonAncestor(parent1, parent2, Common.toQ(graph));
+	}
+	
+	/**
+	 * Returns the least common ancestor of both parent1 and parent2 within the given graph
+	 * @param parent1
+	 * @param parent2
+	 * @param graph
+	 * @return
+	 */
+	public static Node leastCommonChild(Node parent1, Node parent2, Q graph){
+		Q children = graph.reverse(Common.toQ(parent1)).intersection(graph.reverse(Common.toQ(parent2)));
+		return children.roots().eval().nodes().one();
+	}
+	
+	/**
 	 * Returns the least common ancestor of both child1 and child2 within the given graph
 	 * @param child1
 	 * @param child2
