@@ -102,17 +102,9 @@ public abstract class ColorPalette extends Configurable {
 			public PropertySet get(GraphElement element) {
 				if (element instanceof Edge) {
 					if (element.hasAttr(XCSG.conditionValue)) {
-						return new PropertySet().set(MarkupProperty.LABEL_TEXT, ""+element.getAttr(XCSG.conditionValue)); //$NON-NLS-1$
+						return new PropertySet().set(MarkupProperty.LABEL_TEXT, element.getAttr(XCSG.conditionValue).toString()); //$NON-NLS-1$
 					}
 				}
-//				if (element instanceof Node) {
-//					if(element.taggedWith(XCSG.ControlFlow_Node)) {
-//						try {
-//							String prefix = (FormattedSourceCorrespondence.getSourceCorrespondent(element).getStartLineNumber()-4) + ": ";
-//							return new PropertySet().set(MarkupProperty.LABEL_TEXT, "" + prefix + element.getAttr(XCSG.name)); //$NON-NLS-1$
-//						} catch (Exception e) {}
-//					}
-//				}
 				return null;
 			}
 		};
