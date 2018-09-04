@@ -1,6 +1,9 @@
 package com.ensoftcorp.open.commons.analysis;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.regex.Pattern;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
@@ -631,6 +634,91 @@ public final class CommonQueries {
 	 */
 	public static Q excfg(Node function) {
 		return excfg(Common.toQ(function));
+	}
+	
+	/**
+	 * 
+	 * @param functions
+	 * @return the interprocedural control flow graph under the function
+	 */
+	public static Q icfg(Q functions) {
+		Q cfg = cfg(functions);
+		AtlasSet<Node> icfgNodes = new AtlasHashSet<Node>();
+		AtlasSet<Edge> icfgEdges = new AtlasHashSet<Edge>();
+		Queue<Node> nodesToProcess = new LinkedList<Node>();
+		ArrayList<Node> processedNodes = new ArrayList<Node>();
+		nodesToProcess.add(cfg.roots().eval().nodes().one());
+		while(nodesToProcess.peek() != null) {
+			Node currentNode = nodesToProcess.poll();
+			Q currentNodeQ = Common.toQ(currentNode);
+			Q predecessorNodeQ = cfg.predecessors(currentNodeQ);
+			Q successorNodeQ = cfg.successors(currentNodeQ);
+			if(!isCallSite(currentNodeQ)) {
+				icfgNodes.add(currentNode);
+				Q outEdges = cfg.forwardStep(currentNodeQ);
+				for(Edge outEdge : outEdges.eval().edges()) {
+					Q successor = Common.toQ(outEdge.to());
+					if(!isCallSite(successor)) {
+						icfgEdges.add(outEdge);
+					}
+				}
+				
+			}
+			else {
+				Q callsites = getContainingCallSites(currentNodeQ);
+				if(callsites.eval().nodes().size() == 1){
+					Q target = CallSiteAnalysis.getTargets(callsites);
+					//TODO: Handle multiple targets
+					//TODO: Handle multiple levels
+					Q targetcfg = cfg(target);
+					icfgEdges.addAll(targetcfg.eval().edges());
+					Node targetRootNode = targetcfg.roots().eval().nodes().one();
+					icfgNodes.add(targetRootNode);
+					//TODO: Add sandboxing for ICFG Edges
+					for(Node predecessorNode: predecessorNodeQ.eval().nodes()) {
+						Edge e = Graph.U.createEdge(predecessorNode, targetRootNode);
+						icfgEdges.add(e);
+						e.tag("ICFG_Edge");
+					}
+					Q targetExits = targetcfg.leaves();
+					for(Node successorNode : successorNodeQ.eval().nodes()) {
+						for(Node targetExit : targetExits.eval().nodes()) {
+							Edge e = Graph.U.createEdge(targetExit, successorNode);
+							icfgEdges.add(e);
+							e.tag("ICFG_Edge");
+						}
+					}
+				}
+				else {
+					//TODO: Handle multiple callsites
+				}
+			}
+			for(Node successorNode : successorNodeQ.eval().nodes()) {
+				if(!processedNodes.contains(successorNode)) {
+					nodesToProcess.add(successorNode);
+				}
+			}
+			processedNodes.add(currentNode);
+		}
+		
+		AtlasSet<GraphElement> icfgElements = new AtlasHashSet<GraphElement>();
+		icfgElements.addAll(icfgNodes);
+		icfgElements.addAll(icfgEdges);
+		Q icfg = Common.toQ(icfgElements);
+		
+		return icfg;
+	}
+	
+	public static boolean isCallSite(Q cfNode) {
+		Q callsites = getContainingCallSites(cfNode);
+		if(isEmpty(callsites)) {
+			return false;
+		}
+		return true;
+	}
+	
+	public static Q getContainingCallSites(Q cfNode) {
+		return cfNode.children().nodes(XCSG.CallSite);
 	}
 	
 	/**
