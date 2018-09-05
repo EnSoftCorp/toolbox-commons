@@ -29,6 +29,8 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
  */
 public final class CommonQueries {	
 	
+	private static final String ICFGEdge = "InterproceduralControlFlow_Edge";
+	
 	// hide constructor
 	private CommonQueries() {}
 	
@@ -667,25 +669,27 @@ public final class CommonQueries {
 			else {
 				Q callsites = getContainingCallSites(currentNodeQ);
 				if(callsites.eval().nodes().size() == 1){
-					Q target = CallSiteAnalysis.getTargets(callsites);
-					//TODO: Handle multiple targets
-					//TODO: Handle multiple levels
-					Q targetcfg = cfg(target);
-					icfgEdges.addAll(targetcfg.eval().edges());
-					Node targetRootNode = targetcfg.roots().eval().nodes().one();
-					icfgNodes.add(targetRootNode);
-					//TODO: Add sandboxing for ICFG Edges
-					for(Node predecessorNode: predecessorNodeQ.eval().nodes()) {
-						Edge e = Graph.U.createEdge(predecessorNode, targetRootNode);
-						icfgEdges.add(e);
-						e.tag("ICFG_Edge");
-					}
-					Q targetExits = targetcfg.leaves();
-					for(Node successorNode : successorNodeQ.eval().nodes()) {
-						for(Node targetExit : targetExits.eval().nodes()) {
-							Edge e = Graph.U.createEdge(targetExit, successorNode);
+					AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsites).eval().nodes();
+					//TODO: Handle sandboxing for ICFG Edges
+					for(Node target : targets) {
+						Q targeticfg = icfg(Common.toQ(target));
+						Node targeticfgroot = targeticfg.roots().eval().nodes().one();
+						Q targeticfgexits = targeticfg.leaves();
+						AtlasSet<Node> targeticfgNodes = targeticfg.eval().nodes();
+						AtlasSet<Edge> targeticfgEdges = targeticfg.eval().edges();
+						icfgNodes.addAll(targeticfgNodes);
+						icfgEdges.addAll(targeticfgEdges);
+						for(Node predecessorNode : predecessorNodeQ.eval().nodes()) {
+							Edge e = Graph.U.createEdge(predecessorNode, targeticfgroot);
 							icfgEdges.add(e);
-							e.tag("ICFG_Edge");
+							e.tag(ICFGEdge);
+						}
+						for(Node successorNode : successorNodeQ.eval().nodes()) {
+							for(Node targetExit : targeticfgexits.eval().nodes()) {
+								Edge e = Graph.U.createEdge(targetExit, successorNode);
+								icfgEdges.add(e);
+								e.tag(ICFGEdge);
+							}
 						}
 					}
 				}
