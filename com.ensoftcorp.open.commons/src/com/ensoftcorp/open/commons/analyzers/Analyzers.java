@@ -73,8 +73,13 @@ public class Analyzers extends PrioritizedCodemapStage {
 				monitor.subTask("Analyzing " + analyzer.getName());
 				Log.info("Analyzing " + analyzer.getName());
 				
+				long elapsed = System.currentTimeMillis();
+				
 				// TODO: how to set analyzer context? via preferences maybe?
 				List<Result> results = analyzer.getResults(Common.universe());
+				
+				elapsed = System.currentTimeMillis() - elapsed;
+				Log.debug("Analyzer time: " + analyzer.getName() + " " + elapsed + "ms");
 				
 				cacheResults(analyzer, results);
 				

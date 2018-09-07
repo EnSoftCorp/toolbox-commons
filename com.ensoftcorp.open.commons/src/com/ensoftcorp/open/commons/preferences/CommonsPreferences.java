@@ -27,7 +27,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	}
 	
 	/**
-	 * Returns true if loop cataloging is enabled
+	 * Returns true if debug logging is enabled
 	 * @return
 	 */
 	public static boolean isDebugLoggingEnabled(){
