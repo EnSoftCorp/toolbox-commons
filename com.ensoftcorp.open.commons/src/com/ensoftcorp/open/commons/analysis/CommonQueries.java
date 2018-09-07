@@ -672,6 +672,7 @@ public final class CommonQueries {
 						Edge e = Graph.U.createEdge(currentNode, successorIcfgrootNode);
 						icfgEdges.add(e);
 						e.tag(ICFGEdge);
+						e.tag(XCSG.ControlFlow_Edge);
 					}
 				}
 				
@@ -694,6 +695,7 @@ public final class CommonQueries {
 								Edge e = Graph.U.createEdge(predecessorNode, targeticfgroot);
 								icfgEdges.add(e);
 								e.tag(ICFGEdge);
+								e.tag(XCSG.ControlFlow_Edge);
 							}
 						}
 						for(Node successorNode : successorNodeQ.eval().nodes()) {
@@ -702,6 +704,7 @@ public final class CommonQueries {
 									Edge e = Graph.U.createEdge(targetExit, successorNode);
 									icfgEdges.add(e);
 									e.tag(ICFGEdge);
+									e.tag(XCSG.ControlFlow_Edge);
 								}
 							}
 							else {
@@ -714,6 +717,7 @@ public final class CommonQueries {
 									Edge e = Graph.U.createEdge(targetExit, successorIcfgroot);
 									icfgEdges.add(e);
 									e.tag(ICFGEdge);
+									e.tag(XCSG.ControlFlow_Edge);
 								}
 							}
 						}
