@@ -644,7 +644,7 @@ public final class CommonQueries {
 	 * @return the interprocedural control flow graph under the function
 	 */
 	public static Q icfg(Q functions) {
-		Q cfg = cfg(functions);
+		Q cfg = CommonQueries.cfg(functions);
 		AtlasSet<Node> icfgNodes = new AtlasHashSet<Node>();
 		AtlasSet<Edge> icfgEdges = new AtlasHashSet<Edge>();
 		Queue<Node> nodesToProcess = new LinkedList<Node>();
@@ -663,6 +663,16 @@ public final class CommonQueries {
 					if(!isCallSite(successor)) {
 						icfgEdges.add(outEdge);
 					}
+					else {
+						Q successorTarget = CallSiteAnalysis.getTargets(getContainingCallSites(successor));
+						Q successorIcfg = icfg(successorTarget);
+						icfgNodes.addAll(successorIcfg.eval().nodes());
+						icfgEdges.addAll(successorIcfg.eval().edges());
+						Node successorIcfgrootNode = successorIcfg.roots().eval().nodes().one();
+						Edge e = Graph.U.createEdge(currentNode, successorIcfgrootNode);
+						icfgEdges.add(e);
+						e.tag(ICFGEdge);
+					}
 				}
 				
 			}
@@ -680,15 +690,31 @@ public final class CommonQueries {
 						icfgNodes.addAll(targeticfgNodes);
 						icfgEdges.addAll(targeticfgEdges);
 						for(Node predecessorNode : predecessorNodeQ.eval().nodes()) {
-							Edge e = Graph.U.createEdge(predecessorNode, targeticfgroot);
-							icfgEdges.add(e);
-							e.tag(ICFGEdge);
-						}
-						for(Node successorNode : successorNodeQ.eval().nodes()) {
-							for(Node targetExit : targeticfgexits.eval().nodes()) {
-								Edge e = Graph.U.createEdge(targetExit, successorNode);
+							if(!isCallSite(Common.toQ(predecessorNode))) {
+								Edge e = Graph.U.createEdge(predecessorNode, targeticfgroot);
 								icfgEdges.add(e);
 								e.tag(ICFGEdge);
+							}
+						}
+						for(Node successorNode : successorNodeQ.eval().nodes()) {
+							if(!isCallSite(Common.toQ(successorNode))) {
+								for(Node targetExit : targeticfgexits.eval().nodes()) {
+									Edge e = Graph.U.createEdge(targetExit, successorNode);
+									icfgEdges.add(e);
+									e.tag(ICFGEdge);
+								}
+							}
+							else {
+								Q successorTarget = CallSiteAnalysis.getTargets(getContainingCallSites(Common.toQ(successorNode)));
+								Q successorIcfg = icfg(successorTarget);
+								icfgNodes.addAll(successorIcfg.eval().nodes());
+								icfgEdges.addAll(successorIcfg.eval().edges());
+								Node successorIcfgroot = successorIcfg.roots().eval().nodes().one();
+								for(Node targetExit : targeticfgexits.eval().nodes()) {
+									Edge e = Graph.U.createEdge(targetExit, successorIcfgroot);
+									icfgEdges.add(e);
+									e.tag(ICFGEdge);
+								}
 							}
 						}
 					}
@@ -711,6 +737,15 @@ public final class CommonQueries {
 		Q icfg = Common.toQ(icfgElements);
 		
 		return icfg;
+	}
+	
+	/**
+	 * 
+	 * @param function
+	 * @return the control flow graph under the function
+	 */	
+	public static Q icfg(Node function) {
+		return icfg(Common.toQ(function));
 	}
 	
 	public static boolean isCallSite(Q cfNode) {
