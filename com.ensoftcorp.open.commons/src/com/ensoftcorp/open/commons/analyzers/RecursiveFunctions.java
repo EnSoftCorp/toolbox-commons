@@ -7,9 +7,11 @@ import java.util.List;
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.algorithms.StronglyConnectedComponents;
@@ -18,6 +20,7 @@ import com.ensoftcorp.open.commons.algorithms.StronglyConnectedComponents;
  * An analyzer for recursive functions
  * 
  * @author Ben Holland
+ * @author Jon Mathews
  */
 public class RecursiveFunctions extends Property {
 
@@ -38,23 +41,28 @@ public class RecursiveFunctions extends Property {
 		return new String[]{"The CHA based call graph is assumed to be accurate."};
 	}
 
+	private static Q resolve(Q q) {
+		return Query.resolve(null, q);
+	}
+	
 	@Override
 	public List<Result> getResults(Q context) {
-		Q callEdges = context.edgesTaggedWithAny(XCSG.Call).retainEdges();
 		
-		// TODO: make this optional
+		// TODO: make removal of Object member overrides optional
 		// removing Object methods can improve the usability of these results for the general case
 		Q overridesEdges = Common.universe().edges(XCSG.Overrides);
-		Q equalsMethods = overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "equals")).nodes(XCSG.Method);
-		Q toStringMethods = overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "toString")).nodes(XCSG.Method);
-		Q hashCodeMethods = overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "hashCode")).nodes(XCSG.Method);
-		callEdges = callEdges.difference(equalsMethods, toStringMethods, hashCodeMethods);
+		Q equalsMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "equals")).nodes(XCSG.Method));
+		Q toStringMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "toString")).nodes(XCSG.Method));
+		Q hashCodeMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "hashCode")).nodes(XCSG.Method));
+		Q methods = resolve(context.nodes(XCSG.Method).difference(equalsMethods, toStringMethods, hashCodeMethods));
 		
-		StronglyConnectedComponents adapter = new StronglyConnectedComponents(callEdges.eval().nodes(), callEdges.eval().edges());
+		Q callgraph = resolve(methods.induce(context.edges(XCSG.Call)));
+		
+		StronglyConnectedComponents adapter = new StronglyConnectedComponents(callgraph);
 
 		LinkedList<Result> results = new LinkedList<Result>();
 		for (AtlasSet<Node> scc : adapter.findSCCs()) {
-			Q recursion = Common.toQ(scc).induce(callEdges);
+			Q recursion = Common.toQ(scc).induce(callgraph);
 			Graph recursionGraph = recursion.eval();
 			if (recursionGraph.edges().size() > 0) {
 				// SCC must have at least one edge to be recursive
@@ -69,12 +77,12 @@ public class RecursiveFunctions extends Property {
 
 	// jgrapht library version
 	public static Q getRecursiveMethods() {
-		Q callEdges = Common.universe().edgesTaggedWithAny(XCSG.Call).retainEdges();
-		StronglyConnectedComponents adapter = new StronglyConnectedComponents(callEdges.eval().nodes(), callEdges.eval().edges());
+		Q callgraph = resolve(Query.universe().nodes(XCSG.Method).induce(Query.universe().edges(XCSG.Call)));
+		StronglyConnectedComponents adapter = new StronglyConnectedComponents(callgraph);
 		AtlasSet<Node> recursionNodes = new AtlasHashSet<Node>();
 		AtlasSet<Edge> recursionEdges = new AtlasHashSet<Edge>();
 		for (AtlasSet<Node> scc : adapter.findSCCs()) {
-			Q recursion = Common.toQ(scc).induce(callEdges);
+			Q recursion = Common.toQ(scc).induce(callgraph);
 			Graph recursionGraph = recursion.eval();
 			if (recursionGraph.edges().size() > 0) {
 				// SCC must have at least one edge to be recursive
@@ -82,7 +90,7 @@ public class RecursiveFunctions extends Property {
 				recursionEdges.addAll(recursionGraph.edges());
 			}
 		}
-		Q recursiveMethods = Common.toQ(recursionNodes).induce(Common.toQ(recursionEdges));
+		Q recursiveMethods = Common.toQ(new UncheckedGraph(recursionNodes, recursionEdges));
 		return recursiveMethods;
 	}
 		

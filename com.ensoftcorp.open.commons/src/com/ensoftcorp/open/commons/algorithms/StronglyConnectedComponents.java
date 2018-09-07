@@ -24,6 +24,7 @@ import com.ensoftcorp.atlas.core.db.graph.operation.InducedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.db.set.SingletonAtlasSet;
+import com.ensoftcorp.atlas.core.query.Q;
 
 /**
  * A wrapper for the JGraphT implementation of StronglyConnectedComponent (SCC) computations
@@ -43,6 +44,12 @@ public class StronglyConnectedComponents {
 		init();
 	}
 
+	/**
+	 * Use either Graph or Q constructor
+	 * @param nodes
+	 * @param edges
+	 */
+	@Deprecated
 	public StronglyConnectedComponents(AtlasSet<Node> nodes, AtlasSet<Edge> edges) {
 		graph = new InducedGraph(nodes, edges);
 		this.nodes = graph.nodes();
@@ -50,6 +57,13 @@ public class StronglyConnectedComponents {
 		init();
 	}
 
+	public StronglyConnectedComponents(Q q) {
+		graph = q.eval();
+		this.nodes = graph.nodes();
+		this.edges = graph.edges();
+		init();
+	}
+	
 	private void init() {
 		jGraph = new DirectedPseudograph<GraphElement, GraphElement>(GraphElement.class);
 		for (GraphElement node : nodes) {
