@@ -1,15 +1,22 @@
 package com.ensoftcorp.open.commons.analysis;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
+import com.ensoftcorp.atlas.core.db.graph.EdgeGraph;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
+import com.ensoftcorp.atlas.core.db.graph.operation.UnionGraph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
+import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
+import com.ensoftcorp.atlas.core.db.set.AtlasEdgeHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
+import com.ensoftcorp.atlas.core.db.set.AtlasNodeHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.query.Query;
@@ -102,9 +109,66 @@ public final class CommonQueries {
 	 * @param edgeTags
 	 * @return the query expression
 	 */
-	public static Q interactions(Q context, Q first, Q second, String... edgeTags){
-		Q edgeContext = context.edges(edgeTags);
-		return edgeContext.betweenStep(first, second).union(edgeContext.betweenStep(second, first));
+	public static Q interactions(Q context, Q first, Q second, String... edgeTags) {
+		List<Q> results = interactions2(context, first, second, edgeTags);
+		AtlasSet<Node> nodes = new AtlasNodeHashSet();
+		AtlasSet<Edge> edges = new AtlasEdgeHashSet();
+				
+		for (Q q : results) {
+			nodes.addAll(q.eval().nodes());
+			edges.addAll(q.eval().edges());
+		}
+		
+		Graph g = new UncheckedGraph(nodes, edges);
+		return Query.toQ(g);
+	}
+	
+	/**
+	 * For each Node in second, return a Q containing all
+	 * Edges immediately incident on Nodes in first.
+	 * Omit results which are empty.
+	 * 
+	 * @param context result is a subset of the context
+	 * @param first
+	 * @param second
+	 * @param tags edges with at least one of the given tags
+	 * @return list of one Q per Node in second which has some incidence
+	 * to Nodes in first
+	 */
+	public static List<Q> interactions2(Q context, Q first, Q second, String ... tags) {
+		List<Q> results = new ArrayList<>();
+		AtlasSet<Node> contextNodes = context.eval().nodes();
+		AtlasSet<Edge> contextEdges = context.eval().edges();
+		AtlasSet<Node> firstNodes = Query.resolve(null, first.eval().nodes());
+		for (Node n : second.eval().nodes()) {
+			if (!contextNodes.contains(n))
+				continue;
+			AtlasSet<Edge> edges = new AtlasEdgeHashSet();
+			for (String tag : tags) {
+				for (Edge e : n.in(tag)) {
+					if (!contextEdges.contains(e))
+						continue;
+					if (firstNodes.contains(e.from()) 
+							&& contextNodes.contains(e.from())) {
+						edges.add(e);
+					}
+				}
+				for (Edge e : n.out(tag)) {
+					if (!contextEdges.contains(e))
+						continue;
+					if (firstNodes.contains(e.to()) 
+							&& contextNodes.contains(e.to())) {
+						edges.add(e);
+					}
+				}
+			}
+			if (!edges.isEmpty()) {
+				Graph g = new EdgeGraph(edges);
+				Q q = Query.toQ(g);
+				results.add(q);
+			}
+		}
+		return results;
 	}
 	
 	/**
