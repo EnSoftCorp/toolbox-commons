@@ -6,7 +6,7 @@ import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.commons.log.Log;
@@ -52,10 +52,10 @@ public class NormalizedAddress extends PrioritizedCodemapStage {
 	 */
 	private static void assignNormalizedAddresses(){
 		// just prioritizing nodes/edges address values as being lower for the graph elements that don't have a source correspondence
-		Q sourceNodes = Common.universe().selectNode(XCSG.sourceCorrespondence);
-		Q primitiveNodes = Common.universe().difference(sourceNodes);
-		Q sourceEdges = Common.universe().selectEdge(XCSG.sourceCorrespondence).retainEdges();
-		Q primitiveEdges = Common.universe().differenceEdges(sourceEdges).retainEdges();
+		Q sourceNodes = Query.universe().selectNode(XCSG.sourceCorrespondence);
+		Q primitiveNodes = Query.universe().difference(sourceNodes);
+		Q sourceEdges = Query.universe().selectEdge(XCSG.sourceCorrespondence);
+		Q primitiveEdges = Query.universe().differenceEdges(sourceEdges);
 		
 		long address = 0;
 		

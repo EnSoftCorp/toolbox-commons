@@ -1168,16 +1168,16 @@ public final class CommonQueries {
 	 * @return the next immediate containing node, or null if none exists; never returns the given node
 	 */
 	public static Node getContainingNode(Node node, String containingTag) {
-		if(node == null){
+		if (node == null) {
 			return null;
 		}
-		while(true) {
-			GraphElement containsEdge = Graph.U.edges(node, NodeDirection.IN).taggedWithAll(XCSG.Contains).one();
-			if(containsEdge == null){
+		while (true) {
+			Edge containsEdge = node.in(XCSG.Contains).one();
+			if (containsEdge == null) {
 				return null;
 			}
-			Node parent = containsEdge.getNode(EdgeDirection.FROM);
-			if(parent.taggedWith(containingTag)){
+			Node parent = containsEdge.from();
+			if (parent.taggedWith(containingTag)) {
 				return parent;
 			}
 			node = parent;
