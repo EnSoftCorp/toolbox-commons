@@ -1,16 +1,12 @@
 package com.ensoftcorp.open.commons.analysis;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.regex.Pattern;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
@@ -28,8 +24,6 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
  * @author Ben Holland, Tom Deering, Jon Mathews
  */
 public final class CommonQueries {	
-	
-	private static final String ICFGEdge = "InterproceduralControlFlow_Edge";
 	
 	// hide constructor
 	private CommonQueries() {}
@@ -636,120 +630,6 @@ public final class CommonQueries {
 	 */
 	public static Q excfg(Node function) {
 		return excfg(Common.toQ(function));
-	}
-	
-	/**
-	 * 
-	 * @param functions
-	 * @return the interprocedural control flow graph under the function
-	 */
-	public static Q icfg(Q functions) {
-		Q cfg = CommonQueries.cfg(functions);
-		AtlasSet<Node> icfgNodes = new AtlasHashSet<Node>();
-		AtlasSet<Edge> icfgEdges = new AtlasHashSet<Edge>();
-		Queue<Node> nodesToProcess = new LinkedList<Node>();
-		ArrayList<Node> processedNodes = new ArrayList<Node>();
-		nodesToProcess.add(cfg.roots().eval().nodes().one());
-		while(nodesToProcess.peek() != null) {
-			Node currentNode = nodesToProcess.poll();
-			Q currentNodeQ = Common.toQ(currentNode);
-			Q predecessorNodeQ = cfg.predecessors(currentNodeQ);
-			Q successorNodeQ = cfg.successors(currentNodeQ);
-			if(!isCallSite(currentNodeQ)) {
-				icfgNodes.add(currentNode);
-				Q outEdges = cfg.forwardStep(currentNodeQ);
-				for(Edge outEdge : outEdges.eval().edges()) {
-					Q successor = Common.toQ(outEdge.to());
-					if(!isCallSite(successor)) {
-						icfgEdges.add(outEdge);
-					}
-					else {
-						Q successorTarget = CallSiteAnalysis.getTargets(getContainingCallSites(successor));
-						Q successorIcfg = icfg(successorTarget);
-						icfgNodes.addAll(successorIcfg.eval().nodes());
-						icfgEdges.addAll(successorIcfg.eval().edges());
-						Node successorIcfgrootNode = successorIcfg.roots().eval().nodes().one();
-						Edge e = Graph.U.createEdge(currentNode, successorIcfgrootNode);
-						icfgEdges.add(e);
-						e.tag(ICFGEdge);
-						e.tag(XCSG.ControlFlow_Edge);
-					}
-				}
-				
-			}
-			else {
-				Q callsites = getContainingCallSites(currentNodeQ);
-				if(callsites.eval().nodes().size() == 1){
-					AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsites).eval().nodes();
-					//TODO: Handle sandboxing for ICFG Edges
-					for(Node target : targets) {
-						Q targeticfg = icfg(Common.toQ(target));
-						Node targeticfgroot = targeticfg.roots().eval().nodes().one();
-						Q targeticfgexits = targeticfg.leaves();
-						AtlasSet<Node> targeticfgNodes = targeticfg.eval().nodes();
-						AtlasSet<Edge> targeticfgEdges = targeticfg.eval().edges();
-						icfgNodes.addAll(targeticfgNodes);
-						icfgEdges.addAll(targeticfgEdges);
-						for(Node predecessorNode : predecessorNodeQ.eval().nodes()) {
-							if(!isCallSite(Common.toQ(predecessorNode))) {
-								Edge e = Graph.U.createEdge(predecessorNode, targeticfgroot);
-								icfgEdges.add(e);
-								e.tag(ICFGEdge);
-								e.tag(XCSG.ControlFlow_Edge);
-							}
-						}
-						for(Node successorNode : successorNodeQ.eval().nodes()) {
-							if(!isCallSite(Common.toQ(successorNode))) {
-								for(Node targetExit : targeticfgexits.eval().nodes()) {
-									Edge e = Graph.U.createEdge(targetExit, successorNode);
-									icfgEdges.add(e);
-									e.tag(ICFGEdge);
-									e.tag(XCSG.ControlFlow_Edge);
-								}
-							}
-							else {
-								Q successorTarget = CallSiteAnalysis.getTargets(getContainingCallSites(Common.toQ(successorNode)));
-								Q successorIcfg = icfg(successorTarget);
-								icfgNodes.addAll(successorIcfg.eval().nodes());
-								icfgEdges.addAll(successorIcfg.eval().edges());
-								Node successorIcfgroot = successorIcfg.roots().eval().nodes().one();
-								for(Node targetExit : targeticfgexits.eval().nodes()) {
-									Edge e = Graph.U.createEdge(targetExit, successorIcfgroot);
-									icfgEdges.add(e);
-									e.tag(ICFGEdge);
-									e.tag(XCSG.ControlFlow_Edge);
-								}
-							}
-						}
-					}
-				}
-				else {
-					//TODO: Handle multiple callsites
-				}
-			}
-			for(Node successorNode : successorNodeQ.eval().nodes()) {
-				if(!processedNodes.contains(successorNode)) {
-					nodesToProcess.add(successorNode);
-				}
-			}
-			processedNodes.add(currentNode);
-		}
-		
-		AtlasSet<GraphElement> icfgElements = new AtlasHashSet<GraphElement>();
-		icfgElements.addAll(icfgNodes);
-		icfgElements.addAll(icfgEdges);
-		Q icfg = Common.toQ(icfgElements);
-		
-		return icfg;
-	}
-	
-	/**
-	 * 
-	 * @param function
-	 * @return the control flow graph under the function
-	 */	
-	public static Q icfg(Node function) {
-		return icfg(Common.toQ(function));
 	}
 	
 	public static boolean isCallSite(Q cfNode) {
