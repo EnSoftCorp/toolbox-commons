@@ -264,6 +264,7 @@
    <extension point="com.ensoftcorp.open.commons.analyzer">
       <analyzer class="com.ensoftcorp.open.commons.analyzers.CyclomaticComplexity"></analyzer>
       <analyzer class="com.ensoftcorp.open.commons.analyzers.RecursiveFunctions"></analyzer>
+      <analyzer class="com.ensoftcorp.open.commons.analyzers.DeadCode"></analyzer>
    </extension>
    
    <!-- adds filter definitions -->
