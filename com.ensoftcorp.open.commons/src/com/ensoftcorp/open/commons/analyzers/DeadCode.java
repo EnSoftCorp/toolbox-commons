@@ -30,9 +30,14 @@ public class DeadCode extends Property {
 
 	@Override
 	public String[] getAssumptions() {
-		return new String[]{"Dead code is detectable by identifying control flow graph roots that are not the expected control flow roots."};
+		return new String[]{"Dead code is detectable by identifying control flow graph roots that are not the control flow root."};
 	}
 
+	private static class ResultData {
+		String name;
+		long deadCodeRoots;
+	}
+	
 	@Override
 	public List<Result> getResults(Q context) {
 		Q functions = context.nodesTaggedWithAny(XCSG.Function);
@@ -42,9 +47,12 @@ public class DeadCode extends Property {
 			Q deadCode = cfg.roots().difference(cfg.nodes(XCSG.controlFlowRoot));
 			long deadCodeRoots = deadCode.eval().nodes().size();
 			if(deadCodeRoots > 0) {
-				String name = (String.format(RESULT_PREFIX, ("" + deadCodeRoots), CommonQueries.getQualifiedFunctionName(function)) + deadCodeRoots);
-				Result result = new Result(name, deadCode);
-				result.setData(deadCodeRoots);
+				ResultData data = new ResultData();
+				data.deadCodeRoots = deadCodeRoots;
+				data.name = CommonQueries.getQualifiedFunctionName(function);
+				String title = (String.format(RESULT_PREFIX, ("" + deadCodeRoots), data.name) + deadCodeRoots);
+				Result result = new Result(title, deadCode);
+				result.setData(data);
 				results.add(result);
 			}
 		}
@@ -58,11 +66,11 @@ public class DeadCode extends Property {
 	public Comparator<Result> getResultOrder(){
 		return new Comparator<Result>(){
 			@Override
-			public int compare(Result o1, Result o2) {
-				long c1 = (long) o1.getData();
-				long c2 = (long) o2.getData();
-				int order = Long.compare(c1, c2);
-				return order != 0 ? -order : order; // reverse sort
+			public int compare(Result a, Result b) {
+				ResultData aData = (ResultData) a.getData();
+				ResultData bData = (ResultData) b.getData();
+				int order = Long.compare(aData.deadCodeRoots, bData.deadCodeRoots);
+				return order != 0 ? -order : aData.name.compareTo(bData.name); // reverse integer sort, secondary sort alphabetical
 			}
 		};
 	}
