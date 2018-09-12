@@ -59,13 +59,23 @@ public class StronglyConnectedComponents {
 			jGraph.addEdge(edge.getNode(EdgeDirection.FROM), edge.getNode(EdgeDirection.TO), edge);
 		}
 	}
-
+	
 	/**
 	 * Returns the graph's strongly-connected-components in the graph.
 	 * 
 	 * @return
 	 */
 	public List<AtlasHashSet<Node>> findSCCs() {
+		return findSCCs(true);
+	}
+
+	/**
+	 * Returns the graph's strongly-connected-components in the graph.
+	 * 
+	 * @param includeSingleElementSCCs If true includes SCCs that consist of a single node
+	 * @return
+	 */
+	public List<AtlasHashSet<Node>> findSCCs(boolean includeSingleElementSCCs) {
 		// note: we have a choice of algorithms:
 		// GabowStrongConnectivityInspector - Allows obtaining the strongly connected components of a directed graph. 
 		// 									  The implemented algorithm follows Cheriyan-Mehlhorn/Gabow's algorithm 
@@ -80,11 +90,13 @@ public class StronglyConnectedComponents {
 		StrongConnectivityAlgorithm<GraphElement, GraphElement> sci = new KosarajuStrongConnectivityInspector<GraphElement, GraphElement>(jGraph);
 		LinkedList<AtlasHashSet<Node>> result = new LinkedList<AtlasHashSet<Node>>();
 		for(Set<GraphElement> scc : sci.stronglyConnectedSets()){
-			AtlasHashSet<Node> set = new AtlasHashSet<Node>();
-			for(GraphElement node : scc){
-				set.add((Node) node);
+			if(includeSingleElementSCCs || scc.size() > 1) {
+				AtlasHashSet<Node> set = new AtlasHashSet<Node>();
+				for(GraphElement node : scc){
+					set.add((Node) node);
+				}
+				result.add(set);
 			}
-			result.add(set);
 		}
 		return result;
 	}
