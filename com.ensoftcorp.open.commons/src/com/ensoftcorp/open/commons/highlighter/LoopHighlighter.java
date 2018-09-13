@@ -29,7 +29,7 @@ public class LoopHighlighter {
 	 */
 	public static Markup applyHighlightsForLoopDepth(Markup m) {
 		Q loopChildEdges =  Common.universe().edges(XCSG.LoopChild);
-		Q loopHeadersQ = Common.universe().nodesTaggedWithAll(XCSG.Loop);
+		Q loopHeadersQ = Common.universe().nodes(XCSG.Loop);
 		AtlasSet<Node> loopHeaders = loopHeadersQ.eval().nodes();
 		
 		Map<Node, Color> colorMap = new HashMap<Node, Color>();
