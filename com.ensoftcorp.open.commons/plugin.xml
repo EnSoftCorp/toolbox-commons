@@ -254,6 +254,9 @@
       <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage"></codemap>
       <!-- adds the prioritized codemap stage for analysis properties initializers -->
       <codemap class="com.ensoftcorp.open.commons.codemap.ProjectAnalysisDefaultPropertiesInitializer"></codemap>
+      <codemap
+            class="com.ensoftcorp.open.commons.codemap.LoopDepth">
+      </codemap>
    </extension>
    
    <!-- adds the prioritized codemap stage for caching analyzer results -->
