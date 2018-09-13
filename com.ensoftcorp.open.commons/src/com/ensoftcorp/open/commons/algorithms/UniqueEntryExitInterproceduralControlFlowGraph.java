@@ -152,7 +152,7 @@ public class UniqueEntryExitInterproceduralControlFlowGraph implements UniqueEnt
 	 */
 	public UniqueEntryExitInterproceduralControlFlowGraph(Graph icfg, AtlasSet<Node> roots, boolean relaxNonEmptyRootsRequirement, AtlasSet<Node> exits, boolean relaxNonEmptyExitsRequirement, boolean addContains) {
 		AtlasSet<Node> capturedfunctions = CommonQueries.getContainingFunctions(Common.toQ(icfg)).eval().nodes();
-		AtlasSet<Node> functions = CommonQueries.getContainingFunctions(Common.toQ(roots)).eval().nodes();
+		AtlasSet<Node> functions = CommonQueries.getContainingFunctions(Common.toQ(icfg.roots())).eval().nodes();
 		if(functions.isEmpty()){
 			String message = "CFG is empty or is not contained within a function!";
 			IllegalArgumentException e = new IllegalArgumentException(message);
@@ -357,7 +357,6 @@ public class UniqueEntryExitInterproceduralControlFlowGraph implements UniqueEnt
 
 	@Override
 	public Node getEntryNode() {
-		// TODO Auto-generated method stub
 		return masterEntry;
 	}
 
