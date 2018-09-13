@@ -15,6 +15,7 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
+import com.ensoftcorp.open.commons.xcsg.XCSG_Extension;
 
 /**
  * 
@@ -24,7 +25,16 @@ import com.ensoftcorp.open.commons.analysis.CommonQueries;
  */
 
 public class InterproceduralControlFlowGraph {
+	
+	/*
+	 * Tag applied to newly created ICFG Edge
+	 */
+	@XCSG_Extension
 	private static final String ICFGEdge = "InterproceduralControlFlow_Edge";
+	
+	/*
+	 * All the control flow in the software
+	 */
 	private static Q controlFlow = Common.universe().edgesTaggedWithAny(XCSG.ControlFlow_Edge,ICFGEdge);
 	
 	/**
