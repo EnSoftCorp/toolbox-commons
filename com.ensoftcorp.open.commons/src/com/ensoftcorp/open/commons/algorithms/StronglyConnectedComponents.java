@@ -87,6 +87,9 @@ public class StronglyConnectedComponents {
 		// 										 Chapter 22.5. It has a running time of O(V + E). Unlike ConnectivityInspector,
 		// 										 this class does not implement incremental inspection. The full algorithm is 
 		// 										 executed at the first call of stronglyConnectedSets() or isStronglyConnected().
+		
+		// FIXME: [jdm] includeSingleElementSCCs==false will exclude SCCs of size one (nodes with a self-edge)
+		
 		StrongConnectivityAlgorithm<GraphElement, GraphElement> sci = new KosarajuStrongConnectivityInspector<GraphElement, GraphElement>(jGraph);
 		LinkedList<AtlasHashSet<Node>> result = new LinkedList<AtlasHashSet<Node>>();
 		for(Set<GraphElement> scc : sci.stronglyConnectedSets()){
