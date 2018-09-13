@@ -18,11 +18,11 @@
    </extension>
 
 	<!-- add toolbox commons smart views -->
-    <extension
-         point="com.ensoftcorp.atlas.ui.smartViewScript">
-      <script
-            class="com.ensoftcorp.open.commons.ui.views.smart.UniversalGraphExplorerSmartView">
-      </script>
+    <extension point="com.ensoftcorp.atlas.ui.smartViewScript">
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.UniversalGraphExplorerSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceTreeSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceFrontierSmartView" />
    </extension>
 
    <!-- defines the tooblox commons handler actions -->
@@ -276,14 +276,6 @@
       <filter class="com.ensoftcorp.open.commons.filters.ExceptionalTryChildFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.ExceptionalCatchChildFilter"></filter>
       <filter class="com.ensoftcorp.open.commons.filters.ExceptionalFinallyChildFilter"></filter>
-   </extension>
-   
-   <!-- adds codepainter smart view -->
-   <extension
-         point="com.ensoftcorp.atlas.ui.smartViewScript">
-      <script
-            class="com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView">
-      </script>
    </extension>
    
    <!-- adds filter rootset definitions -->
