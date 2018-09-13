@@ -36,23 +36,21 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	public static final String IDENTIFIER = "com.ensoftcorp.open.commons.dominance";
 	
 	/**
-	 * Used to tag the edges from a node that immediately forward dominate
-	 * (post-dominate) a node. The set of ifdom edges forms the dominator tree.
-	 * 
-	 * Wikipedia: The immediate dominator or idom of a node n is the unique node
-	 * that strictly dominates n but does not strictly dominate any other node
-	 * that strictly dominates n. Every node, except the entry node, has an
-	 * immediate dominator. Analogous to the definition of dominance above, a
-	 * node z is said to post-dominate a node n if all paths to the exit node of
-	 * the graph starting at n must go through z. Similarly, the immediate
-	 * post-dominator of a node n is the postdominator of n that doesn't
-	 * strictly postdominate any other strict postdominators of n. A dominator
-	 * tree is a tree where each node's children are those nodes it immediately
-	 * dominates. Because the immediate dominator is unique, it is a tree. The
-	 * start node is the root of the tree.
+	 * The immediate dominator or idom of a node n is the unique node that strictly
+	 * dominates n but does not strictly dominate any other node that strictly
+	 * dominates n. Every node, except the entry node, has an immediate dominator.
 	 */
 	@XCSG_Extension
-	public static final String IMMEDIATE_FORWARD_DOMINANCE_EDGE = "ifdom";
+	public static final String IMMEDIATE_DOMINANCE_EDGE = "idom";
+	
+	/**
+	 * Used to tag the edges from a node that post-dominate a node.
+	 * 
+	 * Wikipedia:  A node z is said to post-dominate a node n if all 
+	 * paths to the exit node of the graph starting at n must go through z.
+	 */
+	@XCSG_Extension
+	public static final String POST_DOMINANCE_EDGE = "postdom";
 	
 	/**
 	 * Used to tag the edges from a node the identify the node's dominance
@@ -67,14 +65,18 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	
 	public DominanceAnalysis() {}
 	
-	public static Q getForwardDominanceTrees(){
-		return Common.universe().edges(IMMEDIATE_FORWARD_DOMINANCE_EDGE).retainEdges();
+	public static Q getPostDominanceEdges(){
+		return Common.universe().edges(POST_DOMINANCE_EDGE).retainEdges();
 	}
 	
-	public static Q getDominanceFrontiers(){
+	public static Q getDominanceFrontierEdges(){
 		return Common.universe().edges(DOMINANCE_FRONTIER_EDGE).retainEdges();
 	}
 
+	public static Q getImmediateDominanceEdges(){
+		return Common.universe().edges(DOMINANCE_FRONTIER_EDGE).retainEdges();
+	}
+	
 	@Override
 	public String getDisplayName() {
 		return "Computing Control Flow Graph Dominator Trees";
@@ -92,14 +94,14 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
-		if(CommonsPreferences.isComputeControlFlowGraphDominanceTreesEnabled() || CommonsPreferences.isComputeExceptionalControlFlowGraphDominanceTreesEnabled()){
+		if(CommonsPreferences.isComputeControlFlowGraphDominanceEnabled() || CommonsPreferences.isComputeExceptionalControlFlowGraphDominanceEnabled()){
 			Log.info("Computing Control Flow Graph Dominator Trees");
 			AtlasSet<Node> functions = Query.resolve(null, Query.universe().nodes(XCSG.Function).eval().nodes());
 			SubMonitor task = SubMonitor.convert(monitor, (int) functions.size());
 			int functionsCompleted = 0;
 			for(Node function : functions){
 				Q cfg;
-				if(CommonsPreferences.isComputeControlFlowGraphDominanceTreesEnabled()){
+				if(CommonsPreferences.isComputeControlFlowGraphDominanceEnabled()){
 					cfg = CommonQueries.cfg(function);
 				} else {
 					cfg = CommonQueries.excfg(function);
@@ -142,7 +144,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 		SandboxHashSet<SandboxEdge> treeEdges = new SandboxHashSet<SandboxEdge>(sandbox);
 		SandboxGraph dominance = computeSandboxedDominance(sandbox, ucfg);
 		for(SandboxEdge edge : dominance.edges()){
-			if(edge.taggedWith(IMMEDIATE_FORWARD_DOMINANCE_EDGE)){
+			if(edge.taggedWith(POST_DOMINANCE_EDGE)){
 				treeEdges.add(edge);
 			}
 		}
@@ -186,12 +188,12 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 			SandboxNode sandboxFromNode = sandbox.addNode(fromNode);
 			for(Node toNode : entry.getValue()){
 				SandboxNode sandboxToNode = sandbox.addNode(toNode);
-				SandboxGraph forwardDominanceEdges = sandbox.toGraph(sandbox.universe().edges(IMMEDIATE_FORWARD_DOMINANCE_EDGE));
+				SandboxGraph forwardDominanceEdges = sandbox.toGraph(sandbox.universe().edges(POST_DOMINANCE_EDGE));
 				SandboxEdge forwardDominanceEdge = forwardDominanceEdges.betweenStep(sandboxFromNode, sandboxToNode).edges().one();
 				if(forwardDominanceEdge == null){
 					forwardDominanceEdge = sandbox.createEdge(sandboxFromNode, sandboxToNode);
-					forwardDominanceEdge.tag(IMMEDIATE_FORWARD_DOMINANCE_EDGE);
-					forwardDominanceEdge.putAttr(XCSG.name, IMMEDIATE_FORWARD_DOMINANCE_EDGE);
+					forwardDominanceEdge.tag(POST_DOMINANCE_EDGE);
+					forwardDominanceEdge.putAttr(XCSG.name, POST_DOMINANCE_EDGE);
 				}
 				dominanceEdges.add(forwardDominanceEdge);
 			}
@@ -217,7 +219,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	}
 	
 	/**
-	 * Returns the dominator tree
+	 * Returns the post dominance graph
 	 * 
 	 * Note this method will compute both the dominance frontier and the
 	 * dominator tree. If you want both edges, call the
@@ -226,11 +228,11 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	 * @param ucfg
 	 * @return
 	 */
-	public static Graph computeForwardDominatorTree(UniqueEntryExitGraph ucfg){
+	public static Graph computePostDominance(UniqueEntryExitGraph ucfg){
 		AtlasSet<Edge> treeEdges = new AtlasHashSet<Edge>();
 		Graph dominance = computeDominance(ucfg);
 		for(Edge edge : dominance.edges()){
-			if(edge.taggedWith(IMMEDIATE_FORWARD_DOMINANCE_EDGE)){
+			if(edge.taggedWith(POST_DOMINANCE_EDGE)){
 				treeEdges.add(edge);
 			}
 		}
@@ -266,22 +268,23 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	 */
 	public static Graph computeDominance(UniqueEntryExitGraph ucfg) {
 		DominanceAnalysisHelper dominanceAnalysis = new DominanceAnalysisHelper(ucfg, true);
-		// compute the dominator tree
+		// compute the post-dominators
 		Multimap<Node> dominanceTree = dominanceAnalysis.getDominatorTree();
 		AtlasSet<Edge> dominanceEdges = new AtlasHashSet<Edge>();
 		for(Entry<Node, Set<Node>> entry : dominanceTree.entrySet()){
 			Node fromNode = entry.getKey();
 			for(Node toNode : entry.getValue()){
-				Q forwardDominanceEdges = Common.universe().edges(IMMEDIATE_FORWARD_DOMINANCE_EDGE);
+				Q forwardDominanceEdges = Common.universe().edges(POST_DOMINANCE_EDGE);
 				Edge forwardDominanceEdge = forwardDominanceEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().one();
 				if(forwardDominanceEdge == null){
 					forwardDominanceEdge = Graph.U.createEdge(fromNode, toNode);
-					forwardDominanceEdge.tag(IMMEDIATE_FORWARD_DOMINANCE_EDGE);
-					forwardDominanceEdge.putAttr(XCSG.name, IMMEDIATE_FORWARD_DOMINANCE_EDGE);
+					forwardDominanceEdge.tag(POST_DOMINANCE_EDGE);
+					forwardDominanceEdge.putAttr(XCSG.name, POST_DOMINANCE_EDGE);
 				}
 				dominanceEdges.add(forwardDominanceEdge);
 			}
 		}
+		
 		// compute the dominance frontier
 		Multimap<Node> dominanceFrontier = dominanceAnalysis.getDominanceFrontiers();
 		for(Entry<Node, Set<Node>> entry : dominanceFrontier.entrySet()){
@@ -297,6 +300,21 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 				dominanceEdges.add(dominanceFrontierEdge);
 			}
 		}
+		
+		// compute the immediate dominators (idoms)
+		for(Entry<Node,Node> entry : dominanceAnalysis.getIdoms().entrySet()) {
+			Node fromNode = entry.getKey();
+			Node toNode = entry.getValue();
+			Q idomEdges = Common.universe().edges(IMMEDIATE_DOMINANCE_EDGE);
+			Edge idomEdge = idomEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().one();
+			if(idomEdge == null){
+				idomEdge = Graph.U.createEdge(fromNode, toNode);
+				idomEdge.tag(IMMEDIATE_DOMINANCE_EDGE);
+				idomEdge.putAttr(XCSG.name, IMMEDIATE_DOMINANCE_EDGE);
+			}
+			dominanceEdges.add(idomEdge);
+		}
+		
 		return Common.toQ(dominanceEdges).eval();
 	}
 

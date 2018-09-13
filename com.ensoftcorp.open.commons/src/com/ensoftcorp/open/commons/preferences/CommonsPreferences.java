@@ -94,16 +94,16 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	/**
 	 * Enable/disable computing control flow graph dominance trees
 	 */
-	public static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES = "COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES";
-	public static final Boolean COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT = false;
-	private static boolean computeControlFlowGraphDominanceTreesValue = COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT;
+	public static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE = "COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE";
+	public static final Boolean COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT = false;
+	private static boolean computeControlFlowGraphDominanceValue = COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT;
 	
 	/**
 	 * Configures dominance analysis
 	 */
-	public static void enableComputeControlFlowGraphDominanceTrees(boolean enabled){
+	public static void enableComputeControlFlowGraphDominance(boolean enabled){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, enabled);
+		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE, enabled);
 		loadPreferences();
 	}
 	
@@ -111,11 +111,11 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	 * Returns true if dominance analysis is enabled
 	 * @return
 	 */
-	public static boolean isComputeControlFlowGraphDominanceTreesEnabled(){
+	public static boolean isComputeControlFlowGraphDominanceEnabled(){
 		if(!initialized){
 			loadPreferences();
 		}
-		return computeControlFlowGraphDominanceTreesValue;
+		return computeControlFlowGraphDominanceValue;
 	}
 	
 	/**
@@ -123,22 +123,22 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	 */
 	public static final String COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES = "COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES";
 	public static final Boolean COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT = false;
-	private static boolean computeExceptionalControlFlowGraphDominanceTreesValue = COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT;
+	private static boolean computeExceptionalControlFlowGraphDominanceValue = COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT;
 	
 	/**
 	 * Configures inference rule logging
 	 */
-	public static void enableComputeExceptionalControlFlowGraphDominanceTrees(boolean enabled){
+	public static void enableComputeExceptionalControlFlowGraphDominance(boolean enabled){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, enabled);
 		loadPreferences();
 	}
 	
-	public static boolean isComputeExceptionalControlFlowGraphDominanceTreesEnabled(){
+	public static boolean isComputeExceptionalControlFlowGraphDominanceEnabled(){
 		if(!initialized){
 			loadPreferences();
 		}
-		return computeExceptionalControlFlowGraphDominanceTreesValue;
+		return computeExceptionalControlFlowGraphDominanceValue;
 	}
 	
 	/**
@@ -193,7 +193,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		preferences.setDefault(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
 //		preferences.setDefault(INITIALIZE_ANALYSIS_PROPERTIES, INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT);
 		preferences.setDefault(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
-		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
+		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT);
 		preferences.setDefault(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
 		preferences.setDefault(DISPLAY_FILTER_VIEW_RESULT_CONTAINERS, DISPLAY_FILTER_VIEW_RESULT_CONTAINERS_DEFAULT);
@@ -207,7 +207,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		preferences.setValue(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
 //		preferences.setValue(INITIALIZE_ANALYSIS_PROPERTIES, INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT);
 		preferences.setValue(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
-		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
+		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT);
 		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
 		preferences.setValue(DISPLAY_FILTER_VIEW_RESULT_CONTAINERS, DISPLAY_FILTER_VIEW_RESULT_CONTAINERS_DEFAULT);
@@ -223,8 +223,8 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 			debugLoggingValue = preferences.getBoolean(DEBUG_LOGGING);
 			normalizeGraphElementAddressesValue = preferences.getBoolean(NORMALIZE_GRAPH_ELEMENT_ADDRESSES);
 //			initializeAnalysisPropertiesValue = preferences.getBoolean(INITIALIZE_ANALYSIS_PROPERTIES);
-			computeControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
-			computeExceptionalControlFlowGraphDominanceTreesValue = preferences.getBoolean(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
+			computeControlFlowGraphDominanceValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE);
+			computeExceptionalControlFlowGraphDominanceValue = preferences.getBoolean(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			addMasterEntryExitContainmentRelationships = preferences.getBoolean(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS);
 			displayFilterViewResultContainersValue = preferences.getBoolean(DISPLAY_FILTER_VIEW_RESULT_CONTAINERS);
 		} catch (Exception e){
