@@ -28,6 +28,13 @@ import com.ensoftcorp.open.commons.sandbox.SandboxHashSet;
 import com.ensoftcorp.open.commons.sandbox.SandboxNode;
 import com.ensoftcorp.open.commons.xcsg.XCSG_Extension;
 
+/**
+ * Primary interface for computing dominance relationships. This also acts as a
+ * code map stage to pre-compute dominance relationships for control flow
+ * graphs.
+ * 
+ * @author Ben Holland
+ */
 public class DominanceAnalysis extends PrioritizedCodemapStage {
 
 	/**
@@ -75,6 +82,11 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	 * Wikipedia: The dominance frontier of a node d is the set of all nodes n
 	 * such that d dominates an immediate predecessor of n, but d does not
 	 * strictly dominate n. It is the set of nodes where d's dominance stops.
+	 * Note that analogous to the definition of dominance above, a node z is said
+	 * to post-dominate a node n if all paths to the exit node of the graph starting
+	 * at n must go through z. Similarly, the immediate post-dominator of a node n
+	 * is the postdominator of n that doesn't strictly postdominate any other strict
+	 * postdominators of n.
 	 */
 	@XCSG_Extension
 	public static final String POST_DOMINANCE_FRONTIER_EDGE = "pdom-frontier";
@@ -99,7 +111,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 
 	@Override
 	public String getDisplayName() {
-		return "Computing Control Flow Graph Dominator Trees";
+		return "Computing Control Flow Graph Dominance";
 	}
 
 	@Override
