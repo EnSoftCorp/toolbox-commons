@@ -283,10 +283,10 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 		// compute the post-dominance frontier
 		PostDominatorTree.Multimap<Node> postDominanceFrontier = postDominatorTree.getDominanceFrontiers();
 		for(Entry<Node, Set<Node>> entry : postDominanceFrontier.entrySet()){
-			Node toNode = entry.getKey();
-			SandboxNode sandboxToNode = sandbox.addNode(toNode);
-			for(Node fromNode : entry.getValue()){
-				SandboxNode sandboxFromNode = sandbox.addNode(fromNode);
+			Node fromNode = entry.getKey();
+			SandboxNode sandboxFromNode = sandbox.addNode(fromNode);
+			for(Node toNode : entry.getValue()){
+				SandboxNode sandboxToNode = sandbox.addNode(toNode);
 				SandboxGraph dominanceFrontierEdges = sandbox.toGraph(sandbox.universe().edges(POST_DOMINANCE_FRONTIER_EDGE));
 				SandboxEdge dominanceFrontierEdge = dominanceFrontierEdges.betweenStep(sandboxFromNode, sandboxToNode).edges().one();
 				if(dominanceFrontierEdge == null){
@@ -426,8 +426,8 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 		// compute the post-dominance frontier
 		PostDominatorTree.Multimap<Node> postDominanceFrontier = postDominatorTree.getDominanceFrontiers();
 		for(Entry<Node, Set<Node>> entry : postDominanceFrontier.entrySet()){
-			Node toNode = entry.getKey();
-			for(Node fromNode : entry.getValue()){
+			Node fromNode = entry.getKey();
+			for(Node toNode : entry.getValue()){
 				Q dominanceFrontierEdges = Common.universe().edges(POST_DOMINANCE_FRONTIER_EDGE);
 				Edge dominanceFrontierEdge = dominanceFrontierEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().one();
 				if(dominanceFrontierEdge == null){
