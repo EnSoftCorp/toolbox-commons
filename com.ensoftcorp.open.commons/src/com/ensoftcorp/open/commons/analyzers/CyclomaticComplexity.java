@@ -63,10 +63,13 @@ public class CyclomaticComplexity extends Property {
 		} else {
 			cfg = CommonQueries.cfg(function).eval();
 		}
-		long edgesCount = cfg.edges().size();
-		long nodesConut = cfg.nodes().size();
-		long numExitPoints = cfg.nodes().taggedWithAny(XCSG.controlFlowExitPoint).size();
-		return (int) (edgesCount - nodesConut + 2 * numExitPoints);
+		long nodesCount = cfg.nodes().size();
+		if(nodesCount == 0) {
+			return 0;
+		} else {
+			long edgesCount = cfg.edges().size();
+			return (int) (edgesCount - nodesCount + 2);
+		}
 	}
 	
 	/**
