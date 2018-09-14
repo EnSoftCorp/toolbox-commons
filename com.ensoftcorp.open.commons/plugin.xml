@@ -21,9 +21,10 @@
     <extension point="com.ensoftcorp.atlas.ui.smartViewScript">
       <script class="com.ensoftcorp.open.commons.ui.views.smart.UniversalGraphExplorerSmartView" />
       <script class="com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView" />
-      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowImmediateDominanceSmartView" />
-      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowPostDominanceSmartView" />
       <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceFrontierSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceTreeSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowPostDominanceFrontierSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowPostDominanceTreeSmartView" />
    </extension>
 
    <!-- defines the tooblox commons handler actions -->

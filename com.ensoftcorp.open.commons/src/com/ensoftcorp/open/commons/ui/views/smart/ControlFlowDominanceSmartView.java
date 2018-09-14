@@ -1,6 +1,10 @@
 package com.ensoftcorp.open.commons.ui.views.smart;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
+import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.query.Q;
@@ -18,6 +22,7 @@ import com.ensoftcorp.open.commons.algorithms.UniqueEntryExitControlFlowGraph;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.CodePainter.UnstyledFrontierResult;
+import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
 
 public abstract class ControlFlowDominanceSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
@@ -51,11 +56,21 @@ public abstract class ControlFlowDominanceSmartView extends FilteringAtlasSmartV
 	}
 	
 	private Q getCFG(Q functions){
-		if(INCLUDE_EXCEPTIONAL_CONTROL_FLOW){
-			return CommonQueries.excfg(functions);
-		} else {
-			return CommonQueries.cfg(functions);
+		AtlasSet<Node> nodes = new AtlasHashSet<Node>();
+		AtlasSet<Edge> edges = new AtlasHashSet<Edge>();
+		for(Node function : functions.eval().nodes()) {
+			Q cfg;
+			if(INCLUDE_EXCEPTIONAL_CONTROL_FLOW){
+				cfg = CommonQueries.excfg(function);
+			} else {
+				cfg = CommonQueries.cfg(function);
+			}
+			UniqueEntryExitControlFlowGraph ucfg = new UniqueEntryExitControlFlowGraph(cfg.eval(), CommonsPreferences.isMasterEntryExitContainmentRelationshipsEnabled());
+			Graph graph = ucfg.getGraph();
+			nodes.addAll(graph.nodes());
+			edges.addAll(graph.edges());
 		}
+		return Common.toQ(new UncheckedGraph(nodes,edges));
 	}
 	
 	public Q convertSelection(Q filteredSelections){
@@ -103,9 +118,7 @@ public abstract class ControlFlowDominanceSmartView extends FilteringAtlasSmartV
 			Q cfgs = getCFG(containingFunctions);
 			
 			Q dominanceEdges = getDominanceEdges();
-			Q uniqueEntryExitEdges = Common.universe().edges(UniqueEntryExitControlFlowGraph.UniqueEntryExitCFG_Edge);
 			Q dominance = cfgs.retainNodes().induce(dominanceEdges);
-			dominance = dominance.union(dominance.reverseStepOn(uniqueEntryExitEdges), dominance.forwardStepOn(uniqueEntryExitEdges));
 			
 			UnstyledFrontierResult frontier = computeFrontierResult(selectedStatements, dominance, reverse, forward);
 			
@@ -131,9 +144,7 @@ public abstract class ControlFlowDominanceSmartView extends FilteringAtlasSmartV
 			Q allCFGs = cfgs.union(selectedFunctionCFGs);
 
 			Q dominanceEdges = getDominanceEdges();
-			Q uniqueEntryExitEdges = Common.universe().edges(UniqueEntryExitControlFlowGraph.UniqueEntryExitCFG_Edge);
 			Q dominance = allCFGs.retainNodes().induce(dominanceEdges);
-			dominance = dominance.union(dominance.reverseStepOn(uniqueEntryExitEdges), dominance.forwardStepOn(uniqueEntryExitEdges));
 			
 			UnstyledFrontierResult frontier = computeFrontierResult(selectedStatements, dominance, reverse, forward);
 			
