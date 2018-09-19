@@ -128,7 +128,10 @@ public class PostDominatorTree {
 	public Map<Node, Node> getIdoms() {
 		return this.idom;
 	}
-
+    
+	public Map<Node, Integer> getSdoms() {
+		return this.semi;
+	}
 	/**
 	 * Compute and/or fetch the dominator tree as a Multimap.
 	 * 
