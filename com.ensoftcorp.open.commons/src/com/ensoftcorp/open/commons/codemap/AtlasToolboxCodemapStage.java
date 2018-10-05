@@ -54,6 +54,7 @@ public class AtlasToolboxCodemapStage implements ToolboxIndexingStage {
 						if(time < 60) {
 							Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "s");
 						} else {
+							time = (stop - start)/1000.0/1000.0/1000.0/60.0; // m
 							if(time < 60) {
 								Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "m");
 							} else {
