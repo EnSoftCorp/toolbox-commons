@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.commons.codemap;
 
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,14 +41,30 @@ public class AtlasToolboxCodemapStage implements ToolboxIndexingStage {
 			while(!codemapStages.isEmpty()){
 				PrioritizedCodemapStage codemapStage = getDependencySatisfiedCodemapStage(codemapStages, completedCodemapStages);
 				monitor.setTaskName(codemapStage.getDisplayName());
-				long elapsed = System.currentTimeMillis();
 				try {
+					long start = System.nanoTime();
 					codemapStage.performIndexing(monitor);
+					long stop = System.nanoTime();
+					DecimalFormat decimalFormat = new DecimalFormat("#.##");
+					double time = (stop - start)/1000.0/1000.0; // ms
+					if(time < 100) {
+						Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "ms");
+					} else {
+						time = (stop - start)/1000.0/1000.0/1000.0; // s
+						if(time < 60) {
+							Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "s");
+						} else {
+							if(time < 60) {
+								Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "m");
+							} else {
+								time = (stop - start)/1000.0/1000.0/1000.0/60.0/60.0; // h
+								Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "h");
+							}
+						}
+					}
 				} catch (Throwable t){
 					Log.error(codemapStage.getDisplayName() + " failed.", t);
 				}
-				elapsed = System.currentTimeMillis() - elapsed;
-				Log.debug("Codemap time: " + codemapStage.getDisplayName() + " " + elapsed + "ms");
 				codemapStages.remove(codemapStage);
 				completedCodemapStages.add(codemapStage.getIdentifier());
 			}
