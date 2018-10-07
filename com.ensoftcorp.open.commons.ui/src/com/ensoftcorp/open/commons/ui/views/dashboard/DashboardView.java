@@ -314,8 +314,8 @@ public class DashboardView extends GraphSelectionListenerView {
 		};
 		refreshAction.setText("Refresh");
 		refreshAction.setToolTipText("Refresh");
-		ImageDescriptor enabledRelaunchIcon = ImageDescriptor.createFromImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/enabled_relaunch_button.png"));
-		ImageDescriptor disabledRelaunchIcon = ImageDescriptor.createFromImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/disabled_relaunch_button.png"));
+		ImageDescriptor enabledRelaunchIcon = ImageDescriptor.createFromImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons.ui", "icons/enabled_relaunch_button.png"));
+		ImageDescriptor disabledRelaunchIcon = ImageDescriptor.createFromImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons.ui", "icons/disabled_relaunch_button.png"));
 		refreshAction.setImageDescriptor(enabledRelaunchIcon);
 		refreshAction.setDisabledImageDescriptor(disabledRelaunchIcon);
 		refreshAction.setHoverImageDescriptor(enabledRelaunchIcon);

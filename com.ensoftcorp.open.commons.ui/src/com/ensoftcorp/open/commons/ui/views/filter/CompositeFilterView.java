@@ -54,7 +54,7 @@ import com.ensoftcorp.open.commons.xcsg.XCSGConstantNameValueMapping;
 public class CompositeFilterView extends ViewPart {
 	
 	public CompositeFilterView() {
-		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/toolbox.gif"));
+		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons.ui", "icons/toolbox.gif"));
 		setPartName("Composite Filter View");
 		
 		// load plugin filter contributions

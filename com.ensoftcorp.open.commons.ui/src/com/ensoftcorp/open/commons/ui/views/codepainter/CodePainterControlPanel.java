@@ -114,7 +114,7 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 	
 	public CodePainterControlPanel(){
 		setPartName("Code Painter Control Panel");
-		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/brush.gif"));
+		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons.ui", "icons/brush.gif"));
 		CodePainters.loadCodePainterContributions();
 		ColorPalettes.loadColorPaletteContributions();
 	}
@@ -297,13 +297,13 @@ public class CodePainterControlPanel extends GraphSelectionProviderView {
 						child = new TreeItem(category, SWT.NONE);
 					}
 					child.setText(categoryName);
-					child.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/folder.gif"));
+					child.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons.ui", "icons/folder.gif"));
 					category = child;
 				}
 			}
 			TreeItem codePainterItem = new TreeItem(category, SWT.NONE);
 			codePainterItem.setText(codePainter.getName());
-			codePainterItem.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/brush.gif"));
+			codePainterItem.setImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons.ui", "icons/brush.gif"));
 			codePainterItem.setData(codePainter);
 		}
 		

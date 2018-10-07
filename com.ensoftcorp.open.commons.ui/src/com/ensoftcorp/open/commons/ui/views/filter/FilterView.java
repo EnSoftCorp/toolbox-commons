@@ -90,7 +90,7 @@ public class FilterView extends ViewPart {
 
 	public FilterView() {
 		setPartName("Filter View");
-		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons", "icons/toolbox.gif"));
+		setTitleImage(ResourceManager.getPluginImage("com.ensoftcorp.open.commons.ui", "icons/toolbox.gif"));
 		
 		// load plugin filter contributions
 		Filters.loadFilterContributions();
