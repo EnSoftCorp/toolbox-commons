@@ -22,8 +22,8 @@ import com.ensoftcorp.open.commons.analysis.CommonQueries;
  * 
  * @author Payas Awadhutkar
  */
-
 public class InterproceduralControlFlowGraph {
+	
 	private static final String ICFGEdge = "InterproceduralControlFlow_Edge";
 	private static Q controlFlow = Common.universe().edgesTaggedWithAny(XCSG.ControlFlow_Edge,ICFGEdge);
 	
@@ -70,8 +70,7 @@ public class InterproceduralControlFlowGraph {
 						if(!processedNodes.contains(successorNode)) {
 							nodesToProcess.add(successorNode);
 						}
-					}
-					else {
+					} else {
 						Q successoricfg = processCallSite(successorNodeQ);
 						icfgNodes.addAll(successoricfg.eval().nodes());
 						icfgEdges.addAll(successoricfg.eval().edges());
@@ -121,12 +120,11 @@ public class InterproceduralControlFlowGraph {
 								e.tag(ICFGEdge);
 								e.tag(XCSG.ControlFlow_Edge);
 							}
-						}
+						} 
 						if(!processedNodes.contains(successorNode)) {
 							nodesToProcess.add(successorNode);
 						}
-					}
-					else {
+					} else {
 						Q successoricfg = processCallSite(successorNodeQ);
 						icfgNodes.addAll(successoricfg.eval().nodes());
 						icfgEdges.addAll(successoricfg.eval().edges());
@@ -177,9 +175,8 @@ public class InterproceduralControlFlowGraph {
 				Q targeticfg = icfg(targetQ);
 				callsiteicfg = callsiteicfg.union(targeticfg);
 			}
-		}
-		else {
-			// Handle multiple callsites
+		} else {
+			// handle multiple callsites
 		}
 		return callsiteicfg;			
 	}
@@ -192,6 +189,6 @@ public class InterproceduralControlFlowGraph {
 			return true;
 		}
 		return false;
-		
 	}
+	
 }

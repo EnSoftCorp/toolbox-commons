@@ -1,4 +1,4 @@
-package com.ensoftcorp.open.commons.algorithms.internal;
+package com.ensoftcorp.open.commons.algorithms.dominance;
 
 import java.util.HashSet;
 import java.util.Iterator;

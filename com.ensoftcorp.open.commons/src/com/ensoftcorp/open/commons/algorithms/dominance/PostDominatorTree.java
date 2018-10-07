@@ -1,5 +1,3 @@
-package com.ensoftcorp.open.commons.algorithms.internal;
-
 /*
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
@@ -15,9 +13,10 @@ package com.ensoftcorp.open.commons.algorithms.internal;
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *  
- *  This code is adapted from: https://svn.apache.org/repos/asf/flex/falcon/trunk/compiler/src/org/apache/flex/abc/graph/algorithms/DominatorTree.java (Revision 1840868)
+ *
  */
+package com.ensoftcorp.open.commons.algorithms.dominance;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,49 +29,23 @@ import java.util.Set;
 import java.util.Stack;
 
 import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.open.commons.algorithms.UniqueEntryExitGraph;
 
 /**
  * An implementation of the O(n log n) Lengauer-Tarjan algorithm for building
- * the
- * <a href="http://en.wikipedia.org/wiki/Dominator_%28graph_theory%29">dominator
- * tree</a> of a graph.
+ * the <a href="http://en.wikipedia.org/wiki/Dominator_%28graph_theory%29">dominator
+ * tree</a> of a {@link ControlFlowGraph cfg}.
+ * 
+ * Adapted from: https://svn.apache.org/repos/asf/flex/falcon/trunk/compiler/src/org/apache/flex/abc/graph/algorithms/DominatorTree.java
+ * NOTE: This is an older revision of com.ensoftcorp.open.commons.algorithms.internal.DominatorTree, which specifically dealt with computing post-dominance relationships
+ * TODO: CAFEFULLY! Merge this code with the DominatorTree code...BE VERY CAFEFUL YOU COULD BREAK A LOT OF THINGS!
  */
-public class DominatorTree {
-	
+public class PostDominatorTree {
 	/**
-	 * Unique Entry/Exit Graph to operate on
+	 * Control flow graph for dominance computation
 	 */
 	private UniqueEntryExitGraph graph;
-	
-	/**
-	 * Construct a DominatorTree from a root.
-	 * 
-	 * @param root
-	 *            the root of the graph.
-	 */
-	public DominatorTree(UniqueEntryExitGraph graph) {
-		this(graph, new AtlasHashSet<Node>());
-	}
-
-	/**
-	 * Construct a DominatorTree from a collection of "roots."
-	 * 
-	 * @param explicitRoots
-	 *            the collection of roots; one of these is the true root of the
-	 *            flowgraph, the others are exception handlers that would otherwise
-	 *            be unreachable.
-	 */
-	public DominatorTree(UniqueEntryExitGraph graph, AtlasSet<Node> explicitRoots) {
-		this.graph = graph;
-		AtlasSet<Node> roots = new AtlasHashSet<Node>();
-		roots.add(graph.getEntryNode());
-		roots.addAll(explicitRoots);
-		this.dfs(roots);
-		this.computeDominators();
-	}
 
 	/**
 	 * Semidominator numbers by block.
@@ -87,7 +60,7 @@ public class DominatorTree {
 	/**
 	 * Predecessors by block.
 	 */
-	private Multimap<Node> pred = new Multimap<Node>();
+	private PostDominatorTree.Multimap<Node> pred = new PostDominatorTree.Multimap<Node>();
 
 	/**
 	 * Blocks in DFS order; used to look up a block from its semidominator
@@ -98,7 +71,7 @@ public class DominatorTree {
 	/**
 	 * Blocks by semidominator block.
 	 */
-	private Multimap<Node> bucket = new Multimap<Node>();
+	private PostDominatorTree.Multimap<Node> bucket = new PostDominatorTree.Multimap<Node>();
 
 	/**
 	 * idominator map, built iteratively.
@@ -108,24 +81,24 @@ public class DominatorTree {
 	/**
 	 * Dominance frontiers of this dominator tree, built on demand.
 	 */
-	private Multimap<Node> dominanceFrontiers = null;
+	private PostDominatorTree.Multimap<Node> dominanceFrontiers = null;
 
 	/**
 	 * Dominator tree, built on demand from the idominator map.
 	 */
-	private Multimap<Node> dominatorTree = null;
+	private PostDominatorTree.Multimap<Node> dominatorTree = null;
 
 	/**
 	 * Auxiliary data structure used by the O(m log n) eval/link implementation:
-	 * ancestor relationships in the forest (the processed tree as it's built back
-	 * up).
+	 * ancestor relationships in the forest (the processed tree as it's built
+	 * back up).
 	 */
 	private Map<Node, Node> ancestor = new HashMap<Node, Node>();
 
 	/**
 	 * Auxiliary data structure used by the O(m log n) eval/link implementation:
-	 * node with least semidominator seen during traversal of a path from node to
-	 * subtree root in the forest.
+	 * node with least semidominator seen during traversal of a path from node
+	 * to subtree root in the forest.
 	 */
 	private Map<Node, Node> label = new HashMap<Node, Node>();
 
@@ -135,39 +108,58 @@ public class DominatorTree {
 	private LinkedList<Node> topologicalTraversalImpl = null;
 
 	/**
-	 * Create and/or fetch the map of immediate dominators.
+	 * Construct a DominatorTree from a root.
 	 * 
-	 * @return the map from each block to its immediate dominator (if it has one).
+	 * @param root
+	 *            the root of the graph.
+	 */
+	public PostDominatorTree(UniqueEntryExitGraph graph) {
+		this.graph = graph;
+		this.dfs(this.graph.getExitNode());
+		this.computeDominators();
+	}
+
+	/**
+	 * Returns the map of immediate dominators.
+	 * 
+	 * @return the map from each block to its immediate dominator (if it has
+	 *         one).
 	 */
 	public Map<Node, Node> getIdoms() {
 		return this.idom;
 	}
-
+    
+	/**
+	 * Returns the map of semi-dominators
+	 */
+	public Map<Node, Integer> getSdoms() {
+		return this.semi;
+	}
+	
 	/**
 	 * Compute and/or fetch the dominator tree as a Multimap.
 	 * 
 	 * @return the dominator tree.
 	 */
-	public Multimap<Node> getDominatorTree() {
+	public PostDominatorTree.Multimap<Node> getDominatorTree() {
 		if (this.dominatorTree == null) {
-			this.dominatorTree = new Multimap<Node>();
-
-			for (Node node : this.idom.keySet())
+			this.dominatorTree = new PostDominatorTree.Multimap<Node>();
+			for (Node node : this.idom.keySet()){
 				dominatorTree.get(this.idom.get(node)).add(node);
+			}
 		}
-
 		return this.dominatorTree;
 	}
 
 	/**
 	 * Compute and/or fetch the dominance frontiers as a Multimap.
 	 * 
-	 * @return a Multimap where the set of nodes mapped to each key node is the set
-	 *         of nodes in the key node's dominance frontier.
+	 * @return a Multimap where the set of nodes mapped to each key node is the
+	 *         set of nodes in the key node's dominance frontier.
 	 */
-	public Multimap<Node> getDominanceFrontiers() {
+	public PostDominatorTree.Multimap<Node> getDominanceFrontiers() {
 		if (this.dominanceFrontiers == null) {
-			this.dominanceFrontiers = new Multimap<Node>();
+			this.dominanceFrontiers = new PostDominatorTree.Multimap<Node>();
 
 			getDominatorTree(); // touch the dominator tree
 
@@ -175,16 +167,16 @@ public class DominatorTree {
 				Set<Node> dfx = this.dominanceFrontiers.get(x);
 
 				// Compute DF(local)
-				for (Node y : graph.getSuccessors(x)) {
-					if (idom.get(y) != x) {
+				for (Node y : getSuccessors(x)){
+					if (idom.get(y) != x){
 						dfx.add(y);
 					}
 				}
 
 				// Compute DF(up)
-				for (Node z : this.dominatorTree.get(x)) {
-					for (Node y : this.dominanceFrontiers.get(z)) {
-						if (idom.get(y) != x) {
+				for (Node z : this.dominatorTree.get(x)){
+					for (Node y : this.dominanceFrontiers.get(z)){
+						if (idom.get(y) != x){
 							dfx.add(y);
 						}
 					}
@@ -196,8 +188,8 @@ public class DominatorTree {
 	}
 
 	/**
-	 * Create and/or fetch a topological traversal of the dominator tree, such that
-	 * for every node, idom(node) appears before node.
+	 * Create and/or fetch a topological traversal of the dominator tree, such
+	 * that for every node, idom(node) appears before node.
 	 * 
 	 * @return the topological traversal of the dominator tree, as an immutable
 	 *         List.
@@ -207,8 +199,8 @@ public class DominatorTree {
 	}
 
 	/**
-	 * Create and/or fetch a reverse topological traversal of the dominator tree,
-	 * such that for every node, node appears before idom(node).
+	 * Create and/or fetch a reverse topological traversal of the dominator
+	 * tree, such that for every node, node appears before idom(node).
 	 * 
 	 * @return a reverse topological traversal of the dominator tree, as an
 	 *         immutable List.
@@ -226,11 +218,11 @@ public class DominatorTree {
 	 * Depth-first search the graph and initialize data structures.
 	 * 
 	 * @param roots
-	 *            the root(s) of the flowgraph. One of these is the start block, the
-	 *            others are exception handlers.
+	 *            the root(s) of the flowgraph. One of these is the start block,
+	 *            the others are exception handlers.
 	 */
-	private void dfs(AtlasSet<Node> roots) {
-		Iterator<Node> it = new DepthFirstPreorderIterator(graph, roots);
+	private void dfs(Node entryNode) {
+		Iterator<Node> it = new InvertedDepthFirstPreorderIterator(this.graph, entryNode);
 
 		while (it.hasNext()) {
 			Node node = it.next();
@@ -242,7 +234,7 @@ public class DominatorTree {
 				semi.put(node, semi.size());
 				label.put(node, node);
 
-				for (Node child : graph.getSuccessors(node)) {
+				for (Node child : getSuccessors(node)) {
 					pred.get(child).add(node);
 					if (!semi.containsKey(child)) {
 						parent.put(child, node);
@@ -265,7 +257,7 @@ public class DominatorTree {
 			// step 2: compute semidominators
 			// for each v in pred(w)...
 			int semidominator = semi.get(w);
-			for (Node v : pred.get(w)) {
+			for (Node v : pred.get(w)){
 				semidominator = Math.min(semidominator, semi.get(eval(v)));
 			}
 
@@ -279,7 +271,7 @@ public class DominatorTree {
 			// for each v in bucket(parent(w)) ...
 			for (Node v : bucket.get(p)) {
 				Node u = eval(v);
-				if (semi.get(u) < semi.get(v)) {
+				if (semi.get(u) < semi.get(v)){
 					idom.put(v, u);
 				} else {
 					idom.put(v, p);
@@ -292,7 +284,7 @@ public class DominatorTree {
 		// step 4: explicitly compute idominators
 		for (int i = 1; i <= lastSemiNumber; i++) {
 			Node w = vertex.get(i);
-			if (idom.get(w) != vertex.get((semi.get(w)))) {
+			if (idom.get(w) != vertex.get((semi.get(w)))){
 				idom.put(w, idom.get(idom.get(w)));
 			}
 		}
@@ -304,9 +296,9 @@ public class DominatorTree {
 	 * 
 	 * @param v
 	 *            - the node of interest.
-	 * @return "If v is the root of a tree in the forest, return v. Otherwise, let r
-	 *         be the root of the tree which contains v. Return any vertex u != r of
-	 *         miniumum semi(u) on the path r-*v."
+	 * @return "If v is the root of a tree in the forest, return v. Otherwise,
+	 *         let r be the root of the tree which contains v. Return any vertex
+	 *         u != r of minimum semi(u) on the path r-*v."
 	 */
 	private Node eval(Node v) {
 		// This version of Lengauer-Tarjan implements
@@ -316,8 +308,8 @@ public class DominatorTree {
 	}
 
 	/**
-	 * Traverse ancestor pointers back to a subtree root, then propagate the least
-	 * semidominator seen along this path through the "label" map.
+	 * Traverse ancestor pointers back to a subtree root, then propagate the
+	 * least semidominator seen along this path through the "label" map.
 	 */
 	private void compress(Node v) {
 		Stack<Node> worklist = new Stack<Node>();
@@ -339,7 +331,7 @@ public class DominatorTree {
 			Node descendent = worklist.pop();
 			int currentSemi = semi.get(label.get(descendent));
 
-			if (currentSemi > leastSemi) {
+			if (currentSemi > leastSemi){
 				label.put(descendent, label.get(ancestor));
 			} else {
 				leastSemi = currentSemi;
@@ -351,9 +343,9 @@ public class DominatorTree {
 	}
 
 	/**
-	 * Simple version of link(parent,child) simply links the child into the parent's
-	 * forest, with no attempt to balance the subtrees or otherwise optimize
-	 * searching.
+	 * Simple version of link(parent,child) simply links the child into the
+	 * parent's forest, with no attempt to balance the subtrees or otherwise
+	 * optimize searching.
 	 */
 	private void link(Node parent, Node child) {
 		this.ancestor.put(child, parent);
@@ -374,9 +366,8 @@ public class DominatorTree {
 		@SuppressWarnings("unchecked")
 		@Override
 		public Set<T> get(Object key) {
-			if (!this.containsKey(key)) {
+			if (!this.containsKey(key))
 				this.put((T) key, new HashSet<T>());
-			}
 
 			return super.get(key);
 		}
@@ -392,18 +383,19 @@ public class DominatorTree {
 	private LinkedList<Node> getToplogicalTraversalImplementation() {
 		if (this.topologicalTraversalImpl == null) {
 			this.topologicalTraversalImpl = new LinkedList<Node>();
-
 			for (Node node : this.vertex) {
 				int idx = this.topologicalTraversalImpl.indexOf(this.idom.get(node));
-
-				if (idx != -1) {
+				if (idx != -1){
 					this.topologicalTraversalImpl.add(idx + 1, node);
 				} else {
 					this.topologicalTraversalImpl.add(node);
 				}
 			}
 		}
-
 		return this.topologicalTraversalImpl;
+	}
+
+	private AtlasSet<Node> getSuccessors(Node node) {
+		return this.graph.getPredecessors(node);
 	}
 }

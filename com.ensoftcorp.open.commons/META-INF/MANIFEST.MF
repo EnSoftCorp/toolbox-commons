@@ -21,7 +21,7 @@ Require-Bundle:
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Export-Package: com.ensoftcorp.open.commons.algorithms,
- com.ensoftcorp.open.commons.algorithms.internal,
+ com.ensoftcorp.open.commons.algorithms.dominance,
  com.ensoftcorp.open.commons.analysis,
  com.ensoftcorp.open.commons.analyzers,
  com.ensoftcorp.open.commons.codemap,

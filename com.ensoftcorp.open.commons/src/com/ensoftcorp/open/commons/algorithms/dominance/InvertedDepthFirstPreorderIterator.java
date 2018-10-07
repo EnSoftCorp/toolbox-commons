@@ -18,7 +18,7 @@
  */
 // Adapted from: https://svn.apache.org/repos/asf/flex/falcon/trunk/compiler/src/org/apache/flex/abc/graph/algorithms/DepthFirstPreorderIterator.java
 
-package com.ensoftcorp.open.commons.algorithms.internal;
+package com.ensoftcorp.open.commons.algorithms.dominance;
 
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
