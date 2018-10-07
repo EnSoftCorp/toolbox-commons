@@ -1,7 +1,7 @@
 package com.ensoftcorp.open.commons.filters.rootset;
 
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 
 public class UniverseRootset extends FilterableRootset {
 
@@ -17,7 +17,7 @@ public class UniverseRootset extends FilterableRootset {
 
 	@Override
 	public Q getRootSet() {
-		return Common.universe();
+		return Query.universe();
 	}
 
 }

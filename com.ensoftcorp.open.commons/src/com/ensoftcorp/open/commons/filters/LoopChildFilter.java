@@ -3,7 +3,7 @@ package com.ensoftcorp.open.commons.filters;
 import java.util.Map;
 
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 
 /**
@@ -39,7 +39,7 @@ public class LoopChildFilter extends NodeFilter {
 		inputCFNodes = inputCFNodes.union(input.nodes(XCSG.DataFlow_Node).parent().nodes(XCSG.ControlFlow_Node));
 		
 		// loop children are connected by a loop child edge from the loop header to the control flow node
-		Q loopChildEdges = Common.universe().edges(XCSG.LoopChild);
+		Q loopChildEdges = Query.universe().edges(XCSG.LoopChild);
 		Q children = loopChildEdges.reverseStep(inputCFNodes).retainEdges().leaves();
 		
 		// include data flow nodes

@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Toolbox Commons User Interface
+Bundle-SymbolicName: com.ensoftcorp.open.commons.ui;singleton:=true
+Bundle-Version: 3.3.7.qualifier
+Bundle-Activator: com.ensoftcorp.open.commons.ui.Activator
+Bundle-Vendor: EnSoft Corp.
+Require-Bundle: com.ensoftcorp.open.commons;bundle-version="3.3.7"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Import-Package: com.ensoftcorp.open.commons.preferences
+Automatic-Module-Name: com.ensoftcorp.open.commons.ui
+Export-Package: com.ensoftcorp.open.commons.ui.components,
+ com.ensoftcorp.open.commons.ui.utilities,
+ org.eclipse.wb.swt

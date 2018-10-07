@@ -530,14 +530,14 @@ public abstract class CodePainter extends Configurable implements IResizableScri
 		Q result = Common.empty();
 		if (supportedNodeTags != null) {
 			if (supportedNodeTags.length > 0) {
-				result = result.union(new Q[] { input.nodesTaggedWithAny(supportedNodeTags).retainNodes() });
+				result = result.union(new Q[] { input.nodes(supportedNodeTags).retainNodes() });
 			} else {
 				result = result.union(new Q[] { input.retainNodes() });
 			}
 		}
 		if (supportedEdgeTags != null) {
 			if (supportedEdgeTags.length > 0) {
-				result = result.union(new Q[] { input.edgesTaggedWithAny(supportedEdgeTags).retainEdges() });
+				result = result.union(new Q[] { input.edges(supportedEdgeTags).retainEdges() });
 			} else {
 				result = result.union(new Q[] { input.retainEdges() });
 			}

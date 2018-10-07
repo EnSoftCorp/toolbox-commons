@@ -13,13 +13,12 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.preferences.AnalyzerPreferences;
-import com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView;
 
 public class Analyzers extends PrioritizedCodemapStage {
 
@@ -76,14 +75,15 @@ public class Analyzers extends PrioritizedCodemapStage {
 				long elapsed = System.currentTimeMillis();
 				
 				// TODO: how to set analyzer context? via preferences maybe?
-				List<Result> results = analyzer.getResults(Common.universe());
+				List<Result> results = analyzer.getResults(Query.universe());
 				
 				elapsed = System.currentTimeMillis() - elapsed;
 				Log.debug("Analyzer time: " + analyzer.getName() + " " + elapsed + "ms");
 				
 				cacheResults(analyzer, results);
 				
-				DashboardView.refreshRequired();
+				// TODO: create some sort of callback
+//				DashboardView.refreshRequired();
 			}
 		}
 	}

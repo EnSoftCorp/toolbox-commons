@@ -127,7 +127,7 @@ public class SandboxGraph {
 	}
 	
 	/**
-	 * A convenience method for nodesTaggedWithAny(String... tags)
+	 * A convenience method for nodes(String... tags)
 	 * 
 	 * @param tags
 	 * @return
@@ -181,7 +181,7 @@ public class SandboxGraph {
 	}
 	
 	/**
-	 * A convenience method for edgesTaggedWithAny(String... tags)
+	 * A convenience method for edges(String... tags)
 	 * @param tags
 	 * @return
 	 */

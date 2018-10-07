@@ -3,7 +3,7 @@ package com.ensoftcorp.open.commons.filters;
 import java.util.Map;
 
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 
@@ -35,7 +35,7 @@ public class ExceptionalFinallyChildFilter extends NodeFilter {
 		checkParameters(parameters);
 		input = super.filterInput(input, parameters);
 
-		Q finallyBlockContents = CommonQueries.localDeclarations(Common.universe().nodes(XCSG.FinallyBlock));
+		Q finallyBlockContents = CommonQueries.localDeclarations(Query.universe().nodes(XCSG.FinallyBlock));
 		
 		// find exceptional finally children
 		Q children = finallyBlockContents.intersection(input);

@@ -56,7 +56,7 @@ public class PathEnumerator {
 	 * @return
 	 */
 	public static List<List<Node>> getPaths(Q cfg){
-		return getPaths(cfg, cfg.nodesTaggedWithAny(XCSG.controlFlowRoot).eval().nodes(), cfg.nodesTaggedWithAny(XCSG.controlFlowExitPoint).eval().nodes());
+		return getPaths(cfg, cfg.nodes(XCSG.controlFlowRoot).eval().nodes(), cfg.nodes(XCSG.controlFlowExitPoint).eval().nodes());
 	}
 	
 	/**

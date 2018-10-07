@@ -13,7 +13,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -30,14 +29,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.internal.wizards.datatransfer.ZipLeveledStructureProvider;
 import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
@@ -106,23 +98,6 @@ public class WorkspaceUtils {
 		}
 		
 		return file;
-	}
-	
-	public static void openFileInEclipseEditor(File file) {
-		if (file.exists() && file.isFile()) {
-			IFileStore fileStore = EFS.getLocalFileSystem().getStore(file.toURI());
-			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-			try {
-				IDE.openEditorOnFileStore(page, fileStore);
-			} catch (PartInitException e) {
-				DisplayUtils.showError(e, "Could not display file: " + file.getAbsolutePath());
-			}
-		} else {
-			MessageBox mb = new MessageBox(Display.getDefault().getActiveShell(), SWT.OK);
-			mb.setText("Alert");
-			mb.setMessage("Could not find file: " + file.getAbsolutePath());
-			mb.open();
-		}
 	}
 	
 	public static IStatus deleteProject(IProject project) {

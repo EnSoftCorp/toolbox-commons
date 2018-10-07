@@ -5,7 +5,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.log.Log;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.utilities.WorkspaceUtils;
 import com.ensoftcorp.open.commons.utilities.address.NormalizedAddress;
@@ -35,7 +35,7 @@ public class ProjectAnalysisDefaultPropertiesInitializer extends PrioritizedCode
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
 //		if(CommonsPreferences.isInitializingAnalysisPropertiesEnabled()) {
-			for(Node projectNode : Common.universe().nodes(XCSG.Project).eval().nodes()){
+			for(Node projectNode : Query.universe().nodes(XCSG.Project).eval().nodes()){
 				IProject project = WorkspaceUtils.getProject(projectNode.getAttr(XCSG.name).toString());
 				if(project.exists() && project.isOpen() && project.isAccessible()){
 					try {

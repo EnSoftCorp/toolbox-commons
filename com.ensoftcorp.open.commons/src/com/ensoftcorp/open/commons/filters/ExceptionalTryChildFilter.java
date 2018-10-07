@@ -3,7 +3,7 @@ package com.ensoftcorp.open.commons.filters;
 import java.util.Map;
 
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 
@@ -35,7 +35,7 @@ public class ExceptionalTryChildFilter extends NodeFilter {
 		checkParameters(parameters);
 		input = super.filterInput(input, parameters);
 
-		Q tryBlockContents = CommonQueries.localDeclarations(Common.universe().nodes(XCSG.TryBlock));
+		Q tryBlockContents = CommonQueries.localDeclarations(Query.universe().nodes(XCSG.TryBlock));
 		
 		// find exceptional try children
 		Q children = tryBlockContents.intersection(input);

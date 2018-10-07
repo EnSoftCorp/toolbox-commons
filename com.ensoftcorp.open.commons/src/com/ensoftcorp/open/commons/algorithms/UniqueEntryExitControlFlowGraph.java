@@ -6,6 +6,7 @@ import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
@@ -205,7 +206,7 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 		} else {
 			// note we are reusing master entry nodes so the search should be from
 			// the entire function cfg not just the specified roots
-			masterEntryNode = Common.universe()
+			masterEntryNode = Query.universe()
 					.predecessors(CommonQueries.cfg(function))
 					.nodes(UniqueEntryExitCFG_Master_Entry)
 					.eval().nodes().one();
@@ -252,7 +253,7 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 		} else {
 			// note we are reusing master entry nodes so the search should be from
 			// the entire function cfg not just the specified roots
-			masterExitNode = Common.universe()
+			masterExitNode = Query.universe()
 					.successors(CommonQueries.cfg(function))
 					.nodes(UniqueEntryExitCFG_Master_Exit)
 					.eval().nodes().one();
@@ -283,7 +284,7 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	}
 	
 	private Edge getOrCreateEdge(Node masterEntryNode, Node root) {
-		AtlasSet<Edge> betweenEdges = Common.universe().edges(UniqueEntryExitCFG_Edge).betweenStep(Common.toQ(masterEntryNode), Common.toQ(root)).eval().edges();
+		AtlasSet<Edge> betweenEdges = Query.universe().edges(UniqueEntryExitCFG_Edge).betweenStep(Common.toQ(masterEntryNode), Common.toQ(root)).eval().edges();
 		if (!betweenEdges.isEmpty()) {
 			return betweenEdges.one();
 		} else {

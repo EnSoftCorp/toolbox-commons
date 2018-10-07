@@ -312,7 +312,7 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	 */
 	public static String summarize(Q q, boolean includeMethodNames) throws IOException {
 		return summarize(getSourceCorrespondents(q),
-				getSourceCorrespondents(includeMethodNames ? q.nodesTaggedWithAny(XCSG.Method) : Common.empty()));
+				getSourceCorrespondents(includeMethodNames ? q.nodes(XCSG.Method) : Common.empty()));
 	}
 
 	// helper method for summarizing source correspondents

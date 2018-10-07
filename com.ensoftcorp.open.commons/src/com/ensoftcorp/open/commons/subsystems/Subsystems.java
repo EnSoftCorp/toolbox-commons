@@ -13,6 +13,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
@@ -113,7 +114,7 @@ public class Subsystems {
 	 */
 	public static Q getSubsystemContents(String... subsystemTags) {
 		AtlasSet<Node> subsystemNodes = new AtlasHashSet<Node>();
-		Q subsystems = Common.universe().nodesTaggedWithAny(subsystemTags);
+		Q subsystems = Query.universe().nodes(subsystemTags);
 		Q subsystemContents = subsystems.contained();
 		subsystemNodes.addAll(subsystemContents.eval().nodes());
 		return Common.toQ(subsystemNodes);

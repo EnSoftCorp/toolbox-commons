@@ -10,7 +10,7 @@ import com.ensoftcorp.atlas.core.markup.Markup;
 import com.ensoftcorp.atlas.core.markup.MarkupProperty;
 import com.ensoftcorp.atlas.core.markup.MarkupProperty.LineStyle;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.utilities.FormattedSourceCorrespondence;
 
@@ -54,10 +54,10 @@ public class CFGHighlighter {
 	 * @param m
 	 */
 	public static void applyPrintableHighlightsForCFG(Markup m) {
-		Q cfEdge = Common.universe().edges(XCSG.ControlFlow_Edge);
+		Q cfEdge = Query.universe().edges(XCSG.ControlFlow_Edge);
 		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
-		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
-		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
+		Q cvTrue = Query.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
+		Q cvFalse = Query.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
 		
 		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, Color.BLACK);
 		m.setEdge(cvTrue, MarkupProperty.EDGE_STYLE, LineStyle.DASHED);
@@ -66,7 +66,7 @@ public class CFGHighlighter {
 		m.setEdge(cvFalse, MarkupProperty.EDGE_COLOR, cfgFalse);
 		m.setEdge(cvFalse, MarkupProperty.LABEL_TEXT, "false");
 		
-		m.setEdge(Common.universe().edges(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
+		m.setEdge(Query.universe().edges(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
 		LoopHighlighter.applyHighlightsForLoopDepth(m);
 	}
 	
@@ -78,10 +78,10 @@ public class CFGHighlighter {
 	 * @param m
 	 */
 	public static void applyHighlightsForCFG(Markup m) {
-		Q cfEdge = Common.universe().edges(XCSG.ControlFlow_Edge);
+		Q cfEdge = Query.universe().edges(XCSG.ControlFlow_Edge);
 		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
-		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
-		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
+		Q cvTrue = Query.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
+		Q cvFalse = Query.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
 		
 		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, cfgTrue);
 		m.setEdge(cvTrue, MarkupProperty.LABEL_TEXT, "true");
@@ -89,7 +89,7 @@ public class CFGHighlighter {
 		m.setEdge(cvFalse, MarkupProperty.EDGE_COLOR, cfgFalse);
 		m.setEdge(cvFalse, MarkupProperty.LABEL_TEXT, "false");
 		
-		m.setEdge(Common.universe().edges(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
+		m.setEdge(Query.universe().edges(XCSG.ExceptionalControlFlow_Edge), MarkupProperty.EDGE_COLOR, cfgExceptional);
 		LoopHighlighter.applyHighlightsForLoopDepth(m);
 	}
 	

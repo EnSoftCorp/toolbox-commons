@@ -1,7 +1,7 @@
 package com.ensoftcorp.open.commons.analysis;
 
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 
 /**
@@ -21,7 +21,7 @@ public final class SetDefinitions {
 	 * project.
 	 */
 	public static Q arrayTypes() {
-		return Common.universe().nodesTaggedWithAny(XCSG.ArrayType);
+		return Query.universe().nodes(XCSG.ArrayType);
 	}
 
 	/**
@@ -31,7 +31,7 @@ public final class SetDefinitions {
 	 * project.
 	 */
 	public static Q primitiveTypes() {
-		return Common.universe().nodesTaggedWithAny(XCSG.Primitive);
+		return Query.universe().nodes(XCSG.Primitive);
 	}
 
 	/**
@@ -39,7 +39,7 @@ public final class SetDefinitions {
 	 * the index.
 	 */
 	public static Q libraries() {
-		return Common.universe().nodesTaggedWithAny(XCSG.Library).contained();
+		return Query.universe().nodes(XCSG.Library).contained();
 	}
 	
 	/**
@@ -47,7 +47,7 @@ public final class SetDefinitions {
 	 * libraries, or any "floating" nodes).
 	 */
 	public static Q app() {
-		return Common.universe().difference(libraries(), primitiveTypes(), arrayTypes());
+		return Query.universe().difference(libraries(), primitiveTypes(), arrayTypes());
 	}
 
 }

@@ -237,7 +237,7 @@ public abstract class Filter {
 			if(!edgeTagsToKeep.isEmpty()){
 				String[] tags = new String[edgeTagsToKeep.size()];
 				edgeTagsToKeep.toArray(tags);
-				Q edgesWithTags = input.edgesTaggedWithAny(tags);
+				Q edgesWithTags = input.edges(tags);
 				Q edgesWithoutTags = input.difference(edgesWithTags);
 				input = input.difference(edgesWithoutTags);
 			}
@@ -259,7 +259,7 @@ public abstract class Filter {
 			if(!nodeTagsToKeep.isEmpty()){
 				String[] tags = new String[nodeTagsToKeep.size()];
 				nodeTagsToKeep.toArray(tags);
-				Q nodesWithTags = input.nodesTaggedWithAny(tags);
+				Q nodesWithTags = input.nodes(tags);
 				Q nodesWithoutTags = input.difference(nodesWithTags);
 				input = input.difference(nodesWithoutTags);
 			}

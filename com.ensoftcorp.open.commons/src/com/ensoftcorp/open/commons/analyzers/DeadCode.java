@@ -40,7 +40,7 @@ public class DeadCode extends Property {
 	
 	@Override
 	public List<Result> getResults(Q context) {
-		Q functions = context.nodesTaggedWithAny(XCSG.Function);
+		Q functions = context.nodes(XCSG.Function);
 		LinkedList<Result> results = new LinkedList<Result>();
 		for(Node function : functions.eval().nodes()){
 			Q cfg = CommonQueries.excfg(function);

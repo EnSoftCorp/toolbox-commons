@@ -94,19 +94,19 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	public DominanceAnalysis() {}
 	
 	public static Q getDominatorTreeEdges(){
-		return Common.universe().edges(DOMINATOR_TREE_EDGE).retainEdges();
+		return Query.universe().edges(DOMINATOR_TREE_EDGE).retainEdges();
 	}
 	
 	public static Q getPostDominatorTreeEdges(){
-		return Common.universe().edges(POST_DOMINATOR_TREE_EDGE).retainEdges();
+		return Query.universe().edges(POST_DOMINATOR_TREE_EDGE).retainEdges();
 	}
 	
 	public static Q getDominanceFrontierEdges(){
-		return Common.universe().edges(DOMINANCE_FRONTIER_EDGE).retainEdges();
+		return Query.universe().edges(DOMINANCE_FRONTIER_EDGE).retainEdges();
 	}
 	
 	public static Q getPostDominanceFrontierEdges(){
-		return Common.universe().edges(POST_DOMINANCE_FRONTIER_EDGE).retainEdges();
+		return Query.universe().edges(POST_DOMINANCE_FRONTIER_EDGE).retainEdges();
 	}
 
 	@Override
@@ -394,7 +394,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 		for(Entry<Node,Node> entry : dominatorTree.getIdoms().entrySet()) {
 			Node fromNode = entry.getKey();
 			Node toNode = entry.getValue();
-			Q idomEdges = Common.universe().edges(DOMINATOR_TREE_EDGE);
+			Q idomEdges = Query.universe().edges(DOMINATOR_TREE_EDGE);
 			Edge idomEdge = idomEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().one();
 			if(idomEdge == null){
 				idomEdge = Graph.U.createEdge(fromNode, toNode);
@@ -409,7 +409,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 		for(Entry<Node, Set<Node>> entry : dominanceFrontier.entrySet()){
 			Node fromNode = entry.getKey();
 			for(Node toNode : entry.getValue()){
-				Q dominanceFrontierEdges = Common.universe().edges(DOMINANCE_FRONTIER_EDGE);
+				Q dominanceFrontierEdges = Query.universe().edges(DOMINANCE_FRONTIER_EDGE);
 				Edge dominanceFrontierEdge = dominanceFrontierEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().one();
 				if(dominanceFrontierEdge == null){
 					dominanceFrontierEdge = Graph.U.createEdge(fromNode, toNode);
@@ -425,7 +425,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 		for(Entry<Node,Node> entry : postDominatorTree.getIdoms().entrySet()) {
 			Node fromNode = entry.getValue();
 			Node toNode = entry.getKey();
-			Q postdomEdges = Common.universe().edges(POST_DOMINATOR_TREE_EDGE);
+			Q postdomEdges = Query.universe().edges(POST_DOMINATOR_TREE_EDGE);
 			Edge postdomEdge = postdomEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().one();
 			if(postdomEdge == null){
 				postdomEdge = Graph.U.createEdge(fromNode, toNode);
@@ -440,7 +440,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 		for(Entry<Node, Set<Node>> entry : postDominanceFrontier.entrySet()){
 			Node fromNode = entry.getKey();
 			for(Node toNode : entry.getValue()){
-				Q dominanceFrontierEdges = Common.universe().edges(POST_DOMINANCE_FRONTIER_EDGE);
+				Q dominanceFrontierEdges = Query.universe().edges(POST_DOMINANCE_FRONTIER_EDGE);
 				Edge dominanceFrontierEdge = dominanceFrontierEdges.betweenStep(Common.toQ(fromNode), Common.toQ(toNode)).eval().edges().one();
 				if(dominanceFrontierEdge == null){
 					dominanceFrontierEdge = Graph.U.createEdge(fromNode, toNode);

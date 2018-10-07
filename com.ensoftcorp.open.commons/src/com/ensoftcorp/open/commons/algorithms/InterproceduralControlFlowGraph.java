@@ -11,6 +11,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
@@ -25,7 +26,7 @@ import com.ensoftcorp.open.commons.analysis.CommonQueries;
 public class InterproceduralControlFlowGraph {
 	
 	private static final String ICFGEdge = "InterproceduralControlFlow_Edge";
-	private static Q controlFlow = Common.universe().edgesTaggedWithAny(XCSG.ControlFlow_Edge,ICFGEdge);
+	private static Q controlFlow = Query.universe().edges(XCSG.ControlFlow_Edge,ICFGEdge);
 	
 	/**
 	 * 
@@ -184,7 +185,7 @@ public class InterproceduralControlFlowGraph {
 	private static boolean icfgEdgeExists(Node a, Node b) {
 		Q aQ = Common.toQ(a);
 		Q bQ = Common.toQ(b);
-		Q betweenGraph = Common.universe().edgesTaggedWithAny(XCSG.ControlFlow_Edge).betweenStep(aQ, bQ);
+		Q betweenGraph = Query.universe().edges(XCSG.ControlFlow_Edge).betweenStep(aQ, bQ);
 		if(betweenGraph.eval().edges().size() > 0) {
 			return true;
 		}

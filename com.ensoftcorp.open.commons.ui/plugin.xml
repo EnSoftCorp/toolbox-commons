@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!-- create an Atlas Toolbox parent preferences menu item -->
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.ensoftcorp.open.commons.ui.preferences.AtlasToolboxPreferencesPage"
+            id="com.ensoftcorp.open.commons.ui.toolbox.preferences"
+            name="Atlas Toolbox">
+      </page>
+   </extension>
+   
+    <!-- extension for Filter View view -->
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.filter.FilterView"
+            icon="icons/funnel.gif"
+            id="com.ensoftcorp.open.commons.ui.views.filter"
+            name="Filter View">
+      </view>
+   </extension>
+   
+   <!-- extension for Composite Filter View view -->
+	<extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.filter.CompositeFilterView"
+            icon="icons/funnel.gif"
+            id="com.ensoftcorp.open.commons.ui.views.composite-filter"
+            name="Composite Filter View">
+      </view>
+   </extension>
+   
+   <!-- extension for Code Painter Control Panel view -->
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterControlPanel"
+            icon="icons/brush.gif"
+            id="com.ensoftcorp.open.commons.ui.views.codepainter.controlpanel"
+            name="Code Painter Control Panel">
+      </view>
+   </extension>
+
+	<!-- add toolbox commons smart views -->
+    <extension point="com.ensoftcorp.atlas.ui.smartViewScript">
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.UniversalGraphExplorerSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceFrontierSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceTreeSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowPostDominanceFrontierSmartView" />
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowPostDominanceTreeSmartView" />
+   </extension>
+
+   <!-- defines the tooblox commons handler actions -->
+   <extension
+	      point="org.eclipse.ui.handlers">
+	   <handler
+	         commandId="com.ensoftcorp.open.commons.menus.editToolboxPreferencesCommand"
+	         class="com.ensoftcorp.open.commons.ui.handlers.ToolboxPreferencesHandler">
+	   </handler>
+	</extension>
+	<extension
+	      point="org.eclipse.ui.handlers">
+	   <handler
+	         commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
+	         class="com.ensoftcorp.open.commons.ui.handlers.ShowGraphElementsHandler">
+	   </handler>
+	</extension>
+	<extension
+	      point="org.eclipse.ui.handlers">
+	   <handler
+	         commandId="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommand"
+	         class="com.ensoftcorp.open.commons.ui.handlers.ShowSubsystemTagHierarchyHandler">
+	   </handler>
+	</extension>
+
+	<!-- defines an Atlas Toolbox menu category -->
+	<extension
+	      point="org.eclipse.ui.menus">
+	   <menuContribution
+	         locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+	      <menu
+	            label="Atlas Toolbox"
+	            id="com.ensoftcorp.open.commons.menus.toolbox">
+	            <command
+	               commandId="com.ensoftcorp.open.commons.menus.editToolboxPreferencesCommand"
+	               label="Edit Preferences"
+	               id="com.ensoftcorp.open.commons.menus.editToolboxPreferencesCommandMenuItem">
+	         </command>
+	      </menu>
+	   </menuContribution>
+	</extension>
+	
+	<!-- extend the Atlas Toolbox menu with a new submenu for commons analysis -->
+	<extension
+	      point="org.eclipse.ui.menus">
+	   <menuContribution
+	         locationURI="menu:com.ensoftcorp.open.commons.menus.toolbox?after=additions">
+	      <menu
+	            label="Toolbox Commons"
+	            id="com.ensoftcorp.open.commons.menus.commonsMenu">
+	         <command
+	               commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
+	               label="Show Graph Elements by Address"
+	               id="com.ensoftcorp.open.commons.menus.showGraphElementsCommandMenuItem">
+	         </command>
+	         <command
+	               commandId="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommand"
+	               label="Show Subsystem Tag Hiearchy"
+	               id="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommandMenuItem">
+	         </command>
+	      </menu>
+	   </menuContribution>
+	</extension>
+	
+	<!-- defines an Atlas Toolbox view category -->
+	<extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Atlas Toolbox"
+            id="com.ensoftcorp.open.commons.views.categories.toolbox">
+      </category>
+   </extension>
+   
+   <!-- adds code painter definitions -->
+   <extension point="com.ensoftcorp.open.commons.codepainter">
+      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.UniversalGraphExplorerCodePainter"></codepainter>
+      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.ControlFlowCodePainter"></codepainter>
+      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.DataFlowCodePainter"></codepainter>
+   </extension>
+   
+   <!-- adds color palette definitions -->
+   <extension point="com.ensoftcorp.open.commons.colorpalette">
+      <colorpalette class="com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeTypeColorPalette"></colorpalette>
+      <colorpalette class="com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowLoopDepthColorPalette"></colorpalette>
+   </extension>
+   
+   <!-- extension for Composite Filter View view -->
+	<extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.filter.CompositeFilterView"
+            icon="icons/funnel.gif"
+            id="com.ensoftcorp.open.commons.ui.views.composite-filter"
+            name="Composite Filter View">
+      </view>
+   </extension>
+	
+   <!-- create a preferences menu item for toolbox commons -->
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.ensoftcorp.open.commons.ui.preferences.CommonsPreferencesPage"
+            id="com.ensoftcorp.open.commons.ui.preferences"
+            name="Toolbox Commons"
+            category="com.ensoftcorp.open.commons.ui.toolbox.preferences">
+      </page>
+      <page
+            class="com.ensoftcorp.open.commons.ui.preferences.SubsystemsPreferencesPage"
+            id="com.ensoftcorp.open.commons.ui.preferences.subystems"
+            name="Toolbox Commons (Subystems)"
+            category="com.ensoftcorp.open.commons.ui.preferences">
+      </page>
+      <page
+            class="com.ensoftcorp.open.commons.ui.preferences.AnalyzersPreferencesPage"
+            id="com.ensoftcorp.open.commons.ui.preferences.analyzers"
+            name="Toolbox Commons (Analyzers)"
+            category="com.ensoftcorp.open.commons.ui.preferences">
+      </page>
+   </extension>
+
+   <!-- adds Dashboard view -->
+   <extension point="org.eclipse.ui.views">
+      <view category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView"
+            icon="icons/dashboard.gif"
+            id="com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView"
+            name="Dashboard">
+      </view>
+   </extension>
+  
+</plugin>

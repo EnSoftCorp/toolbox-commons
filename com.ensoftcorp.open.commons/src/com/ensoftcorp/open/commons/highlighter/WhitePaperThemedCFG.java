@@ -13,10 +13,10 @@ import com.ensoftcorp.atlas.core.markup.MarkupProperty;
 import com.ensoftcorp.atlas.core.markup.PropertySet;
 import com.ensoftcorp.atlas.core.markup.UnionMarkup;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.CommonQueries;
+import com.ensoftcorp.atlas.core.script.StyledResult;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 
 public class WhitePaperThemedCFG {
 
@@ -35,13 +35,13 @@ public class WhitePaperThemedCFG {
 	 * @param m
 	 */
 	public static void applyHighlightsForCFEdges(Markup m) {
-		Q cfEdge = Common.universe().edges(XCSG.ControlFlow_Edge);
+		Q cfEdge = Query.universe().edges(XCSG.ControlFlow_Edge);
 		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
-		Q cvTrue = Common.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
-		Q cvFalse = Common.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
+		Q cvTrue = Query.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
+		Q cvFalse = Query.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
 		m.setEdge(cvTrue, MarkupProperty.EDGE_COLOR, cfgTrue);
 		m.setEdge(cvFalse, MarkupProperty.EDGE_COLOR, cfgFalse);
-		m.setEdge(Common.universe().edges(XCSG.ControlFlowBackEdge), MarkupProperty.EDGE_COLOR, cfgExceptional);
+		m.setEdge(Query.universe().edges(XCSG.ControlFlowBackEdge), MarkupProperty.EDGE_COLOR, cfgExceptional);
 	}
 	
 	public static final Markup GREYSCALE_MARKUP = new Markup() {
@@ -90,7 +90,7 @@ public class WhitePaperThemedCFG {
 //	public static void create(Q function, Q selected) {
 //		Q cfg = cfgWithEntryExitNodes(function);
 //		IMarkup markup = markup(cfg, selected);
-//		cfg = cfg.union(Common.universe().edges(XCSG.Contains).reverse(cfg));
+//		cfg = cfg.union(Query.universe().edges(XCSG.Contains).reverse(cfg));
 //		DisplayUtil.displayGraph(markup, cfg.eval(), function.eval().nodes().one().getAttr(XCSG.name).toString());
 //	}
 	
@@ -99,16 +99,17 @@ public class WhitePaperThemedCFG {
 //		PCG pcg = PCGFactory.create(selected);
 //		Q pcgQ = pcg.getPCG();
 //		IMarkup markup = markup(pcgQ, selected);
-//		pcgQ = pcgQ.union(Common.universe().edges(XCSG.Contains).reverse(pcgQ));
+//		pcgQ = pcgQ.union(Query.universe().edges(XCSG.Contains).reverse(pcgQ));
 //		DisplayUtil.displayGraph(markup, pcgQ.eval(), function.eval().nodes().one().getAttr(XCSG.name).toString());
 //	}
 	
-	public static void createAcyclic(Q function, Q selected) {
+	public static StyledResult createAcyclic(Q function, Q selected) {
 		Q cfg = CommonQueries.cfg(function);
 		cfg = cfg.differenceEdges(cfg.edges(XCSG.ControlFlowBackEdge));
 		IMarkup markup = markup(cfg, selected);
-		cfg = cfg.union(Common.universe().edges(XCSG.Contains).reverse(cfg));
-		DisplayUtils.show(cfg, markup, true, function.eval().nodes().one().getAttr(XCSG.name).toString());
+		cfg = cfg.union(Query.universe().edges(XCSG.Contains).reverse(cfg));
+		return new StyledResult(cfg, markup);
+//		DisplayUtils.show(cfg, markup, true, function.eval().nodes().one().getAttr(XCSG.name).toString());
 	}
 	
 	public static IMarkup markup(Q cfg) {

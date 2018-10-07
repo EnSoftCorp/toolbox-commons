@@ -50,7 +50,7 @@ public class RecursiveFunctions extends Property {
 		
 		// TODO: make removal of Object member overrides optional
 		// removing Object methods can improve the usability of these results for the general case
-		Q overridesEdges = Common.universe().edges(XCSG.Overrides);
+		Q overridesEdges = Query.universe().edges(XCSG.Overrides);
 		Q equalsMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "equals")).nodes(XCSG.Method));
 		Q toStringMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "toString")).nodes(XCSG.Method));
 		Q hashCodeMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "hashCode")).nodes(XCSG.Method));
@@ -96,7 +96,7 @@ public class RecursiveFunctions extends Property {
 		
 		// native atlas version
 //		public static Q getRecursiveMethods(){
-//			Q callEdges = Common.universe().edgesTaggedWithAny(XCSG.Call);
+//			Q callEdges = Query.universe().edges(XCSG.Call);
 //			Q[] sccs = stronglyConnectedComponents(callEdges);
 //			
 ////			JGraphTAdapter jgraphtAdapter = new JGraphTAdapter(methods.eval().nodes(), callEdges.eval().edges());

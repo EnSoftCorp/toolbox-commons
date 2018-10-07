@@ -225,7 +225,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesContaining(String substring){
-		return nodesMatchingRegex(Common.universe(), ".*" + Pattern.quote(substring) + ".*");
+		return nodesMatchingRegex(Query.universe(), ".*" + Pattern.quote(substring) + ".*");
 	}
 	
 	/**
@@ -249,7 +249,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesEndingWith(String suffix){
-		return nodesMatchingRegex(Common.universe(), ".*" + Pattern.quote(suffix));
+		return nodesMatchingRegex(Query.universe(), ".*" + Pattern.quote(suffix));
 	}
 	
 	/**
@@ -273,7 +273,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesMatchingRegex(String regex){
-		return nodesMatchingRegex(Common.universe(), regex);
+		return nodesMatchingRegex(Query.universe(), regex);
 	}
 	
 	/**
@@ -285,7 +285,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesStartingWith(String prefix){
-		return nodesMatchingRegex(Common.universe(), Pattern.quote(prefix) + ".*");
+		return nodesMatchingRegex(Query.universe(), Pattern.quote(prefix) + ".*");
 	}
 	
 	/**
@@ -321,7 +321,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesAttributeValuesContaining(String attribute, String substring){
-		return nodesAttributeValuesMatchingRegex(Common.universe(), attribute, ".*" + Pattern.quote(substring) + ".*");
+		return nodesAttributeValuesMatchingRegex(Query.universe(), attribute, ".*" + Pattern.quote(substring) + ".*");
 	}
 	
 	/**
@@ -345,7 +345,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesAttributeValuesEndingWith(String attribute, String suffix){
-		return nodesAttributeValuesMatchingRegex(Common.universe(), attribute, ".*" + Pattern.quote(suffix));
+		return nodesAttributeValuesMatchingRegex(Query.universe(), attribute, ".*" + Pattern.quote(suffix));
 	}
 	
 	/**
@@ -369,7 +369,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesAttributeValuesMatchingRegex(String attribute, String regex){
-		return nodesAttributeValuesMatchingRegex(Common.universe(), attribute, regex);
+		return nodesAttributeValuesMatchingRegex(Query.universe(), attribute, regex);
 	}
 	
 	/**
@@ -381,7 +381,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q nodesAttributeValuesStartingWith(String attribute, String prefix){
-		return nodesAttributeValuesMatchingRegex(Common.universe(), attribute, Pattern.quote(prefix) + ".*");
+		return nodesAttributeValuesMatchingRegex(Query.universe(), attribute, Pattern.quote(prefix) + ".*");
 	}
 	
 	/**
@@ -555,7 +555,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionParameter(Q functions){
-		return functionParameter(Common.universe(), functions);
+		return functionParameter(Query.universe(), functions);
 	}
 	
 	/**
@@ -568,7 +568,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionParameter(Q functions, Integer... index){
-		return functionParameter(Common.universe(), functions, index);
+		return functionParameter(Query.universe(), functions, index);
 	}
 	
 	/**
@@ -605,7 +605,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionReturn(Q functions){
-		return functionReturn(Common.universe(), functions);
+		return functionReturn(Query.universe(), functions);
 	}
 	
 	/**
@@ -615,7 +615,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionReturn(Q context, Q functions){
-		return context.edgesTaggedWithAny(XCSG.Contains).successors(functions).nodes(XCSG.ReturnValue);
+		return context.edges(XCSG.Contains).successors(functions).nodes(XCSG.ReturnValue);
 	}
 	
 	/**
@@ -627,7 +627,7 @@ public final class CommonQueries {
 	 * @return the query expression
 	 */
 	public static Q functionsOf(Q types){
-		return functionsOf(Common.universe(), types);
+		return functionsOf(Query.universe(), types);
 	}
 	
 	/**
@@ -716,7 +716,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q localDeclarations(Q functions) {
-		return localDeclarations(Common.universe(), functions);
+		return localDeclarations(Query.universe(), functions);
 	}
 
 	/**
@@ -754,7 +754,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q callers(Q origin) {
-		return callers(Common.universe(), origin);
+		return callers(Query.universe(), origin);
 	}
 
 	/**
@@ -779,7 +779,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q called(Q origin) {
-		return called(Common.universe(), origin);
+		return called(Query.universe(), origin);
 	}
 
 	/**
@@ -804,7 +804,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q calledBy(Q callers, Q called) {
-		return calledBy(Common.universe(), callers, called);
+		return calledBy(Query.universe(), callers, called);
 	}
 
 	/**
@@ -817,7 +817,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q calledBy(Q context, Q callers, Q called) {
-		return context.edgesTaggedWithAny(XCSG.Call).betweenStep(callers, called).retainEdges().leaves();
+		return context.edges(XCSG.Call).betweenStep(callers, called).retainEdges().leaves();
 	}
 
 	/**
@@ -831,7 +831,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q firstDeclarator(Q declared, String... declaratorTypes) {
-		return firstDeclarator(Common.universe(), declared, declaratorTypes);
+		return firstDeclarator(Query.universe(), declared, declaratorTypes);
 	}
 
 	/**
@@ -862,7 +862,7 @@ public final class CommonQueries {
 	 */
 	public static Q advancedIntersection(Q first, Q second, String[] nodeTags, String[] edgeTags) {
 		Q plainIntersection = first.intersection(second);
-		return plainIntersection.nodes(nodeTags).induce(plainIntersection.edgesTaggedWithAny(edgeTags));
+		return plainIntersection.nodes(nodeTags).induce(plainIntersection.edges(edgeTags));
 	}
 
 	/**
@@ -874,7 +874,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q readersOf(Q origin) {
-		return readersOf(Common.universe(), origin);
+		return readersOf(Query.universe(), origin);
 	}
 
 	/**
@@ -887,7 +887,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q readersOf(Q context, Q origin) {
-		return context.edgesTaggedWithAny(XCSG.DataFlow_Edge).successors(origin);
+		return context.edges(XCSG.DataFlow_Edge).successors(origin);
 	}
 
 	/**
@@ -899,7 +899,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q writersOf(Q origin) {
-		return writersOf(Common.universe(), origin);
+		return writersOf(Query.universe(), origin);
 	}
 
 	/**
@@ -912,7 +912,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q writersOf(Q context, Q origin) {
-		return context.edgesTaggedWithAny(XCSG.DataFlow_Edge).predecessors(origin);
+		return context.edges(XCSG.DataFlow_Edge).predecessors(origin);
 	}
 
 	/**
@@ -924,7 +924,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q readBy(Q origin) {
-		return readBy(Common.universe(), origin);
+		return readBy(Query.universe(), origin);
 	}
 
 	/**
@@ -949,7 +949,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q writtenBy(Q origin) {
-		return writtenBy(Common.universe(), origin);
+		return writtenBy(Query.universe(), origin);
 	}
 
 	/**
@@ -1207,7 +1207,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q conditionsAbove(Q origin) {
-		return conditionsAbove(Common.universe(), origin);
+		return conditionsAbove(Query.universe(), origin);
 	}
 
 	/**
@@ -1222,7 +1222,7 @@ public final class CommonQueries {
 	 */
 	public static Q conditionsAbove(Q context, Q origin) {
 		Q conditionNodes = context.nodes(XCSG.ControlFlowCondition);
-		return context.edgesTaggedWithAny(XCSG.ControlFlow_Edge).between(conditionNodes, origin);
+		return context.edges(XCSG.ControlFlow_Edge).between(conditionNodes, origin);
 	}
 
 	/**
@@ -1235,7 +1235,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q mutators(Q origin) {
-		return mutators(Common.universe(), origin);
+		return mutators(Query.universe(), origin);
 	}
 
 	/**
@@ -1281,7 +1281,7 @@ public final class CommonQueries {
 	 * @return
 	 */
 	public static Q mutatedBy(Q mutators, Q origin) {
-		return mutatedBy(Common.universe(), mutators, origin);
+		return mutatedBy(Query.universe(), mutators, origin);
 	}
 
 	/**
@@ -1393,12 +1393,12 @@ public final class CommonQueries {
 
 	private static Q findByName(String functionName, String tag) {
 		if(functionName.indexOf("*") >= 0){
-			Q nodes = Common.universe().nodes(tag);
+			Q nodes = Query.universe().nodes(tag);
 			Q result = getMatches(functionName, nodes);
 			return result;
 		}
 		// Atlas has an index over literal attribute values, so it's faster to query directly
-		return Common.universe().nodes(tag).selectNode(XCSG.name, functionName);
+		return Query.universe().nodes(tag).selectNode(XCSG.name, functionName);
 	}
 	
 	/**

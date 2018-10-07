@@ -1,0 +1,13 @@
+com.ensoftcorp.open.commons.ui
+com.ensoftcorp.open.commons.ui.components
+com.ensoftcorp.open.commons.ui.handlers
+com.ensoftcorp.open.commons.ui.log
+com.ensoftcorp.open.commons.ui.preferences
+com.ensoftcorp.open.commons.ui.utilities
+com.ensoftcorp.open.commons.ui.views.codepainter
+com.ensoftcorp.open.commons.ui.views.codepainter.codepainters
+com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes
+com.ensoftcorp.open.commons.ui.views.dashboard
+com.ensoftcorp.open.commons.ui.views.filter
+com.ensoftcorp.open.commons.ui.views.smart
+org.eclipse.wb.swt

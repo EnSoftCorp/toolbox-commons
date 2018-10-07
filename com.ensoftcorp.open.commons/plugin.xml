@@ -6,146 +6,6 @@
    <extension point="org.eclipse.ui.startup">
      <startup class="com.ensoftcorp.open.commons.startup.RegisterHierarchyStartup"/>
    </extension>
-
-   <!-- create an Atlas Toolbox parent preferences menu item -->
-   <extension
-         point="org.eclipse.ui.preferencePages">
-      <page
-            class="com.ensoftcorp.open.commons.ui.AtlasToolboxPreferencesPage"
-            id="com.ensoftcorp.open.commons.ui.toolbox.preferences"
-            name="Atlas Toolbox">
-      </page>
-   </extension>
-
-	<!-- add toolbox commons smart views -->
-    <extension point="com.ensoftcorp.atlas.ui.smartViewScript">
-      <script class="com.ensoftcorp.open.commons.ui.views.smart.UniversalGraphExplorerSmartView" />
-      <script class="com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView" />
-      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceFrontierSmartView" />
-      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceTreeSmartView" />
-      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowPostDominanceFrontierSmartView" />
-      <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowPostDominanceTreeSmartView" />
-   </extension>
-
-   <!-- defines the tooblox commons handler actions -->
-   <extension
-	      point="org.eclipse.ui.handlers">
-	   <handler
-	         commandId="com.ensoftcorp.open.commons.menus.editToolboxPreferencesCommand"
-	         class="com.ensoftcorp.open.commons.handlers.ToolboxPreferencesHandler">
-	   </handler>
-	</extension>
-	<extension
-	      point="org.eclipse.ui.handlers">
-	   <handler
-	         commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
-	         class="com.ensoftcorp.open.commons.handlers.ShowGraphElementsHandler">
-	   </handler>
-	</extension>
-	<extension
-	      point="org.eclipse.ui.handlers">
-	   <handler
-	         commandId="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommand"
-	         class="com.ensoftcorp.open.commons.handlers.ShowSubsystemTagHierarchyHandler">
-	   </handler>
-	</extension>
-
-	<!-- defines an Atlas Toolbox menu category -->
-	<extension
-	      point="org.eclipse.ui.menus">
-	   <menuContribution
-	         locationURI="menu:org.eclipse.ui.main.menu?after=additions">
-	      <menu
-	            label="Atlas Toolbox"
-	            id="com.ensoftcorp.open.commons.menus.toolbox">
-	            <command
-	               commandId="com.ensoftcorp.open.commons.menus.editToolboxPreferencesCommand"
-	               label="Edit Preferences"
-	               id="com.ensoftcorp.open.commons.menus.editToolboxPreferencesCommandMenuItem">
-	         </command>
-	      </menu>
-	   </menuContribution>
-	</extension>
-	
-	<!-- extend the Atlas Toolbox menu with a new submenu for commons analysis -->
-	<extension
-	      point="org.eclipse.ui.menus">
-	   <menuContribution
-	         locationURI="menu:com.ensoftcorp.open.commons.menus.toolbox?after=additions">
-	      <menu
-	            label="Toolbox Commons"
-	            id="com.ensoftcorp.open.commons.menus.commonsMenu">
-	         <command
-	               commandId="com.ensoftcorp.open.commons.menus.showGraphElementsCommand"
-	               label="Show Graph Elements by Address"
-	               id="com.ensoftcorp.open.commons.menus.showGraphElementsCommandMenuItem">
-	         </command>
-	         <command
-	               commandId="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommand"
-	               label="Show Subsystem Tag Hiearchy"
-	               id="com.ensoftcorp.open.commons.menus.showSubsystemTagHierarchyCommandMenuItem">
-	         </command>
-	      </menu>
-	   </menuContribution>
-	</extension>
-	
-	<!-- defines an Atlas Toolbox view category -->
-	<extension
-         point="org.eclipse.ui.views">
-      <category
-            name="Atlas Toolbox"
-            id="com.ensoftcorp.open.commons.views.categories.toolbox">
-      </category>
-   </extension>
-   
-   <!-- extension for Filter View view -->
-   <extension
-         point="org.eclipse.ui.views">
-      <view
-            category="com.ensoftcorp.open.commons.views.categories.toolbox"
-            class="com.ensoftcorp.open.commons.ui.views.filter.FilterView"
-            icon="icons/funnel.gif"
-            id="com.ensoftcorp.open.commons.ui.views.filter"
-            name="Filter View">
-      </view>
-   </extension>
-   
-   <!-- extension for Code Painter Control Panel view -->
-   <extension
-         point="org.eclipse.ui.views">
-      <view
-            category="com.ensoftcorp.open.commons.views.categories.toolbox"
-            class="com.ensoftcorp.open.commons.ui.views.codepainter.CodePainterControlPanel"
-            icon="icons/brush.gif"
-            id="com.ensoftcorp.open.commons.ui.views.codepainter.controlpanel"
-            name="Code Painter Control Panel">
-      </view>
-   </extension>
-   
-   <!-- adds code painter definitions -->
-   <extension point="com.ensoftcorp.open.commons.codepainter">
-      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.UniversalGraphExplorerCodePainter"></codepainter>
-      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.ControlFlowCodePainter"></codepainter>
-      <codepainter class="com.ensoftcorp.open.commons.ui.views.codepainter.codepainters.DataFlowCodePainter"></codepainter>
-   </extension>
-   
-   <!-- adds color palette definitions -->
-   <extension point="com.ensoftcorp.open.commons.colorpalette">
-      <colorpalette class="com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowEdgeTypeColorPalette"></colorpalette>
-      <colorpalette class="com.ensoftcorp.open.commons.ui.views.codepainter.colorpalettes.ControlFlowLoopDepthColorPalette"></colorpalette>
-   </extension>
-   
-   <!-- extension for Composite Filter View view -->
-	<extension
-         point="org.eclipse.ui.views">
-      <view
-            category="com.ensoftcorp.open.commons.views.categories.toolbox"
-            class="com.ensoftcorp.open.commons.ui.views.filter.CompositeFilterView"
-            icon="icons/funnel.gif"
-            id="com.ensoftcorp.open.commons.ui.views.composite-filter"
-            name="Composite Filter View">
-      </view>
-   </extension>
    
    <!-- defines an extension point schema for contributing project properties initializers definitons -->
    <extension-point 
@@ -201,11 +61,8 @@
    		 schema="schema/com.ensoftcorp.open.commons.codepainter.exsd"/>
    
    <!-- adds a post code map hook for running registered prioritized codemap stages -->
-   <extension
-         point="com.ensoftcorp.atlas.core.ToolboxExtensionPoint">
-      <indexer
-            class="com.ensoftcorp.open.commons.codemap.AtlasToolboxCodemapStage">
-      </indexer>
+   <extension point="com.ensoftcorp.atlas.core.ToolboxExtensionPoint">
+      <indexer class="com.ensoftcorp.open.commons.codemap.AtlasToolboxCodemapStage" />
    </extension>
    
    <!-- create an initializer extension to initialize toolbox commons preferences -->
@@ -222,49 +79,22 @@
 	   </initializer>
 	</extension>
 	
-   <!-- create a preferences menu item for toolbox commons -->
-   <extension
-         point="org.eclipse.ui.preferencePages">
-      <page
-            class="com.ensoftcorp.open.commons.ui.CommonsPreferencesPage"
-            id="com.ensoftcorp.open.commons.ui.preferences"
-            name="Toolbox Commons"
-            category="com.ensoftcorp.open.commons.ui.toolbox.preferences">
-      </page>
-      <page
-            class="com.ensoftcorp.open.commons.ui.SubsystemsPreferencesPage"
-            id="com.ensoftcorp.open.commons.ui.preferences.subystems"
-            name="Toolbox Commons (Subystems)"
-            category="com.ensoftcorp.open.commons.ui.preferences">
-      </page>
-      <page
-            class="com.ensoftcorp.open.commons.ui.AnalyzersPreferencesPage"
-            id="com.ensoftcorp.open.commons.ui.preferences.analyzers"
-            name="Toolbox Commons (Analyzers)"
-            category="com.ensoftcorp.open.commons.ui.preferences">
-      </page>
-   </extension>
-   
-   
+	<!-- add codemap stages -->
    <extension point="com.ensoftcorp.open.commons.codemap">
    	  <!-- adds the prioritized codemap stage for normalizing graph element addresses -->
-      <codemap class="com.ensoftcorp.open.commons.utilities.address.NormalizedAddress"></codemap>
+      <codemap class="com.ensoftcorp.open.commons.utilities.address.NormalizedAddress" />
    	  <!-- adds the prioritized codemap stage for computing control flow graph dominance trees -->
-      <codemap class="com.ensoftcorp.open.commons.algorithms.DominanceAnalysis"></codemap>
+      <codemap class="com.ensoftcorp.open.commons.algorithms.DominanceAnalysis" />
       <!-- adds the prioritized codemap stage for subystems tagging -->
-      <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage"></codemap>
+      <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage" />
       <!-- adds the prioritized codemap stage for analysis properties initializers -->
-      <codemap class="com.ensoftcorp.open.commons.codemap.ProjectAnalysisDefaultPropertiesInitializer"></codemap>
-      <codemap
-            class="com.ensoftcorp.open.commons.codemap.LoopDepth">
-      </codemap>
-   </extension>
-   
-   <!-- adds the prioritized codemap stage for caching analyzer results -->
-   <extension point="com.ensoftcorp.open.commons.codemap">
+      <codemap class="com.ensoftcorp.open.commons.codemap.ProjectAnalysisDefaultPropertiesInitializer" />
+      <!-- adds the loop depth calculation codemap stage -->
+      <codemap class="com.ensoftcorp.open.commons.codemap.LoopDepth" />
+      <!-- adds the prioritized codemap stage for caching analyzer results -->
       <codemap class="com.ensoftcorp.open.commons.analyzers.Analyzers"></codemap>
    </extension>
-
+   
    <!-- adds analyzer definitions -->
    <extension point="com.ensoftcorp.open.commons.analyzer">
       <analyzer class="com.ensoftcorp.open.commons.analyzers.CyclomaticComplexity"></analyzer>
@@ -286,18 +116,6 @@
    <!-- adds filter rootset definitions -->
    <extension point="com.ensoftcorp.open.commons.filter.rootset">
       <rootset class="com.ensoftcorp.open.commons.filters.rootset.UniverseRootset"></rootset>
-   </extension>
-
-	<!-- adds Dashboard view -->
-	<extension
-         point="org.eclipse.ui.views">
-      <view
-            category="com.ensoftcorp.open.commons.views.categories.toolbox"
-            class="com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView"
-            icon="icons/dashboard.gif"
-            id="com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView"
-            name="Dashboard">
-      </view>
    </extension>
   
 </plugin>
