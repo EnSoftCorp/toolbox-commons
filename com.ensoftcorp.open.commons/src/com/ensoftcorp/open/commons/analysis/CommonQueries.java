@@ -9,7 +9,6 @@ import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.EdgeGraph;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
 import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
@@ -1247,8 +1246,8 @@ public final class CommonQueries {
 	public static Q nodesWithSelfEdges(Q context) {
 		AtlasSet<GraphElement> result = new AtlasHashSet<GraphElement>();
 		for (Edge edge : context.eval().edges()) {
-			Node to = edge.getNode(EdgeDirection.TO);
-			Node from = edge.getNode(EdgeDirection.FROM);
+			Node to = edge.to();
+			Node from = edge.from();
 			if (to == from){
 				result.add(to);
 			}

@@ -8,7 +8,6 @@ import java.util.Map;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.operation.ForwardGraph;
@@ -118,7 +117,7 @@ public class LoopIdentification {
 		dfsp.put(b0, position);
 
 		for (Edge cfgEdge : graph.edges(b0, NodeDirection.OUT)) {
-			Node b = cfgEdge.getNode(EdgeDirection.TO);
+			Node b = cfgEdge.to();
 
 			if (!traversed.contains(b)) {
 				// Paper Case A
@@ -239,7 +238,7 @@ public class LoopIdentification {
 				case EACH_CFG_EDGE:
 					while (f.iterator.hasNext()) {
 						Edge cfgEdge = f.iterator.next();
-						f.b = cfgEdge.getNode(EdgeDirection.TO);
+						f.b = cfgEdge.to();
 						if (!traversed.contains(f.b)) {
 							// Paper Case A
 							// new

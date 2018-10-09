@@ -185,7 +185,7 @@ public class G {
 		
 		AtlasSet<Node> nodes = new AtlasHashSet<Node>();
 		AtlasSet<Edge> edges = stepToAllEdges(g, node, tag, nd);
-		for (GraphElement edge : edges) {
+		for (Edge edge : edges) {
 			nodes.add(edge.getNode(ed));
 		}
 		

@@ -2,7 +2,6 @@ package com.ensoftcorp.open.commons.analysis;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
@@ -103,11 +102,11 @@ public class UndirectedTraversals {
 		
 		for (Edge edge : nextEdges) {
 			reachedEdges.add(edge);
-			Node n = edge.getNode(EdgeDirection.FROM);
+			Node n = edge.from();
 			if (!reachedNodes.contains(n)) {
 				nodeWalk(context, n, reachedNodes, reachedEdges, steps-1);
 			}
-			n = edge.getNode(EdgeDirection.TO);
+			n = edge.to();
 			if (!reachedNodes.contains(n)) {
 				nodeWalk(context, n, reachedNodes, reachedEdges, steps-1);
 			}

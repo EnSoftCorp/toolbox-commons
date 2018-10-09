@@ -2,7 +2,6 @@ package com.ensoftcorp.open.commons.algorithms;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -324,8 +323,8 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	public AtlasSet<Node> getPredecessors(Node node){
 		AtlasSet<Node> predecessors = new AtlasHashSet<Node>();
 		for(Edge edge : edges()){
-			if(edge.getNode(EdgeDirection.TO).equals(node)){
-				Node parent = edge.getNode(EdgeDirection.FROM);
+			if(edge.to().equals(node)){
+				Node parent = edge.from();
 				predecessors.add(parent);
 			}
 		}
@@ -341,8 +340,8 @@ public class UniqueEntryExitControlFlowGraph implements UniqueEntryExitGraph {
 	public AtlasSet<Node> getSuccessors(Node node){		
 		AtlasSet<Node> successors = new AtlasHashSet<Node>();
 		for(Edge edge : edges()){
-			if(edge.getNode(EdgeDirection.FROM).equals(node)){
-				Node child = edge.getNode(EdgeDirection.TO);
+			if(edge.from().equals(node)){
+				Node child = edge.to();
 				successors.add(child);
 			}
 		}

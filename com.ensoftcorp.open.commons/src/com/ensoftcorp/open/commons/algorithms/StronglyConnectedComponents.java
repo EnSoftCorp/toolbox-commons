@@ -17,7 +17,6 @@ import org.jgrapht.traverse.DepthFirstIterator;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.operation.InducedGraph;
@@ -35,7 +34,7 @@ public class StronglyConnectedComponents {
 	private Graph graph;
 	private AtlasSet<Node> nodes;
 	private AtlasSet<Edge> edges;
-	private DirectedPseudograph<GraphElement, GraphElement> jGraph;
+	private DirectedPseudograph<Node, Edge> jGraph;
 
 	public StronglyConnectedComponents(Graph graph) {
 		this.graph = graph;
@@ -65,12 +64,12 @@ public class StronglyConnectedComponents {
 	}
 	
 	private void init() {
-		jGraph = new DirectedPseudograph<GraphElement, GraphElement>(GraphElement.class);
-		for (GraphElement node : nodes) {
+		jGraph = new DirectedPseudograph<Node, Edge>(Edge.class);
+		for (Node node : nodes) {
 			jGraph.addVertex(node);
 		}
-		for (GraphElement edge : edges) {
-			jGraph.addEdge(edge.getNode(EdgeDirection.FROM), edge.getNode(EdgeDirection.TO), edge);
+		for (Edge edge : edges) {
+			jGraph.addEdge(edge.from(), edge.to(), edge);
 		}
 	}
 	
@@ -104,12 +103,12 @@ public class StronglyConnectedComponents {
 		
 		// FIXME: [jdm] includeSingleElementSCCs==false will exclude SCCs of size one (nodes with a self-edge)
 		
-		StrongConnectivityAlgorithm<GraphElement, GraphElement> sci = new KosarajuStrongConnectivityInspector<GraphElement, GraphElement>(jGraph);
+		StrongConnectivityAlgorithm<Node, Edge> sci = new KosarajuStrongConnectivityInspector<Node, Edge>(jGraph);
 		LinkedList<AtlasHashSet<Node>> result = new LinkedList<AtlasHashSet<Node>>();
-		for(Set<GraphElement> scc : sci.stronglyConnectedSets()){
+		for(Set<Node> scc : sci.stronglyConnectedSets()){
 			if(includeSingleElementSCCs || scc.size() > 1) {
 				AtlasHashSet<Node> set = new AtlasHashSet<Node>();
-				for(GraphElement node : scc){
+				for(Node node : scc){
 					set.add((Node) node);
 				}
 				result.add(set);
@@ -123,15 +122,15 @@ public class StronglyConnectedComponents {
 	 * 
 	 * @return
 	 */
-	public List<AtlasSet<GraphElement>> roots() {
-		List<AtlasSet<GraphElement>> roots = new LinkedList<AtlasSet<GraphElement>>();
+	public List<AtlasSet<Node>> roots() {
+		List<AtlasSet<Node>> roots = new LinkedList<AtlasSet<Node>>();
 
-		DirectedNeighborIndex<GraphElement, GraphElement> dni = new DirectedNeighborIndex<GraphElement, GraphElement>(jGraph);
+		DirectedNeighborIndex<Node, Edge> dni = new DirectedNeighborIndex<Node, Edge>(jGraph);
 
 		// Find single-node roots
-		for (GraphElement ge : jGraph.vertexSet()) {
-			if (dni.predecessorsOf(ge).isEmpty()) {
-				roots.add(new SingletonAtlasSet<GraphElement>(ge));
+		for (Node node : jGraph.vertexSet()) {
+			if (dni.predecessorsOf(node).isEmpty()) {
+				roots.add(new SingletonAtlasSet<Node>(node));
 			}
 		}
 
@@ -148,24 +147,24 @@ public class StronglyConnectedComponents {
 		// 										 executed at the first call of stronglyConnectedSets() or isStronglyConnected().
 		
 		// Find root SCCs which are roots from each SCC, pick one representative
-		StrongConnectivityAlgorithm<GraphElement, GraphElement> sci = new KosarajuStrongConnectivityInspector<GraphElement, GraphElement>(jGraph);
-		List<Set<GraphElement>> sccs = sci.stronglyConnectedSets();
+		StrongConnectivityAlgorithm<Node, Edge> sci = new KosarajuStrongConnectivityInspector<Node, Edge>(jGraph);
+		List<Set<Node>> sccs = sci.stronglyConnectedSets();
 
-		AtlasSet<GraphElement> rootSCCSet = new AtlasHashSet<GraphElement>();
-		for (Set<GraphElement> scc : sccs) {
+		AtlasSet<Node> rootSCCSet = new AtlasHashSet<Node>();
+		for (Set<Node> scc : sccs) {
 			boolean rootSCC = true;
 
-			for (GraphElement ge : scc) {
-				if (!scc.containsAll(dni.predecessorsOf(ge))) {
+			for (Node node : scc) {
+				if (!scc.containsAll(dni.predecessorsOf(node))) {
 					rootSCC = false;
 					break;
 				}
-				rootSCCSet.add(ge);
+				rootSCCSet.add(node);
 			}
 
 			if (rootSCC) {
 				roots.add(rootSCCSet);
-				rootSCCSet = new AtlasHashSet<GraphElement>();
+				rootSCCSet = new AtlasHashSet<Node>();
 			} else {
 				rootSCCSet.clear();
 			}
@@ -222,11 +221,11 @@ public class StronglyConnectedComponents {
 		public ConvertedDAG(boolean forward) {
 			dag = new SimpleDirectedGraph<Object, Object>(Object.class);
 
-			Set<GraphElement> toConvert = new HashSet<GraphElement>(jGraph.vertexSet());
+			Set<Node> toConvert = new HashSet<Node>(jGraph.vertexSet());
 			List<AtlasHashSet<Node>> sccs = findSCCs();
 			convertedToSCC = new HashMap<Object, AtlasSet<Node>>(sccs.size());
 			Map<AtlasSet<Node>, Object> sccToConverted = new HashMap<AtlasSet<Node>, Object>(sccs.size());
-			Map<GraphElement, Object> elementToConverted = new HashMap<GraphElement, Object>(toConvert.size());
+			Map<Node, Object> elementToConverted = new HashMap<Node, Object>(toConvert.size());
 
 			/*
 			 * Create the nodes of the new DAG
@@ -236,14 +235,14 @@ public class StronglyConnectedComponents {
 				dag.addVertex(replacement);
 				convertedToSCC.put(replacement, scc);
 				sccToConverted.put(scc, replacement);
-				for (GraphElement ge : scc) {
-					elementToConverted.put(ge, replacement);
-					toConvert.remove(ge);
+				for (Node node : scc) {
+					elementToConverted.put(node, replacement);
+					toConvert.remove(node);
 				}
 			}
 
-			for (GraphElement ge : toConvert) {
-				dag.addVertex(ge);
+			for (Node node : toConvert) {
+				dag.addVertex(node);
 			}
 
 			/*
@@ -257,12 +256,12 @@ public class StronglyConnectedComponents {
 				originDirection = EdgeDirection.TO;
 				destDirection = EdgeDirection.FROM;
 			}
-			for (GraphElement edge : jGraph.edgeSet()) {
+			for (Edge edge : jGraph.edgeSet()) {
 				Object origin = elementToConverted.get(edge.getNode(originDirection));
 				Object dest = elementToConverted.get(edge.getNode(destDirection));
-
-				if (origin != dest)
+				if (origin != dest) {
 					dag.addEdge(origin, dest);
+				}
 			}
 		}
 

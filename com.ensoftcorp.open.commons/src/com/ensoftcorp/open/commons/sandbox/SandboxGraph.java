@@ -2,7 +2,6 @@ package com.ensoftcorp.open.commons.sandbox;
 
 import java.util.Set;
 
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 
 public class SandboxGraph {
@@ -241,8 +240,8 @@ public class SandboxGraph {
 	public SandboxHashSet<SandboxNode> predecessors(SandboxNode node){
 		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(this);
 		for(SandboxEdge edge : edges){
-			if(edge.getNode(EdgeDirection.TO).equals(node)){
-				result.add(edge.getNode(EdgeDirection.FROM));
+			if(edge.to().equals(node)){
+				result.add(edge.from());
 			}
 		}
 		return result;
@@ -256,8 +255,8 @@ public class SandboxGraph {
 	public SandboxHashSet<SandboxNode> successors(SandboxNode node){
 		SandboxHashSet<SandboxNode> result = new SandboxHashSet<SandboxNode>(this);
 		for(SandboxEdge edge : edges){
-			if(edge.getNode(EdgeDirection.FROM).equals(node)){
-				result.add(edge.getNode(EdgeDirection.TO));
+			if(edge.from().equals(node)){
+				result.add(edge.to());
 			}
 		}
 		return result;
@@ -588,7 +587,7 @@ public class SandboxGraph {
 	private SandboxHashSet<SandboxEdge> getInEdgesToNode(SandboxNode node){
 		SandboxHashSet<SandboxEdge> inEdges = new SandboxHashSet<SandboxEdge>(this);
 		for(SandboxEdge edge : edges){
-			if(edge.getNode(EdgeDirection.TO).equals(node)){
+			if(edge.to().equals(node)){
 				inEdges.add(edge);
 			}
 		}
@@ -603,7 +602,7 @@ public class SandboxGraph {
 	private SandboxHashSet<SandboxEdge> getOutEdgesFromNode(SandboxNode node){
 		SandboxHashSet<SandboxEdge> outEdges = new SandboxHashSet<SandboxEdge>(this);
 		for(SandboxEdge edge : edges){
-			if(edge.getNode(EdgeDirection.FROM).equals(node)){
+			if(edge.from().equals(node)){
 				outEdges.add(edge);
 			}
 		}
