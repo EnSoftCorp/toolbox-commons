@@ -44,6 +44,7 @@ import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.open.commons.analyzers.Analyzer;
 import com.ensoftcorp.open.commons.analyzers.Analyzer.Result;
 import com.ensoftcorp.open.commons.analyzers.Analyzers;
+import com.ensoftcorp.open.commons.analyzers.Analyzers.AnalyzerResultChangedCallback;
 import com.ensoftcorp.open.commons.ui.log.Log;
 import com.ensoftcorp.open.commons.ui.utilities.DisplayUtils;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionListenerView;
@@ -55,7 +56,20 @@ public class DashboardView extends GraphSelectionListenerView {
 	 */
 	public static final String ID = "com.ensoftcorp.open.commons.ui.views.dashboard.DashboardView";
 	
-	public DashboardView() {}
+	public DashboardView() {
+		Analyzers.registerAnalyzerResultChangedCallback(new DashboardAnalyzerResultChangedCallback());
+	}
+	
+	public static class DashboardAnalyzerResultChangedCallback extends AnalyzerResultChangedCallback {
+		public DashboardAnalyzerResultChangedCallback() {
+			super("com.ensoftcorp.open.commons.ui.views.dashboard.refresh");
+		}
+
+		@Override
+		public void callback() {
+			DashboardView.refreshRequired();
+		}
+	};
 	
 	private Set<WorkItem> workItems = new HashSet<WorkItem>();
 	private HashMap<String, Set<WorkItem>> workItemCategories;
@@ -574,5 +588,6 @@ public class DashboardView extends GraphSelectionListenerView {
 	@Override
 	public void indexBecameAccessible() {
 		enableUI(true);
+		refreshWorkItems();
 	}
 }
