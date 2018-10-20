@@ -14,7 +14,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import com.ensoftcorp.open.commons.preferences.SubsystemPreferences;
 import com.ensoftcorp.open.commons.subsystems.Subsystem;
 import com.ensoftcorp.open.commons.subsystems.Subsystems;
-import com.ensoftcorp.open.commons.ui.Activator;
 import com.ensoftcorp.open.commons.ui.components.LabelFieldEditor;
 
 /**
@@ -32,7 +31,7 @@ public class SubsystemsPreferencesPage extends FieldEditorPreferencePage impleme
 
 	@Override
 	public void init(IWorkbench workbench) {
-		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		IPreferenceStore preferences = SubsystemPreferences.getPreferenceStore();
 		setPreferenceStore(preferences);
 		setDescription("Configure subsystem preferences for the Toolbox Commons plugins.");
 		// use to update cached values if user edits a preference

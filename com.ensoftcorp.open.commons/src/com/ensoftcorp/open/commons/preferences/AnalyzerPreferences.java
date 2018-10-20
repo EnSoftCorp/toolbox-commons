@@ -10,6 +10,14 @@ import com.ensoftcorp.open.commons.log.Log;
 
 public class AnalyzerPreferences extends AbstractPreferenceInitializer {
 
+	/**
+	 * Returns the preference store used for these preferences
+	 * @return
+	 */
+	public static IPreferenceStore getPreferenceStore() {
+		return Activator.getDefault().getPreferenceStore();
+	}
+	
 	@SuppressWarnings("unused")
 	private static boolean initialized = false;
 

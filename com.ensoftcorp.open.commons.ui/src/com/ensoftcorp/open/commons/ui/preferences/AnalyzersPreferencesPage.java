@@ -12,7 +12,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import com.ensoftcorp.open.commons.analyzers.Analyzer;
 import com.ensoftcorp.open.commons.analyzers.Analyzers;
 import com.ensoftcorp.open.commons.preferences.AnalyzerPreferences;
-import com.ensoftcorp.open.commons.ui.Activator;
 import com.ensoftcorp.open.commons.ui.components.LabelFieldEditor;
 
 /**
@@ -30,7 +29,7 @@ public class AnalyzersPreferencesPage extends FieldEditorPreferencePage implemen
 
 	@Override
 	public void init(IWorkbench workbench) {
-		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		IPreferenceStore preferences = AnalyzerPreferences.getPreferenceStore();
 		setPreferenceStore(preferences);
 		setDescription("Configure analyzer preferences for the Toolbox Commons plugins.");
 		// use to update cached values if user edits a preference

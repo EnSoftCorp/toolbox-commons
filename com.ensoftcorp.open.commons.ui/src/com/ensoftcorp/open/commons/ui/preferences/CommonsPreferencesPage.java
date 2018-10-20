@@ -8,7 +8,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
-import com.ensoftcorp.open.commons.ui.Activator;
 
 /**
  * UI for setting toolbox commons analysis preferences
@@ -32,7 +31,7 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 
 	@Override
 	public void init(IWorkbench workbench) {
-		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		IPreferenceStore preferences = CommonsPreferences.getPreferenceStore();
 		setPreferenceStore(preferences);
 		setDescription("Configure preferences for the Toolbox Commons plugin. Expand the preferences tree to configure settings for additional Toolbox Commons plugin features.");
 		

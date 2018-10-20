@@ -57,13 +57,15 @@ public class Analyzers extends PrioritizedCodemapStage {
 	}
 
 	@Override
-	public void performIndexing(IProgressMonitor monitor) {
+	public boolean performIndexing(IProgressMonitor monitor) {
 		boolean logged = false;
 		ANALYZER_RESULTS.clear();
 		ANALYZERS.clear();
 		Analyzers.loadAnalyzerContributions();
 		Set<Analyzer> analyzers = Analyzers.getRegisteredAnalyzers();
+		boolean ranIndexer = false;
 		for(Analyzer analyzer : analyzers){
+			ranIndexer = true;
 			if(AnalyzerPreferences.isAnalyzerCachingEnabled(analyzer.getName())){
 				if(!logged){
 					Log.info("Running analyzers...");
@@ -87,6 +89,7 @@ public class Analyzers extends PrioritizedCodemapStage {
 				}
 			}
 		}
+		return ranIndexer;
 	}
 	
 	public static abstract class AnalyzerResultChangedCallback {

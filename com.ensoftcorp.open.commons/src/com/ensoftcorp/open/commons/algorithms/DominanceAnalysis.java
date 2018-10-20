@@ -125,29 +125,43 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 	}
 
 	@Override
-	public void performIndexing(IProgressMonitor monitor) {
-		if(CommonsPreferences.isComputeControlFlowGraphDominanceEnabled() || CommonsPreferences.isComputeExceptionalControlFlowGraphDominanceEnabled()){
+	public boolean performIndexing(IProgressMonitor monitor) {
+		boolean exceptional = CommonsPreferences.isComputeExceptionalControlFlowGraphDominanceEnabled();
+		boolean runIndexer = CommonsPreferences.isComputeControlFlowGraphDominanceEnabled() || exceptional;
+		boolean includeContainment = CommonsPreferences.isMasterEntryExitContainmentRelationshipsEnabled();
+		if(runIndexer){
 			Log.info("Computing Control Flow Graph Dominator Trees");
 			AtlasSet<Node> functions = Query.resolve(null, Query.universe().nodes(XCSG.Function).eval().nodes());
 			SubMonitor task = SubMonitor.convert(monitor, (int) functions.size());
 			int functionsCompleted = 0;
 			for(Node function : functions){
 				Q cfg;
-				if(CommonsPreferences.isComputeControlFlowGraphDominanceEnabled()){
-					cfg = CommonQueries.cfg(function);
-				} else {
+				if(exceptional){
 					cfg = CommonQueries.excfg(function);
+				} else {
+					cfg = CommonQueries.cfg(function);
 				}
 				Graph g = cfg.eval();
-				AtlasSet<Node> roots = cfg.nodes(XCSG.controlFlowRoot).eval().nodes();
-				AtlasSet<Node> exits = cfg.nodes(XCSG.controlFlowExitPoint).eval().nodes();
+				AtlasSet<Node> roots;
+				if(exceptional){
+					roots = cfg.roots().eval().nodes();
+				} else {
+					roots = cfg.nodes(XCSG.controlFlowRoot).eval().nodes();
+				}
+				AtlasSet<Node> exits;
+				
+				if(exceptional){
+					exits = cfg.leaves().eval().nodes();
+				} else {
+					exits = cfg.nodes(XCSG.controlFlowExitPoint).eval().nodes();
+				}
 				if(g.nodes().isEmpty() || roots.isEmpty() || exits.isEmpty()){
 					// nothing to compute
 					task.setWorkRemaining(((int) functions.size())-(functionsCompleted++));
 					continue;
 				} else {
 					try {
-						UniqueEntryExitGraph uexg = new UniqueEntryExitControlFlowGraph(g, roots, exits, CommonsPreferences.isMasterEntryExitContainmentRelationshipsEnabled());
+						UniqueEntryExitGraph uexg = new UniqueEntryExitControlFlowGraph(g, roots, exits, includeContainment);
 						computeDominance(uexg);
 					} catch (Exception e){
 						Log.error("Error computing control flow graph dominance tree", e);
@@ -160,6 +174,7 @@ public class DominanceAnalysis extends PrioritizedCodemapStage {
 				}
 			}
 		}
+		return runIndexer;
 	}
 	
 	/**

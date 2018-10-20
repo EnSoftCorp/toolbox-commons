@@ -69,7 +69,7 @@ public class DashboardView extends GraphSelectionListenerView {
 		public void callback() {
 			DashboardView.refreshRequired();
 		}
-	};
+	}
 	
 	private Set<WorkItem> workItems = new HashSet<WorkItem>();
 	private HashMap<String, Set<WorkItem>> workItemCategories;
@@ -399,7 +399,7 @@ public class DashboardView extends GraphSelectionListenerView {
 		// save the old scroll position and content origin
 		int scrollPosition = workQueueScrolledComposite.getVerticalBar().getSelection();
 		org.eclipse.swt.graphics.Point origin = workQueueScrolledComposite.getOrigin();
-		
+
 		// create a new composite to store the work items on
 		Composite workQueueComposite = new Composite(workQueueScrolledComposite, SWT.NONE);
 		workQueueComposite.setLayout(new GridLayout(1, false));
@@ -578,16 +578,24 @@ public class DashboardView extends GraphSelectionListenerView {
 
 	@Override
 	public void indexBecameUnaccessible() {
-		enableUI(false);
-		Analyzers.clearCachedResults();
-		loadWorkItems();
-		categorizeWorkItems();
-		refreshWorkItems();
+		try {
+			enableUI(false);
+			Analyzers.clearCachedResults();
+			loadWorkItems();
+			categorizeWorkItems();
+			refreshWorkItems();
+		} catch (Throwable t) {
+			Log.error("Error updating Dashboard for index change", t);
+		}
 	}
 
 	@Override
 	public void indexBecameAccessible() {
-		enableUI(true);
-		refreshWorkItems();
+		try {
+			enableUI(true);
+			refreshWorkItems();
+		} catch (Throwable t) {
+			Log.error("Error updating Dashboard for available index", t);
+		}
 	}
 }
