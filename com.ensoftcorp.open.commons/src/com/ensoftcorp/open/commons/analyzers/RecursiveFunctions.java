@@ -47,16 +47,15 @@ public class RecursiveFunctions extends Property {
 	
 	@Override
 	public List<Result> getResults(Q context) {
-		
 		// TODO: make removal of Object member overrides optional
 		// removing Object methods can improve the usability of these results for the general case
 		Q overridesEdges = Query.universe().edges(XCSG.Overrides);
-		Q equalsMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "equals")).nodes(XCSG.Method));
-		Q toStringMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "toString")).nodes(XCSG.Method));
-		Q hashCodeMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "hashCode")).nodes(XCSG.Method));
-		Q methods = resolve(context.nodes(XCSG.Method).difference(equalsMethods, toStringMethods, hashCodeMethods));
+		Q equalsMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "equals")).nodes(XCSG.Function));
+		Q toStringMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "toString")).nodes(XCSG.Function));
+		Q hashCodeMethods = resolve(overridesEdges.reverse(Common.methodSelect("java.lang", "Object", "hashCode")).nodes(XCSG.Function));
+		Q functions = resolve(context.nodes(XCSG.Function).difference(equalsMethods, toStringMethods, hashCodeMethods));
 		
-		Q callgraph = resolve(methods.induce(context.edges(XCSG.Call)));
+		Q callgraph = resolve(functions.induce(context.edges(XCSG.Call)));
 		
 		StronglyConnectedComponents adapter = new StronglyConnectedComponents(callgraph);
 
@@ -77,7 +76,7 @@ public class RecursiveFunctions extends Property {
 
 	// jgrapht library version
 	public static Q getRecursiveMethods() {
-		Q callgraph = resolve(Query.universe().nodes(XCSG.Method).induce(Query.universe().edges(XCSG.Call)));
+		Q callgraph = resolve(Query.universe().nodes(XCSG.Function).induce(Query.universe().edges(XCSG.Call)));
 		StronglyConnectedComponents adapter = new StronglyConnectedComponents(callgraph);
 		AtlasSet<Node> recursionNodes = new AtlasHashSet<Node>();
 		AtlasSet<Edge> recursionEdges = new AtlasHashSet<Edge>();

@@ -152,7 +152,7 @@ public class UniqueEntryExitInterproceduralControlFlowGraph implements UniqueEnt
 	 */
 	public UniqueEntryExitInterproceduralControlFlowGraph(Graph icfg, AtlasSet<Node> roots, boolean relaxNonEmptyRootsRequirement, AtlasSet<Node> exits, boolean relaxNonEmptyExitsRequirement, boolean addContains) {
 		AtlasSet<Node> capturedfunctions = CommonQueries.getContainingFunctions(Common.toQ(icfg)).eval().nodes();
-		AtlasSet<Node> functions = CommonQueries.getContainingFunctions(Common.toQ(icfg.roots())).eval().nodes();
+		AtlasSet<Node> functions = CommonQueries.getContainingFunctions(Common.toQ(roots)).eval().nodes();
 		if(functions.isEmpty()){
 			String message = "CFG is empty or is not contained within a function!";
 			IllegalArgumentException e = new IllegalArgumentException(message);
@@ -209,7 +209,7 @@ public class UniqueEntryExitInterproceduralControlFlowGraph implements UniqueEnt
 			// note we are reusing master entry nodes so the search should be from
 			// icfg not just the specified roots
 			masterEntryNode = Common.universe()
-					.predecessors(InterproceduralControlFlowGraph.icfg(function).getICFG())
+					.predecessors(new ICFG(function).getICFG())
 					.nodes(UniqueEntryExitICFG_Master_Entry)
 					.eval().nodes().one();
 		}
@@ -256,7 +256,7 @@ public class UniqueEntryExitInterproceduralControlFlowGraph implements UniqueEnt
 			// note we are reusing master entry nodes so the search should be from
 			// the entire function cfg not just the specified roots
 			masterExitNode = Common.universe()
-					.successors(InterproceduralControlFlowGraph.icfg(function).getICFG())
+					.successors(new ICFG(function).getICFG())
 					.nodes(UniqueEntryExitICFG_Master_Exit)
 					.eval().nodes().one();
 		}

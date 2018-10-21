@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
+
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
@@ -48,11 +50,36 @@ public class ICFG {
 	}
 	
 	/**
+	 * Returns the entry point function roots
+	 * @return
+	 */
+	public Node getEntryPointFunctionRoots() {
+		return CommonQueries.cfg(entryPointFunction).nodes(XCSG.controlFlowRoot).eval().nodes().one();
+	}
+	
+	/**
+	 * Returns the entry point function exits
+	 * @return
+	 */
+	public AtlasSet<Node> getEntryPointFunctionExits() {
+		return CommonQueries.cfg(entryPointFunction).nodes(XCSG.controlFlowExitPoint).eval().nodes();
+	}
+	
+	/**
 	 * Returns the ICFG
 	 * @return
 	 */
 	public Q getICFG() {
-		return Common.toQ(new UncheckedGraph(icfgNodes, icfgEdges));
+		return Common.resolve(new NullProgressMonitor(), Common.toQ(new UncheckedGraph(icfgNodes, icfgEdges)));
+	}
+	
+	/**
+	 * Compute the ICFG given an entry point function and all functions expandable using the default call resolution strategy
+	 * @param entryPointFunction
+	 * @param functionsToExpand
+	 */
+	public ICFG(Node entryPointFunction) {
+		this(entryPointFunction, Common.empty().eval().nodes());
 	}
 	
 	/**
@@ -61,7 +88,7 @@ public class ICFG {
 	 * @param functionsToExpand
 	 */
 	public ICFG(Node entryPointFunction, AtlasSet<Node> functionsToExpand) {
-		this(entryPointFunction, functionsToExpand,  new DefaultResolutionStrategy());
+		this(entryPointFunction, functionsToExpand, new DefaultResolutionStrategy());
 	}
 	
 	/**
@@ -71,7 +98,27 @@ public class ICFG {
 	 * @param callResolutionStrategy The call resolution strategy to use
 	 */
 	public ICFG(Node entryPointFunction, AtlasSet<Node> functionsToExpand, CallResolutionStrategy callResolutionStrategy) {
+		// check argument
+		if(entryPointFunction == null || !entryPointFunction.taggedWith(XCSG.Function)) {
+			throw new IllegalArgumentException("Entry point function is invalid.");
+		}
 		this.entryPointFunction = entryPointFunction;
+		
+		// check argument
+		if(functionsToExpand == null) {
+			throw new IllegalArgumentException("Function to expand is invalid.");
+		} else {
+			for(Node function : functionsToExpand) {
+				if(!function.taggedWith(XCSG.Function)) {
+					throw new IllegalArgumentException("Function to expand is invalid.");
+				}
+			}
+		}
+		
+		// check argument
+		if(callResolutionStrategy == null) {
+			throw new IllegalArgumentException("Call resolution strategy is invalid.");
+		}
 		
 		// step 1) use call summaries (i.e. call graph) to scan ahead and find all functions in the ICFG
 		//         we can do this because if a call summary edge exists from one function to another
