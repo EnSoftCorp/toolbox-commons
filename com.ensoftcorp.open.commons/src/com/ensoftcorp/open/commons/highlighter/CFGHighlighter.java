@@ -12,14 +12,16 @@ import com.ensoftcorp.atlas.core.markup.MarkupProperty.LineStyle;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.algorithms.ICFG;
 import com.ensoftcorp.open.commons.utilities.FormattedSourceCorrespondence;
 
 public class CFGHighlighter {
 
 	public static final Color cfgDefault = java.awt.Color.GRAY;
+	public static final Color cfgBackEdge = java.awt.Color.BLUE;
 	public static final Color cfgTrue = java.awt.Color.WHITE;
 	public static final Color cfgFalse = java.awt.Color.BLACK;
-	public static final Color cfgExceptional = java.awt.Color.BLUE;
+	public static final Color cfgExceptional = java.awt.Color.GREEN.darker();
 	
 	/**
 	 * Adds line numbers as a prefix to nodes
@@ -74,12 +76,30 @@ public class CFGHighlighter {
 	 * GRAY  = Unconditional ControlFlow Edge
 	 * WHITE = Conditional True ControlFlow Edge
 	 * BLACK = Conditional False ControlFlow Edge
-	 * BLUE  = Exceptional ControlFlow Edge
+	 * GREEN  = Exceptional ControlFlow Edge
+	 * 
+	 * @param m
+	 */
+	public static void applyHighlightsForICFG(Markup m) {
+		applyHighlightsForCFG(m);
+		Q icfgEdges = Query.universe().edges(ICFG.ICFGEdge);
+		m.setEdge(icfgEdges, MarkupProperty.EDGE_COLOR, cfgDefault);
+	}
+	
+	/**
+	 * GRAY  = Unconditional ControlFlow Edge
+	 * WHITE = Conditional True ControlFlow Edge
+	 * BLACK = Conditional False ControlFlow Edge
+	 * GREEN  = Exceptional ControlFlow Edge
 	 * @param m
 	 */
 	public static void applyHighlightsForCFG(Markup m) {
-		Q cfEdge = Query.universe().edges(XCSG.ControlFlow_Edge);
-		m.setEdge(cfEdge, MarkupProperty.EDGE_COLOR, cfgDefault);
+		Q cfEdges = Query.universe().edges(XCSG.ControlFlow_Edge);
+		m.setEdge(cfEdges, MarkupProperty.EDGE_COLOR, cfgDefault);
+		
+		Q cfBackEdges = Query.universe().edges(XCSG.ControlFlowBackEdge);
+		m.setEdge(cfBackEdges, MarkupProperty.EDGE_COLOR, cfgBackEdge);
+		
 		Q cvTrue = Query.universe().selectEdge(XCSG.conditionValue, true, Boolean.TRUE, "true");
 		Q cvFalse = Query.universe().selectEdge(XCSG.conditionValue, false, Boolean.FALSE, "false");
 		

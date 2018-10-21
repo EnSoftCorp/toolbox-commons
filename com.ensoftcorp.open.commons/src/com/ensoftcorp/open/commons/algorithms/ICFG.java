@@ -5,16 +5,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
@@ -25,88 +24,114 @@ import com.ensoftcorp.open.commons.xcsg.XCSG_Extension;
 public class ICFG {
 
 	@XCSG_Extension
-	private static String ICFGEdge = "InterproceduralControlFlow_Edge";
+	public static String ICFGEdge = "ICFG.InterproceduralControlFlow_Edge";
 
+	@XCSG_Extension
+	public static String ICFGCallsiteAttribute = "ICFG.CallSite";
+	
 	private Node entryPointFunction;
 	private AtlasSet<GraphElement> icfgElements;
-	private List<Pair<Node, Node>> icfgNodePairs;
-	private Q predecessorsToConnect;
-	private Q successorsToConnect;
+	private List<CallSitePair> icfgNodePairs;
+	private AtlasSet<Node> predecessorsToConnect;
+	private AtlasSet<Node> successorsToConnect;
 	private Queue<Node> nodesToProcess;
 	private List<Node> processedNodes;
 	private AtlasSet<Node> functionsToExpand;
 	private AtlasSet<Edge> backedges;
 	private Q dag;
+	private Node callsite;
+	private long callsiteCounter = 0;
+	
+	private static class CallSitePair {
+		private Node predecessor;
+		private Node successor;
+		private Node callsite;
+		private long callsiteCounter;
+		
+		public CallSitePair(Node predecessor, Node successor, Node callsite, long callsiteCounter) {
+			this.predecessor = predecessor;
+			this.successor = successor;
+			this.callsite = callsite;
+			this.callsiteCounter = callsiteCounter;
+		}
 
-	private static boolean isCallSite(Q cfNode, Q functionContext) {
-		Q callsites = getContainingCallSites(cfNode);
-		if (CommonQueries.isEmpty(callsites)) {
+		public Node getPredecessor() {
+			return predecessor;
+		}
+
+		public Node getSuccessor() {
+			return successor;
+		}
+
+		public Node getCallsite() {
+			return callsite;
+		}
+		
+		public long getCallsiteCounter() {
+			return callsiteCounter;
+		}
+	}
+
+	private static boolean isCallSite(Node cfNode, Q functionsToExpand) {
+		AtlasSet<Node> callsites = getContainingCallSites(cfNode);
+		if (callsites.isEmpty()) {
 			return false;
 		}
-		if (!CommonQueries.isEmpty(functionContext)) {
-			Q targets = CallSiteAnalysis.getTargets(callsites);
-			if (CommonQueries.isEmpty(targets.intersection(functionContext))) {
+		if (!CommonQueries.isEmpty(functionsToExpand)) {
+			AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsites);
+			if (CommonQueries.isEmpty(Common.toQ(targets).intersection(functionsToExpand))) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	@SuppressWarnings("unused")
-	private static boolean isCallSite(Q cfNode) {
-		return isCallSite(cfNode, Common.empty());
-	}
-
-	private static Q getContainingCallSites(Q cfNode) {
-		return cfNode.children().nodes(XCSG.CallSite);
+	private static AtlasSet<Node> getContainingCallSites(Node cfNode) {
+		return Common.toQ(cfNode).children().nodes(XCSG.CallSite).eval().nodes();
 	}
 
 	public ICFG(Node entryPointFunction, AtlasSet<Node> functionsToExpand) {
 		this.entryPointFunction = entryPointFunction;
 		this.backedges = CommonQueries.cfg(entryPointFunction).edges(XCSG.ControlFlowBackEdge).eval().edges();
 		this.icfgElements = new AtlasHashSet<GraphElement>();
-		this.icfgNodePairs = new ArrayList<Pair<Node, Node>>();
-		this.predecessorsToConnect = Common.empty();
-		this.successorsToConnect = Common.empty();
+		this.icfgNodePairs = new ArrayList<CallSitePair>();
+		this.predecessorsToConnect = new AtlasHashSet<Node>();
+		this.successorsToConnect = new AtlasHashSet<Node>();
 		this.nodesToProcess = new LinkedList<Node>();
 		this.processedNodes = new ArrayList<Node>();
 		this.functionsToExpand = functionsToExpand;
 		this.dag = CommonQueries.cfg(entryPointFunction).differenceEdges(Common.toQ(backedges));
-
 	}
 
 	private void computeICFGElements() {
-		Q rootCfg = CommonQueries.cfg(entryPointFunction);
-		rootCfg = rootCfg.differenceEdges(Common.toQ(backedges));
-		if (CommonQueries.isEmpty(rootCfg)) {
+		Q rootCFG = CommonQueries.cfg(entryPointFunction);
+		rootCFG = rootCFG.differenceEdges(Common.toQ(backedges));
+		if (CommonQueries.isEmpty(rootCFG)) {
 			return;
 		}
-		// map to store processing constraints
-		// processing constraints ensure that the child nodes are processed in the
-		// correct order Map<Node,Long> constraints = new HashMap<Node,Long>();
-		Q root = rootCfg.nodes(XCSG.controlFlowRoot);
+		
+		Q root = rootCFG.nodes(XCSG.controlFlowRoot);
 		nodesToProcess.add(root.eval().nodes().one());
-		while (nodesToProcess.peek() != null) {
+		while (!nodesToProcess.isEmpty()) {
 			Node currentNode = nodesToProcess.poll();
-			Q currentNodeQ = Common.toQ(currentNode);
-			Q successors = rootCfg.successors(currentNodeQ);
-			if (!isCallSite(currentNodeQ, Common.toQ(this.functionsToExpand))) {
-				successorsToConnect = successors;
+			Q successors = rootCFG.successors(Common.toQ(currentNode));
+			if (!isCallSite(currentNode, Common.toQ(this.functionsToExpand))) {
+				successorsToConnect = new AtlasHashSet<Node>(successors.eval().nodes());
 				findPredecessors(currentNode);
 				connectPredecessors(currentNode);
 				connectSuccessors(currentNode);
-				// predecessorsToConnect = currentNodeQ;
 			} else {
-				Q callsiteicfg = processCallSite(currentNodeQ);
-				successorsToConnect = callsiteicfg.roots();
-				findPredecessors(currentNode);
-				connectPredecessors(currentNode);
-				connectSuccessors(currentNode);
-				// predecessorsToConnect = callsiteicfg.leaves();
+				Node callsiteCFNode = currentNode;
+				Q callsiteICFG = processCallSite(callsiteCFNode);
+				successorsToConnect = new AtlasHashSet<Node>(callsiteICFG.roots().eval().nodes());
+				findPredecessors(callsiteCFNode);
+				connectPredecessors(callsiteCFNode);
+				connectSuccessors(callsiteCFNode);
+				callsiteCounter++;
 			}
 			processedNodes.add(currentNode);
 			for (Node successor : successors.eval().nodes()) {
-				Q predessorOfSuccessor = rootCfg.predecessors(Common.toQ(successor));
+				Q predessorOfSuccessor = rootCFG.predecessors(Common.toQ(successor));
 				// processing constraints ensure that the child nodes are processed in the
 				// correct order
 				boolean correctOrder = true;
@@ -121,24 +146,22 @@ public class ICFG {
 				}
 			}
 		}
-
 	}
 
 	private void findPredecessors(Node currentNode) {
-		predecessorsToConnect = Common.empty();
+		predecessorsToConnect = new AtlasHashSet<Node>();
 		AtlasSet<Node> pd = new AtlasHashSet<Node>();
 		pd = dag.predecessors(Common.toQ(currentNode)).eval().nodes();
 		for (Node n : pd) {
-			Q nQ = Common.toQ(n);
-			if (!isCallSite(nQ, Common.toQ(this.functionsToExpand))) {
-				predecessorsToConnect = predecessorsToConnect.union(nQ);
+			if (!isCallSite(n, Common.toQ(this.functionsToExpand))) {
+				predecessorsToConnect.add(n);
 			} else {
-				Q callsites = getContainingCallSites(nQ);
-				if (callsites.eval().nodes().size() == 1) {
-					AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsites).eval().nodes();
+				AtlasSet<Node> callsites = getContainingCallSites(n);
+				if (callsites.size() == 1) {
+					AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsites);
 					for (Node target : targets) {
 						Q targetCFG = CommonQueries.cfg(target);
-						predecessorsToConnect = predecessorsToConnect.union(targetCFG.leaves());
+						predecessorsToConnect.addAll(targetCFG.leaves().eval().nodes());
 					}
 				}
 			}
@@ -146,19 +169,22 @@ public class ICFG {
 	}
 
 	private void connectEdges() {
-		for (Pair<Node, Node> nodePair : icfgNodePairs) {
-			Node u = nodePair.getLeft();
-			Node v = nodePair.getRight();
-			Q betweenControlFlow = Common.universe().edges(XCSG.ControlFlow_Edge).betweenStep(Common.toQ(u),
-					Common.toQ(v));
+		for (CallSitePair callsitePair : icfgNodePairs) {
+			Node u = callsitePair.getPredecessor();
+			Node v = callsitePair.getSuccessor();
+			Q betweenControlFlow = Query.universe().edges(XCSG.ControlFlow_Edge, ICFGEdge).betweenStep(Common.toQ(u), Common.toQ(v));
 			AtlasSet<Edge> betweenEdges = betweenControlFlow.eval().edges();
 			if (betweenEdges.size() == 0) {
 				Edge e = Graph.U.createEdge(u, v);
 				e.tag(ICFGEdge);
 				e.tag(XCSG.ControlFlow_Edge);
+				if(callsitePair.getCallsite() != null) {
+					String callsiteID = callsitePair.getCallsite().getAttr(Attr.Node.CALL_SITE_ID).toString() + "-" + callsitePair.getCallsiteCounter();
+					e.putAttr(ICFGCallsiteAttribute, callsiteID);
+					e.putAttr(XCSG.name, "CID_" + callsitePair.getCallsiteCounter());
+				}
 				icfgElements.add(e);
-				// Log.info("Edge added : " + u.getAttr(XCSG.name) + " -> " +
-				// v.getAttr(XCSG.name));
+				// Log.info("Edge added : " + u.getAttr(XCSG.name) + " -> " + v.getAttr(XCSG.name));
 			} else {
 				for (Edge betweenEdge : betweenEdges) {
 					icfgElements.add(betweenEdge);
@@ -170,36 +196,37 @@ public class ICFG {
 	}
 
 	private void connectPredecessors(Node currentNode) {
-		if (!CommonQueries.isEmpty(predecessorsToConnect)) {
-			for (Node predecessor : predecessorsToConnect.eval().nodes()) {
-				this.icfgNodePairs.add(new ImmutablePair<Node, Node>(predecessor, currentNode));
+		if (!predecessorsToConnect.isEmpty()) {
+			for (Node predecessor : predecessorsToConnect) {
+				this.icfgNodePairs.add(new CallSitePair(predecessor, currentNode, callsite, callsiteCounter));
 			}
 		}
 	}
 
 	private void connectSuccessors(Node currentNode) {
-		if (!CommonQueries.isEmpty(successorsToConnect)) {
-			for (Node successor : successorsToConnect.eval().nodes()) {
-				this.icfgNodePairs.add(new ImmutablePair<Node, Node>(currentNode, successor));
+		if (!successorsToConnect.isEmpty()) {
+			for (Node successor : successorsToConnect) {
+				this.icfgNodePairs.add(new CallSitePair(currentNode, successor, callsite, callsiteCounter));
 			}
 		}
 	}
 
-	private Q processCallSite(Q callsite) {
-		Q targetIcfg = Common.empty();
-		Q callsites = getContainingCallSites(callsite);
-		if (callsites.eval().nodes().size() == 1) {
-			AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsites).eval().nodes();
+	private Q processCallSite(Node callsiteCFNode) {
+		Q targetICFG = Common.empty();
+		AtlasSet<Node> callsites = getContainingCallSites(callsiteCFNode);
+		if (callsites.size() == 1) {
+			callsite = callsites.one();
+			AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsite);
 			for (Node target : targets) {
 				ICFG icfg = new ICFG(target, this.functionsToExpand);
-				targetIcfg = targetIcfg.union(icfg.getICFG());
-				this.icfgNodePairs.addAll(icfg.getIcfgNodePairs());
+				targetICFG = targetICFG.union(icfg.getICFG());
+				this.icfgNodePairs.addAll(icfg.getICFGNodePairs());
 			}
 		} else {
 			// TODO: handle multiple callsites
 			Log.warning("Multiple callsites are not handled at this time.");
 		}
-		return targetIcfg;
+		return targetICFG;
 	}
 
 	public Q getICFG() {
@@ -209,7 +236,7 @@ public class ICFG {
 		return Common.toQ(icfgElements);
 	}
 
-	public List<Pair<Node, Node>> getIcfgNodePairs() {
+	public List<CallSitePair> getICFGNodePairs() {
 		return icfgNodePairs;
 	}
 
