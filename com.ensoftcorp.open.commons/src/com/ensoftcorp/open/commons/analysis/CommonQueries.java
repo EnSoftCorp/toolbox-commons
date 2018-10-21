@@ -694,28 +694,6 @@ public final class CommonQueries {
 		return excfg(Common.toQ(function));
 	}
 	
-	public static boolean isCallSite(Q cfNode, Q functionContext) {
-		Q callsites = getContainingCallSites(cfNode);
-		if(isEmpty(callsites)) {
-			return false;
-		}
-		if(!CommonQueries.isEmpty(functionContext)) {
-			Q targets = CallSiteAnalysis.getTargets(callsites);
-			if(CommonQueries.isEmpty(targets.intersection(functionContext))) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	public static boolean isCallSite(Q cfNode) {
-		return isCallSite(cfNode,Common.empty());
-	}
-	
-	public static Q getContainingCallSites(Q cfNode) {
-		return cfNode.children().nodes(XCSG.CallSite);
-	}
-	
 	/**
 	 * All nodes declared under the given functions, but NOT declared under
 	 * additional functions or types. Retrieves declarations of only this function.

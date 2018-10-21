@@ -209,7 +209,7 @@ public class UniqueEntryExitInterproceduralControlFlowGraph implements UniqueEnt
 			// note we are reusing master entry nodes so the search should be from
 			// icfg not just the specified roots
 			masterEntryNode = Common.universe()
-					.predecessors(InterproceduralControlFlowGraph.icfg(function))
+					.predecessors(InterproceduralControlFlowGraph.icfg(function).getICFG())
 					.nodes(UniqueEntryExitICFG_Master_Entry)
 					.eval().nodes().one();
 		}
@@ -256,7 +256,7 @@ public class UniqueEntryExitInterproceduralControlFlowGraph implements UniqueEnt
 			// note we are reusing master entry nodes so the search should be from
 			// the entire function cfg not just the specified roots
 			masterExitNode = Common.universe()
-					.successors(InterproceduralControlFlowGraph.icfg(function))
+					.successors(InterproceduralControlFlowGraph.icfg(function).getICFG())
 					.nodes(UniqueEntryExitICFG_Master_Exit)
 					.eval().nodes().one();
 		}
