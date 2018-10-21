@@ -1,9 +1,9 @@
 package com.ensoftcorp.open.commons.algorithms;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Queue;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
@@ -39,8 +39,9 @@ public class ICFG {
 	private List<CallSitePair> icfgNodePairs;
 	private AtlasSet<Node> predecessorsToConnect;
 	private AtlasSet<Node> successorsToConnect;
-	private Queue<Node> nodesToProcess;
-	private List<Node> processedNodes;
+	private LinkedHashSet<Node> nodesToProcess;
+	private AtlasSet<Node> processedNodes;
+	private AtlasSet<Node> processedFunctions;
 	private AtlasSet<Node> functionsToExpand;
 	private AtlasSet<Edge> backEdges;
 	private Q dag;
@@ -136,8 +137,10 @@ public class ICFG {
 		this.icfgNodePairs = new ArrayList<CallSitePair>();
 		this.predecessorsToConnect = new AtlasHashSet<Node>();
 		this.successorsToConnect = new AtlasHashSet<Node>();
-		this.nodesToProcess = new LinkedList<Node>();
-		this.processedNodes = new ArrayList<Node>();
+		this.nodesToProcess = new LinkedHashSet<Node>();
+		this.processedFunctions = new AtlasHashSet<Node>();
+		processedFunctions.add(entryPointFunction);
+		this.processedNodes = new AtlasHashSet<Node>();
 		this.functionsToExpand = functionsToExpand;
 		this.dag = CommonQueries.cfg(entryPointFunction).differenceEdges(Common.toQ(backEdges));
 	}
@@ -152,39 +155,39 @@ public class ICFG {
 		Q root = rootCFG.nodes(XCSG.controlFlowRoot);
 		nodesToProcess.add(root.eval().nodes().one());
 		while (!nodesToProcess.isEmpty()) {
-			Node currentNode = nodesToProcess.poll();
-			if(!processedNodes.contains(currentNode)) { // why don't we do this or use a sorted set? ~BH we should only need to visit each node once, otherwise its an exponential cost
-				Q successors = rootCFG.successors(Common.toQ(currentNode));
-				boolean isCallsite = isCallSite(currentNode, Common.toQ(this.functionsToExpand));
-				if (!isCallsite) {
-					successorsToConnect = new AtlasHashSet<Node>(successors.eval().nodes());
-					findPredecessors(currentNode);
-					connectPredecessors(currentNode, callsiteCounter);
-					connectSuccessors(currentNode, callsiteCounter-1);
-				} else {
-					callsiteCounter++;
-					Node callsiteCFNode = currentNode;
-					Q callsiteICFG = processCallSite(callsiteCFNode);
-					successorsToConnect = new AtlasHashSet<Node>(callsiteICFG.roots().eval().nodes());
-					findPredecessors(callsiteCFNode);
-					connectPredecessors(callsiteCFNode, callsiteCounter-1);
-					connectSuccessors(callsiteCFNode, callsiteCounter);
+			Iterator<Node> iterator = nodesToProcess.iterator();
+			Node currentNode = iterator.next();
+			iterator.remove();
+			Q successors = rootCFG.successors(Common.toQ(currentNode));
+			boolean isCallsite = isCallSite(currentNode, Common.toQ(this.functionsToExpand));
+			if (!isCallsite) {
+				successorsToConnect = new AtlasHashSet<Node>(successors.eval().nodes());
+				findPredecessors(currentNode);
+				connectPredecessors(currentNode, callsiteCounter);
+				connectSuccessors(currentNode, callsiteCounter-1);
+			} else {
+				callsiteCounter++;
+				Node callsiteCFNode = currentNode;
+				Q callsiteICFG = processCallSite(callsiteCFNode);
+				successorsToConnect = new AtlasHashSet<Node>(callsiteICFG.roots().eval().nodes());
+				findPredecessors(callsiteCFNode);
+				connectPredecessors(callsiteCFNode, callsiteCounter-1);
+				connectSuccessors(callsiteCFNode, callsiteCounter);
+			}
+			processedNodes.add(currentNode);
+			for (Node successor : successors.eval().nodes()) {
+				Q predessorOfSuccessor = rootCFG.predecessors(Common.toQ(successor));
+				// processing constraints ensure that the child nodes are processed in the
+				// correct order
+				boolean correctOrder = true;
+				for (Node n : predessorOfSuccessor.eval().nodes()) {
+					if (!processedNodes.contains(n)) {
+						correctOrder = false;
+						break;
+					}
 				}
-				processedNodes.add(currentNode);
-				for (Node successor : successors.eval().nodes()) {
-					Q predessorOfSuccessor = rootCFG.predecessors(Common.toQ(successor));
-					// processing constraints ensure that the child nodes are processed in the
-					// correct order
-					boolean correctOrder = true;
-					for (Node n : predessorOfSuccessor.eval().nodes()) {
-						if (!processedNodes.contains(n)) {
-							correctOrder = false;
-							break;
-						}
-					}
-					if (correctOrder) {
-						nodesToProcess.add(successor);
-					}
+				if (correctOrder) {
+					nodesToProcess.add(successor);
 				}
 			}
 		}
@@ -271,9 +274,12 @@ public class ICFG {
 			callsite = callsites.one();
 			AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsite);
 			for (Node target : targets) {
-				ICFG icfg = new ICFG(target, this.functionsToExpand, this.callsiteCounter);
-				targetICFG = targetICFG.union(icfg.getICFG());
-				this.icfgNodePairs.addAll(icfg.getICFGNodePairs());
+				if(!this.processedFunctions.contains(target)) {
+					ICFG icfg = new ICFG(target, this.functionsToExpand, this.callsiteCounter);
+					targetICFG = targetICFG.union(icfg.getICFG());
+					this.icfgNodePairs.addAll(icfg.getICFGNodePairs());
+					processedFunctions.add(target);
+				}
 			}
 		} else {
 			// TODO: handle multiple callsites
