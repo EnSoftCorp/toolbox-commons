@@ -218,8 +218,6 @@ public class ICFG {
 			AtlasSet<Edge> betweenEdges = betweenControlFlow.eval().edges();
 			if (betweenEdges.size() == 0) {
 				Edge e = Graph.U.createEdge(u, v);
-				e.tag(ICFGEdge);
-				e.tag(XCSG.ControlFlow_Edge);
 				if(callsitePair.isEntry()) {
 					e.tag(ICFGEntryEdge);
 				}
@@ -229,11 +227,9 @@ public class ICFG {
 				if(callsitePair.getCallsite() != null) {
 					// we could make a correspondence to the atlas dataflow callsite id, but it appears to be deprecated
 //					String callsiteID = callsitePair.getCallsite().getAttr(Attr.Node.CALL_SITE_ID).toString();
-					e.putAttr(ICFGCallsiteAttribute, callsitePair.getCallsiteCounter());
-					e.putAttr(XCSG.name, "CID_" + callsitePair.getCallsiteCounter());
+					e.putAttr(ICFGCallsiteAttribute, Long.toHexString(callsitePair.getCallsiteCounter()));
 				}
 				icfgElements.add(e);
-				// Log.info("Edge added : " + u.getAttr(XCSG.name) + " -> " + v.getAttr(XCSG.name));
 			} else {
 				for (Edge betweenEdge : betweenEdges) {
 					icfgElements.add(betweenEdge);

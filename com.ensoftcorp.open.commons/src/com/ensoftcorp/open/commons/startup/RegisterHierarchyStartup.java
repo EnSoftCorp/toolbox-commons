@@ -7,6 +7,7 @@ import java.util.Set;
 import org.eclipse.ui.IStartup;
 
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.algorithms.ICFG;
 import com.ensoftcorp.open.commons.log.Log;
 import com.ensoftcorp.open.commons.subsystems.Subsystem;
 import com.ensoftcorp.open.commons.subsystems.Subsystems;
@@ -15,12 +16,22 @@ public class RegisterHierarchyStartup implements IStartup {
 
 	@Override
 	public void earlyStartup() {
+		// create subsystem tag hierarchy
 		try {
 			Subsystems.loadSubsystemContributions();
 			Set<Subsystem> subsystems = Subsystems.getRegisteredSubsystems();
 			buildSubsystemTagHierarchy(subsystems);
 		} catch (Exception e){
 			Log.error("Unable to build subsystem tag hierarchy.", e);
+		}
+		
+		// create ICFG tag hierarchy
+		try {
+			XCSG.HIERARCHY.registerTag(ICFG.ICFGEdge); // intentionally NOT making this a child of XCSG.ControlFlow_Edge so we don't break fundamental schema assertions
+			XCSG.HIERARCHY.registerTag(ICFG.ICFGEntryEdge, ICFG.ICFGEdge);
+			XCSG.HIERARCHY.registerTag(ICFG.ICFGExitEdge, ICFG.ICFGEdge);
+		} catch (Exception e) {
+			Log.error("Unable to build ICFG tag hierarchy.", e);
 		}
 	}
 	
