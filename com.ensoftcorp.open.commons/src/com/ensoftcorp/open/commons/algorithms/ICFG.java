@@ -1,14 +1,14 @@
 package com.ensoftcorp.open.commons.algorithms;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
@@ -17,7 +17,7 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
-import com.ensoftcorp.open.commons.log.Log;
+import com.ensoftcorp.open.commons.utilities.NodeSourceCorrespondenceSorter;
 import com.ensoftcorp.open.commons.xcsg.XCSG_Extension;
 
 public class ICFG {
@@ -35,268 +35,246 @@ public class ICFG {
 	public static String ICFGCallsiteAttribute = "ICFG.CallSite";
 	
 	private Node entryPointFunction;
-	private AtlasSet<GraphElement> icfgElements;
-	private List<CallSitePair> icfgNodePairs;
-	private AtlasSet<Node> predecessorsToConnect;
-	private AtlasSet<Node> successorsToConnect;
-	private LinkedHashSet<Node> nodesToProcess;
-	private AtlasSet<Node> processedNodes;
-	private AtlasSet<Node> processedFunctions;
-	private AtlasSet<Node> functionsToExpand;
-	private AtlasSet<Edge> backEdges;
-	private Q dag;
-	private Node callsite;
+	private AtlasSet<Node> icfgNodes = new AtlasHashSet<Node>();
+	private AtlasSet<Edge> icfgEdges = new AtlasHashSet<Edge>();
 	
-	private long callsiteCounter = 0;
-	
-	private abstract static class CallSitePair {
-		private Node predecessor;
-		private Node successor;
-		private Node callsite;
-		private long callsiteCounter;
-		
-		public CallSitePair(Node predecessor, Node successor, Node callsite, long callsiteCounter) {
-			this.predecessor = predecessor;
-			this.successor = successor;
-			this.callsite = callsite;
-			this.callsiteCounter = callsiteCounter;
-		}
-
-		public Node getPredecessor() {
-			return predecessor;
-		}
-
-		public Node getSuccessor() {
-			return successor;
-		}
-
-		public Node getCallsite() {
-			return callsite;
-		}
-		
-		public long getCallsiteCounter() {
-			return callsiteCounter;
-		}
-		
-		public abstract boolean isEntry();
-		
-		public boolean isExit() {
-			return !isEntry();
-		}
+	/**
+	 * Returns the entry point function
+	 * @return
+	 */
+	public Node getEntryPointFunction() {
+		return entryPointFunction;
 	}
 	
-	private static class CallSiteEntryPair extends CallSitePair {
-		public CallSiteEntryPair(Node predecessor, Node successor, Node callsite, long callsiteCounter) {
-			super(predecessor, successor, callsite, callsiteCounter);
-		}
-
-		@Override
-		public boolean isEntry() {
-			return true;
-		}
-	}
-	
-	private static class CallSiteExitPair extends CallSitePair {
-		public CallSiteExitPair(Node predecessor, Node successor, Node callsite, long callsiteCounter) {
-			super(predecessor, successor, callsite, callsiteCounter);
-		}
-
-		@Override
-		public boolean isEntry() {
-			return false;
-		}
-	}
-
-	private static boolean isCallSite(Node cfNode, Q functionsToExpand) {
-		AtlasSet<Node> callsites = getContainingCallSites(cfNode);
-		if (callsites.isEmpty()) {
-			return false;
-		}
-		if (!CommonQueries.isEmpty(functionsToExpand)) {
-			AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsites);
-			if (CommonQueries.isEmpty(Common.toQ(targets).intersection(functionsToExpand))) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private static AtlasSet<Node> getContainingCallSites(Node cfNode) {
-		return Common.toQ(cfNode).children().nodes(XCSG.CallSite).eval().nodes();
-	}
-	
-	public ICFG(Node entryPointFunction, AtlasSet<Node> functionsToExpand, long callsiteCounter) {
-		this(entryPointFunction, functionsToExpand);
-		this.callsiteCounter = callsiteCounter;
-	}
-
-	public ICFG(Node entryPointFunction, AtlasSet<Node> functionsToExpand) {
-		this.entryPointFunction = entryPointFunction;
-		this.backEdges = CommonQueries.cfg(entryPointFunction).edges(XCSG.ControlFlowBackEdge).eval().edges();
-		this.icfgElements = new AtlasHashSet<GraphElement>();
-		this.icfgNodePairs = new ArrayList<CallSitePair>();
-		this.predecessorsToConnect = new AtlasHashSet<Node>();
-		this.successorsToConnect = new AtlasHashSet<Node>();
-		this.nodesToProcess = new LinkedHashSet<Node>();
-		this.processedFunctions = new AtlasHashSet<Node>();
-		processedFunctions.add(entryPointFunction);
-		this.processedNodes = new AtlasHashSet<Node>();
-		this.functionsToExpand = functionsToExpand;
-		this.dag = CommonQueries.cfg(entryPointFunction).differenceEdges(Common.toQ(backEdges));
-	}
-
-	private void computeICFGElements() {
-		Q rootCFG = CommonQueries.cfg(entryPointFunction);
-		rootCFG = rootCFG.differenceEdges(Common.toQ(backEdges));
-		if (CommonQueries.isEmpty(rootCFG)) {
-			return;
-		}
-		
-		Q root = rootCFG.nodes(XCSG.controlFlowRoot);
-		nodesToProcess.add(root.eval().nodes().one());
-		while (!nodesToProcess.isEmpty()) {
-			Iterator<Node> iterator = nodesToProcess.iterator();
-			Node currentNode = iterator.next();
-			iterator.remove();
-			Q successors = rootCFG.successors(Common.toQ(currentNode));
-			boolean isCallsite = isCallSite(currentNode, Common.toQ(this.functionsToExpand));
-			if (!isCallsite) {
-				successorsToConnect = new AtlasHashSet<Node>(successors.eval().nodes());
-				findPredecessors(currentNode);
-				connectPredecessors(currentNode, callsiteCounter);
-				connectSuccessors(currentNode, callsiteCounter-1);
-			} else {
-				callsiteCounter++;
-				Node callsiteCFNode = currentNode;
-				Q callsiteICFG = processCallSite(callsiteCFNode);
-				successorsToConnect = new AtlasHashSet<Node>(callsiteICFG.roots().eval().nodes());
-				findPredecessors(callsiteCFNode);
-				connectPredecessors(callsiteCFNode, callsiteCounter-1);
-				connectSuccessors(callsiteCFNode, callsiteCounter);
-			}
-			processedNodes.add(currentNode);
-			for (Node successor : successors.eval().nodes()) {
-				Q predessorOfSuccessor = rootCFG.predecessors(Common.toQ(successor));
-				// processing constraints ensure that the child nodes are processed in the
-				// correct order
-				boolean correctOrder = true;
-				for (Node n : predessorOfSuccessor.eval().nodes()) {
-					if (!processedNodes.contains(n)) {
-						correctOrder = false;
-						break;
-					}
-				}
-				if (correctOrder) {
-					nodesToProcess.add(successor);
-				}
-			}
-		}
-	}
-
-	private void findPredecessors(Node currentNode) {
-		predecessorsToConnect = new AtlasHashSet<Node>();
-		AtlasSet<Node> pd = new AtlasHashSet<Node>();
-		pd = dag.predecessors(Common.toQ(currentNode)).eval().nodes();
-		for (Node n : pd) {
-			if (!isCallSite(n, Common.toQ(this.functionsToExpand))) {
-				predecessorsToConnect.add(n);
-			} else {
-				AtlasSet<Node> callsites = getContainingCallSites(n);
-				if (callsites.size() == 1) {
-					AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsites);
-					for (Node target : targets) {
-						Q targetCFG = CommonQueries.cfg(target);
-						predecessorsToConnect.addAll(targetCFG.leaves().eval().nodes());
-					}
-				}
-			}
-		}
-	}
-
-	private void connectNodes() {
-		for (CallSitePair callsitePair : icfgNodePairs) {
-			Node u = callsitePair.getPredecessor();
-			Node v = callsitePair.getSuccessor();
-			Q betweenControlFlow = Query.universe().edges(XCSG.ControlFlow_Edge, ICFGEdge).betweenStep(Common.toQ(u), Common.toQ(v));
-			AtlasSet<Edge> betweenEdges = betweenControlFlow.eval().edges();
-			if (betweenEdges.size() == 0) {
-				Edge e = Graph.U.createEdge(u, v);
-				if(callsitePair.isEntry()) {
-					e.tag(ICFGEntryEdge);
-				}
-				if(callsitePair.isExit()) {
-					e.tag(ICFGExitEdge);
-				}
-				if(callsitePair.getCallsite() != null) {
-					// we could make a correspondence to the atlas dataflow callsite id, but it appears to be deprecated
-//					String callsiteID = callsitePair.getCallsite().getAttr(Attr.Node.CALL_SITE_ID).toString();
-					e.putAttr(ICFGCallsiteAttribute, Long.toHexString(callsitePair.getCallsiteCounter()));
-				}
-				icfgElements.add(e);
-			} else {
-				for (Edge betweenEdge : betweenEdges) {
-					icfgElements.add(betweenEdge);
-				}
-			}
-			icfgElements.add(u);
-			icfgElements.add(v);
-		}
-	}
-
-	private void connectPredecessors(Node currentNode, long callsiteCounter) {
-		if (!predecessorsToConnect.isEmpty()) {
-			for (Node predecessor : predecessorsToConnect) {
-				if(predecessor.taggedWith(XCSG.controlFlowExitPoint)) {
-					this.icfgNodePairs.add(new CallSiteExitPair(predecessor, currentNode, callsite, callsiteCounter));
-				} else {
-					this.icfgNodePairs.add(new CallSiteEntryPair(predecessor, currentNode, callsite, callsiteCounter));
-				}
-			}
-		}
-	}
-
-	private void connectSuccessors(Node currentNode, long callsiteCounter) {
-		if (!successorsToConnect.isEmpty()) {
-			for (Node successor : successorsToConnect) {
-				if(currentNode.taggedWith(XCSG.controlFlowExitPoint)) {
-					this.icfgNodePairs.add(new CallSiteExitPair(currentNode, successor, callsite, callsiteCounter));
-				} else {
-					this.icfgNodePairs.add(new CallSiteEntryPair(currentNode, successor, callsite, callsiteCounter));
-				}
-			}
-		}
-	}
-
-	private Q processCallSite(Node callsiteCFNode) {
-		Q targetICFG = Common.empty();
-		AtlasSet<Node> callsites = getContainingCallSites(callsiteCFNode);
-		if (callsites.size() == 1) {
-			callsite = callsites.one();
-			AtlasSet<Node> targets = CallSiteAnalysis.getTargets(callsite);
-			for (Node target : targets) {
-				if(!this.processedFunctions.contains(target)) {
-					ICFG icfg = new ICFG(target, this.functionsToExpand, this.callsiteCounter);
-					targetICFG = targetICFG.union(icfg.getICFG());
-					this.icfgNodePairs.addAll(icfg.getICFGNodePairs());
-					processedFunctions.add(target);
-				}
-			}
-		} else {
-			// TODO: handle multiple callsites
-			Log.warning("Multiple callsites are not handled at this time.");
-		}
-		return targetICFG;
-	}
-
+	/**
+	 * Returns the ICFG
+	 * @return
+	 */
 	public Q getICFG() {
-		computeICFGElements();
-		connectNodes();
-		icfgElements.addAll(backEdges);
-		return Common.toQ(icfgElements);
+		return Common.toQ(new UncheckedGraph(icfgNodes, icfgEdges));
 	}
-
-	public List<CallSitePair> getICFGNodePairs() {
-		return icfgNodePairs;
+	
+	/**
+	 * Compute the ICFG given an entry point function and a set of functions to expand using the default call resolution strategy
+	 * @param entryPointFunction
+	 * @param functionsToExpand
+	 */
+	public ICFG(Node entryPointFunction, AtlasSet<Node> functionsToExpand) {
+		this(entryPointFunction, functionsToExpand,  new DefaultResolutionStrategy());
 	}
+	
+	/**
+	 * Compute the ICFG given an entry point function and a set of functions to expand as well as a call resolution strategy
+	 * @param entryPointFunction The function to start the ICFG at
+	 * @param functionsToExpand If this is empty then all functions with non-empty CFGs will be expanded
+	 * @param callResolutionStrategy The call resolution strategy to use
+	 */
+	public ICFG(Node entryPointFunction, AtlasSet<Node> functionsToExpand, CallResolutionStrategy callResolutionStrategy) {
+		this.entryPointFunction = entryPointFunction;
+		
+		// step 1) use call summaries (i.e. call graph) to scan ahead and find all functions in the ICFG
+		//         we can do this because if a call summary edge exists from one function to another
+		//         it implies there must be a callsite that could resolve to that target inside the 
+		//         calling functions CFG
+		AtlasSet<Node> icfgFunctions = new AtlasHashSet<Node>();
+		icfgFunctions.add(entryPointFunction);
+		AtlasSet<Node> lastSuccessors = icfgFunctions;
+		final boolean expandAll = functionsToExpand.isEmpty();
+		while(true) {
+			AtlasSet<Node> successors = new AtlasHashSet<Node>();
+			for(Node lastSuccessor : lastSuccessors) {
+				for(Node successor : callResolutionStrategy.getCallSuccessors(lastSuccessor)) {
+					if(expandAll) {
+						successors.add(successor);
+					} else {
+						if(functionsToExpand.contains(successor)) {
+							successors.add(successor);
+						}
+					}
+				}
+			}
+			if(!icfgFunctions.addAll(successors)) {
+				// we've reached a fixed point and have no identified all relevant ICFG functions
+				break;
+			} else {
+				// new ICFG functions were discovered, there may still be more relevant ICFG functions
+				lastSuccessors = successors;
+			}
+		}
+		
+		// step 2) remove functions that empty CFGs (such as library functions that are not indexed)
+		AtlasSet<Node> emptyCFGFunctions = new AtlasHashSet<Node>();
+		for(Node icfgFunction : icfgFunctions) {
+			if(CommonQueries.isEmpty(Common.toQ(icfgFunction).children().nodes(XCSG.ControlFlow_Node))) {
+				emptyCFGFunctions.add(icfgFunction);
+			}
+		}
+		for(Node emptyCFGFunction : emptyCFGFunctions) {
+			icfgFunctions.remove(emptyCFGFunction);
+		}
+		
+		// step 3) for each function compute the CFG and add the CFG to the ICFG
+		Map<Node,CFG> functionCFGs = new HashMap<Node,CFG>();
+		for(Node icfgFunction : icfgFunctions) {
+			CFG cfg = new CFG(icfgFunction, callResolutionStrategy);
+			functionCFGs.put(icfgFunction, cfg);
+			icfgNodes.addAll(cfg.getCFG().nodes());
+			icfgEdges.addAll(cfg.getCFG().edges());
+		}
+		
+		// step 4) for each callsite that resolves to an expandable target in each CFG
+		//         create the ICFG edges and then remove the old successor edges
+		long callsiteCounter = 0;
+		for(Node icfgFunction : icfgFunctions) {
+			CFG cfg = functionCFGs.get(icfgFunction);
+			
+			// technically it is not necessary to process the callsites in order
+			// but it is a nice property to have the callsites ids created in order of source correspondence
+			ArrayList<Node> sortedCallsites = new ArrayList<Node>();
+			for(Node callsite : cfg.getCallsiteTargets().keySet()) {
+				sortedCallsites.add(callsite);
+			}
+			Collections.sort(sortedCallsites, new NodeSourceCorrespondenceSorter());
+			for(Node callsite : sortedCallsites) {
+				for(Node callsiteTarget : cfg.getCallsiteTargets().get(callsite)) {
+					if(icfgFunctions.contains(callsiteTarget)) {
+						callsiteCounter++;
+						Node callsiteControlFlowNode = cfg.getCallsiteControlFlowNodes().get(callsite);
+						CFG targetCFG = functionCFGs.get(callsiteTarget);
 
+						// link up the callsite cf node to the CFG root and the CFG leaves to the callsite cf node successor
+						Edge icfgEntryEdge = getOrCreateICFGEntryEdge(callsiteControlFlowNode, targetCFG.getControlFlowRoot());
+						icfgEntryEdge.putAttr(ICFGCallsiteAttribute, Long.toHexString(callsiteCounter));
+						icfgEdges.add(icfgEntryEdge);
+						
+						// remove the old successor edges
+						AtlasSet<Node> callsiteControlFlowNodeSuccessors = new AtlasHashSet<Node>();
+						AtlasSet<Edge> successorEdges = Common.toQ(cfg.getCFG()).forwardStep(Common.toQ(callsiteControlFlowNode)).eval().edges();
+						for(Edge successorEdge : successorEdges) {
+							icfgEdges.remove(successorEdge);
+							callsiteControlFlowNodeSuccessors.add(successorEdge.to());
+						}
+						
+						// link of the cfg exits to each of the cfg node successor
+						for(Node targetCFGExit : targetCFG.getControlFlowExits()) {
+							for(Node callsiteControlFlowNodeSuccessor : callsiteControlFlowNodeSuccessors) {
+								Edge icfgExitEdge = getOrCreateICFGExitEdge(targetCFGExit, callsiteControlFlowNodeSuccessor);
+								icfgExitEdge.putAttr(ICFGCallsiteAttribute, Long.toHexString(callsiteCounter));
+								icfgEdges.add(icfgExitEdge);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private Edge getOrCreateICFGEntryEdge(Node callsiteControlFlowNode, Node cfgRoot) {
+		Q icfgEntryEdges = Query.universe().edges(ICFGEntryEdge);
+		Edge icfgEntryEdge = icfgEntryEdges.between(Common.toQ(callsiteControlFlowNode), Common.toQ(cfgRoot)).eval().edges().one();
+		if(icfgEntryEdge == null) {
+			icfgEntryEdge = Graph.U.createEdge(callsiteControlFlowNode, cfgRoot);
+			icfgEntryEdge.tag(ICFGEntryEdge);
+		}
+		return icfgEntryEdge;
+	}
+	
+	private Edge getOrCreateICFGExitEdge(Node cfgExit, Node callsiteControlFlowNodeSuccessor) {
+		Q icfgExitEdges = Query.universe().edges(ICFGExitEdge);
+		Edge icfgExitEdge = icfgExitEdges.between(Common.toQ(cfgExit), Common.toQ(callsiteControlFlowNodeSuccessor)).eval().edges().one();
+		if(icfgExitEdge == null) {
+			icfgExitEdge = Graph.U.createEdge(cfgExit, callsiteControlFlowNodeSuccessor);
+			icfgExitEdge.tag(ICFGExitEdge);
+		}
+		return icfgExitEdge;
+	}
+	
+	private static class CFG {
+		private Node function;
+		private Graph cfg;
+		private Node controlFlowRoot;
+		private AtlasSet<Node> controlFlowExits;
+		private Map<Node,Node> callsiteControlFlowNodes;
+		private Map<Node,AtlasSet<Node>> callsiteTargets;
+		
+		public CFG(Node function, CallResolutionStrategy callResolutionStrategy) {
+			this.function = function;
+			cfg = CommonQueries.cfg(function).eval();
+			this.controlFlowRoot = Common.toQ(cfg).nodes(XCSG.controlFlowRoot).eval().nodes().one();
+			this.controlFlowExits = Common.toQ(cfg).nodes(XCSG.controlFlowExitPoint).eval().nodes();
+			this.callsiteControlFlowNodes = new HashMap<Node,Node>();
+			this.callsiteTargets = new HashMap<Node,AtlasSet<Node>>();
+			AtlasSet<Node> callsites = CommonQueries.localDeclarations(Common.toQ(cfg)).nodes(XCSG.CallSite).eval().nodes();
+			for(Node callsite : callsites) {
+				Node cfNode = Common.toQ(callsite).parent().eval().nodes().one();
+				this.callsiteControlFlowNodes.put(callsite, cfNode);
+				this.callsiteTargets.put(callsite, callResolutionStrategy.getCallsiteTargets(callsite));
+			}
+		}
+
+		@SuppressWarnings("unused")
+		public Node getFunction() {
+			return function;
+		}
+		
+		public Graph getCFG() {
+			return cfg;
+		}
+		
+		public Node getControlFlowRoot() {
+			return controlFlowRoot;
+		}
+
+		public AtlasSet<Node> getControlFlowExits() {
+			return controlFlowExits;
+		}
+
+		public Map<Node, Node> getCallsiteControlFlowNodes() {
+			return callsiteControlFlowNodes;
+		}
+		
+		public Map<Node, AtlasSet<Node>> getCallsiteTargets() {
+			return callsiteTargets;
+		}
+	}
+	
+	/**
+	 * An interface to define alternate strategies for call summary and callsite resolution
+	 * @author Ben Holland
+	 */
+	public static abstract class CallResolutionStrategy {
+		/**
+		 * Returns the potential callsite target functions
+		 * @param callsite
+		 * @return
+		 */
+		public abstract AtlasSet<Node> getCallsiteTargets(Node callsite);
+		
+		/**
+		 * Returns the potential call successors
+		 * @param function
+		 * @return
+		 */
+		public abstract AtlasSet<Node> getCallSuccessors(Node function);
+	}
+	
+	/**
+	 * This class uses the default call resolution strategy provided by each toolbox provider
+	 * For C/C++ and Java this is a class hierarchy analysis
+	 * @author Ben Holland
+	 */
+	public static class DefaultResolutionStrategy extends CallResolutionStrategy {
+
+		@Override
+		public AtlasSet<Node> getCallsiteTargets(Node callsite) {
+			return CallSiteAnalysis.getTargets(callsite);
+		}
+
+		@Override
+		public AtlasSet<Node> getCallSuccessors(Node function) {
+			return Query.universe().edges(XCSG.Call).successors(Common.toQ(function)).eval().nodes();
+		}
+
+	}
+	
 }
