@@ -18,11 +18,13 @@ import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
 import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
+import com.ensoftcorp.open.commons.algorithms.DominanceAnalysis;
 import com.ensoftcorp.open.commons.algorithms.UniqueEntryExitControlFlowGraph;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.CodePainter.UnstyledFrontierResult;
 import com.ensoftcorp.open.commons.preferences.CommonsPreferences;
+import com.ensoftcorp.open.commons.ui.log.Log;
 
 public abstract class ControlFlowDominanceSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
@@ -65,14 +67,45 @@ public abstract class ControlFlowDominanceSmartView extends FilteringAtlasSmartV
 			} else {
 				cfg = CommonQueries.cfg(function);
 			}
-			UniqueEntryExitControlFlowGraph ucfg = new UniqueEntryExitControlFlowGraph(cfg.eval(), CommonsPreferences.isMasterEntryExitContainmentRelationshipsEnabled());
-			Graph graph = ucfg.getGraph();
-			nodes.addAll(graph.nodes());
-			edges.addAll(graph.edges());
+			Graph g = cfg.eval();
+			
+			// compute dominance on-demand if needed
+			if(!CommonsPreferences.isComputeControlFlowGraphDominanceEnabled()) {
+				AtlasSet<Node> roots;
+				if(INCLUDE_EXCEPTIONAL_CONTROL_FLOW){
+					roots = cfg.roots().eval().nodes();
+				} else {
+					roots = cfg.nodes(XCSG.controlFlowRoot).eval().nodes();
+				}
+				AtlasSet<Node> exits;
+				if(INCLUDE_EXCEPTIONAL_CONTROL_FLOW){
+					exits = cfg.leaves().eval().nodes();
+				} else {
+					exits = cfg.nodes(XCSG.controlFlowExitPoint).eval().nodes();
+				}
+				if(g.nodes().isEmpty() || roots.isEmpty() || exits.isEmpty()){
+					// nothing to compute
+				} else {
+					try {
+						UniqueEntryExitControlFlowGraph ucfg = new UniqueEntryExitControlFlowGraph(g, roots, exits, CommonsPreferences.isMasterEntryExitContainmentRelationshipsEnabled());
+						DominanceAnalysis.computeDominance(ucfg);
+						Graph graph = ucfg.getGraph();
+						nodes.addAll(graph.nodes());
+						edges.addAll(graph.edges());
+					} catch (Exception e){
+						Log.error("Error computing control flow graph dominance tree", e);
+					}
+				}
+			} else {
+				UniqueEntryExitControlFlowGraph ucfg = new UniqueEntryExitControlFlowGraph(g, CommonsPreferences.isMasterEntryExitContainmentRelationshipsEnabled());
+				Graph graph = ucfg.getGraph();
+				nodes.addAll(graph.nodes());
+				edges.addAll(graph.edges());
+			}
 		}
 		return Common.toQ(new UncheckedGraph(nodes,edges));
 	}
-	
+
 	public Q convertSelection(Q filteredSelections){
 		Q dataFlowNodes = filteredSelections.nodes(XCSG.DataFlow_Node);
 		Q controlFlowNodes = filteredSelections.nodes(XCSG.ControlFlow_Node);
