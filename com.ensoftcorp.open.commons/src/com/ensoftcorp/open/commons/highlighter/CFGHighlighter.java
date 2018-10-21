@@ -82,8 +82,17 @@ public class CFGHighlighter {
 	 */
 	public static void applyHighlightsForICFG(Markup m) {
 		applyHighlightsForCFG(m);
+		
 		Q icfgEdges = Query.universe().edges(ICFG.ICFGEdge);
 		m.setEdge(icfgEdges, MarkupProperty.EDGE_COLOR, cfgDefault);
+		
+		Q icfgEntryEdges = icfgEdges.edges(ICFG.ICFGEntryEdge);
+		m.setEdge(icfgEntryEdges, MarkupProperty.EDGE_COLOR, Color.BLACK);
+		m.setEdge(icfgEntryEdges, MarkupProperty.EDGE_STYLE, LineStyle.DASHED);
+		
+		Q icfgExitEdges = icfgEdges.edges(ICFG.ICFGExitEdge);
+		m.setEdge(icfgExitEdges, MarkupProperty.EDGE_COLOR, Color.GRAY);
+		m.setEdge(icfgExitEdges, MarkupProperty.EDGE_STYLE, LineStyle.DASHED);
 	}
 	
 	/**
