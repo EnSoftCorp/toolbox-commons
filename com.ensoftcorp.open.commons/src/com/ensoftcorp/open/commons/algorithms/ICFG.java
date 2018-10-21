@@ -11,6 +11,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
@@ -124,7 +125,6 @@ public class ICFG {
 		
 		// step 4) for each callsite that resolves to an expandable target in each CFG
 		//         create the ICFG edges and then remove the old successor edges
-		long callsiteCounter = 0;
 		for(Node icfgFunction : icfgFunctions) {
 			CFG cfg = functionCFGs.get(icfgFunction);
 			
@@ -138,13 +138,17 @@ public class ICFG {
 			for(Node callsite : sortedCallsites) {
 				for(Node callsiteTarget : cfg.getCallsiteTargets().get(callsite)) {
 					if(icfgFunctions.contains(callsiteTarget)) {
-						callsiteCounter++;
+						// we use a globally accepted callsite id that is unique to the df callsite node
+						// because it will coordinate with existing Atlas schema and will not clobber
+						// callsite ids on successive ICFG constructions
+						String callsiteID = callsite.getAttr(Attr.Node.CALL_SITE_ID).toString();
+						
 						Node callsiteControlFlowNode = cfg.getCallsiteControlFlowNodes().get(callsite);
 						CFG targetCFG = functionCFGs.get(callsiteTarget);
-
+	
 						// link up the callsite cf node to the CFG root and the CFG leaves to the callsite cf node successor
 						Edge icfgEntryEdge = getOrCreateICFGEntryEdge(callsiteControlFlowNode, targetCFG.getControlFlowRoot());
-						icfgEntryEdge.putAttr(ICFGCallsiteAttribute, Long.toHexString(callsiteCounter));
+						icfgEntryEdge.putAttr(ICFGCallsiteAttribute, callsiteID);
 						icfgEdges.add(icfgEntryEdge);
 						
 						// remove the old successor edges
@@ -159,7 +163,7 @@ public class ICFG {
 						for(Node targetCFGExit : targetCFG.getControlFlowExits()) {
 							for(Node callsiteControlFlowNodeSuccessor : callsiteControlFlowNodeSuccessors) {
 								Edge icfgExitEdge = getOrCreateICFGExitEdge(targetCFGExit, callsiteControlFlowNodeSuccessor);
-								icfgExitEdge.putAttr(ICFGCallsiteAttribute, Long.toHexString(callsiteCounter));
+								icfgExitEdge.putAttr(ICFGCallsiteAttribute, callsiteID);
 								icfgEdges.add(icfgExitEdge);
 							}
 						}
