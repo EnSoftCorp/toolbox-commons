@@ -88,7 +88,7 @@ public class ICFG {
 	 * @param functionsToExpand
 	 */
 	public ICFG(Node entryPointFunction, AtlasSet<Node> functionsToExpand) {
-		this(entryPointFunction, functionsToExpand, new DefaultResolutionStrategy());
+		this(entryPointFunction, functionsToExpand, new DefaultCallResolutionStrategy());
 	}
 	
 	/**
@@ -101,6 +101,9 @@ public class ICFG {
 		// check argument
 		if(entryPointFunction == null || !entryPointFunction.taggedWith(XCSG.Function)) {
 			throw new IllegalArgumentException("Entry point function is invalid.");
+		} 
+		if(CommonQueries.isEmpty(Common.toQ(entryPointFunction).children().nodes(XCSG.ControlFlow_Node))) {
+			throw new IllegalArgumentException("Entry point function cannot have an emtpy CFG.");
 		}
 		this.entryPointFunction = entryPointFunction;
 		
@@ -194,7 +197,7 @@ public class ICFG {
 						CFG targetCFG = functionCFGs.get(callsiteTarget);
 	
 						// link up the callsite cf node to the CFG root and the CFG leaves to the callsite cf node successor
-						Edge icfgEntryEdge = getOrCreateICFGEntryEdge(callsiteControlFlowNode, targetCFG.getControlFlowRoot());
+						Edge icfgEntryEdge = getOrCreateICFGEntryEdge(callsiteControlFlowNode, targetCFG.getControlFlowRoot(), callResolutionStrategy);
 						icfgEntryEdge.putAttr(ICFGCallsiteAttribute, callsiteID);
 						icfgEdges.add(icfgEntryEdge);
 						
@@ -209,7 +212,7 @@ public class ICFG {
 						// link of the cfg exits to each of the cfg node successor
 						for(Node targetCFGExit : targetCFG.getControlFlowExits()) {
 							for(Node callsiteControlFlowNodeSuccessor : callsiteControlFlowNodeSuccessors) {
-								Edge icfgExitEdge = getOrCreateICFGExitEdge(targetCFGExit, callsiteControlFlowNodeSuccessor);
+								Edge icfgExitEdge = getOrCreateICFGExitEdge(targetCFGExit, callsiteControlFlowNodeSuccessor, callResolutionStrategy);
 								icfgExitEdge.putAttr(ICFGCallsiteAttribute, callsiteID);
 								icfgEdges.add(icfgExitEdge);
 							}
@@ -220,8 +223,8 @@ public class ICFG {
 		}
 	}
 	
-	private Edge getOrCreateICFGEntryEdge(Node callsiteControlFlowNode, Node cfgRoot) {
-		Q icfgEntryEdges = Query.universe().edges(ICFGEntryEdge);
+	private Edge getOrCreateICFGEntryEdge(Node callsiteControlFlowNode, Node cfgRoot, CallResolutionStrategy callResolutionStrategy) {
+		Q icfgEntryEdges = Query.universe().edges(ICFGEntryEdge).edges(callResolutionStrategy.getStrategyTagName());
 		Edge icfgEntryEdge = icfgEntryEdges.between(Common.toQ(callsiteControlFlowNode), Common.toQ(cfgRoot)).eval().edges().one();
 		if(icfgEntryEdge == null) {
 			icfgEntryEdge = Graph.U.createEdge(callsiteControlFlowNode, cfgRoot);
@@ -230,8 +233,8 @@ public class ICFG {
 		return icfgEntryEdge;
 	}
 	
-	private Edge getOrCreateICFGExitEdge(Node cfgExit, Node callsiteControlFlowNodeSuccessor) {
-		Q icfgExitEdges = Query.universe().edges(ICFGExitEdge);
+	private Edge getOrCreateICFGExitEdge(Node cfgExit, Node callsiteControlFlowNodeSuccessor, CallResolutionStrategy callResolutionStrategy) {
+		Q icfgExitEdges = Query.universe().edges(ICFGExitEdge).edges(callResolutionStrategy.getStrategyTagName());
 		Edge icfgExitEdge = icfgExitEdges.between(Common.toQ(cfgExit), Common.toQ(callsiteControlFlowNodeSuccessor)).eval().edges().one();
 		if(icfgExitEdge == null) {
 			icfgExitEdge = Graph.U.createEdge(cfgExit, callsiteControlFlowNodeSuccessor);
@@ -294,6 +297,16 @@ public class ICFG {
 	 * @author Ben Holland
 	 */
 	public static abstract class CallResolutionStrategy {
+		
+		/**
+		 * Returns the call resolution strategy name This name will be used as a tag
+		 * name for differentiating ICFG edges created by different call resolution
+		 * strategies
+		 * 
+		 * @return
+		 */
+		public abstract String getStrategyTagName();
+		
 		/**
 		 * Returns the potential callsite target functions
 		 * @param callsite
@@ -307,6 +320,13 @@ public class ICFG {
 		 * @return
 		 */
 		public abstract AtlasSet<Node> getCallSuccessors(Node function);
+		
+		/**
+		 * Returns the call graph roots
+		 * @param function
+		 * @return
+		 */
+		public abstract AtlasSet<Node> getCallGraphRoots();
 	}
 	
 	/**
@@ -314,8 +334,15 @@ public class ICFG {
 	 * For C/C++ and Java this is a class hierarchy analysis
 	 * @author Ben Holland
 	 */
-	public static class DefaultResolutionStrategy extends CallResolutionStrategy {
+	public static class DefaultCallResolutionStrategy extends CallResolutionStrategy {
 
+		public static final String CALL_RESOLUTION_STRATEGY_TAG = "ICFG.AtlasCHA";
+		
+		@Override
+		public String getStrategyTagName() {
+			return CALL_RESOLUTION_STRATEGY_TAG;
+		}
+		
 		@Override
 		public AtlasSet<Node> getCallsiteTargets(Node callsite) {
 			return CallSiteAnalysis.getTargets(callsite);
@@ -326,6 +353,11 @@ public class ICFG {
 			return Query.universe().edges(XCSG.Call).successors(Common.toQ(function)).eval().nodes();
 		}
 
+		@Override
+		public AtlasSet<Node> getCallGraphRoots() {
+			return Query.universe().edges(XCSG.Call).roots().eval().nodes();
+		}
+		
 	}
 	
 }

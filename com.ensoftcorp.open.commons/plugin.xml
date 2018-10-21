@@ -83,16 +83,24 @@
    <extension point="com.ensoftcorp.open.commons.codemap">
    	  <!-- adds the prioritized codemap stage for normalizing graph element addresses -->
       <codemap class="com.ensoftcorp.open.commons.utilities.address.NormalizedAddress" />
+   	  
    	  <!-- adds the prioritized codemap stage for computing control flow graph dominance trees -->
       <codemap class="com.ensoftcorp.open.commons.algorithms.DominanceAnalysis" />
+      
       <!-- adds the prioritized codemap stage for subystems tagging -->
       <codemap class="com.ensoftcorp.open.commons.subsystems.SubsystemCodemapStage" />
+      
       <!-- adds the prioritized codemap stage for analysis properties initializers -->
       <codemap class="com.ensoftcorp.open.commons.codemap.ProjectAnalysisDefaultPropertiesInitializer" />
+      
       <!-- adds the loop depth calculation codemap stage -->
       <codemap class="com.ensoftcorp.open.commons.codemap.LoopDepth" />
+      
       <!-- adds the prioritized codemap stage for caching analyzer results -->
       <codemap class="com.ensoftcorp.open.commons.analyzers.Analyzers"></codemap>
+      
+      <!-- adds the prioritized codemap stage for ICFG construction -->
+      <codemap class="com.ensoftcorp.open.commons.codemap.ICFGConstruction"></codemap>
    </extension>
    
    <!-- adds analyzer definitions -->

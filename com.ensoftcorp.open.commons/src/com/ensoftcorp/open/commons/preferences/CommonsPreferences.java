@@ -100,6 +100,33 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	}
 	
 	/**
+	 * Enable/disable ICFG construction
+	 */
+	public static final String CONSTRUCT_ICFG = "CONSTRUCT_ICFG";
+	public static final Boolean CONSTRUCT_ICFG_DEFAULT = false;
+	private static boolean constructICFGValue = CONSTRUCT_ICFG_DEFAULT;
+	
+	/**
+	 * Configures ICFG construction
+	 */
+	public static void enableConstructICFG(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(CONSTRUCT_ICFG, enabled);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if ICFG construction is enabled
+	 * @return
+	 */
+	public static boolean isConstructICFGEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return constructICFGValue;
+	}
+	
+	/**
 	 * Enable/disable computing control flow graph dominance trees
 	 */
 	public static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE = "COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE";
@@ -201,6 +228,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		preferences.setDefault(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
 //		preferences.setDefault(INITIALIZE_ANALYSIS_PROPERTIES, INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT);
 		preferences.setDefault(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
+		preferences.setDefault(CONSTRUCT_ICFG, CONSTRUCT_ICFG_DEFAULT);
 		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT);
 		preferences.setDefault(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setDefault(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
@@ -215,6 +243,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		preferences.setValue(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
 //		preferences.setValue(INITIALIZE_ANALYSIS_PROPERTIES, INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT);
 		preferences.setValue(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
+		preferences.setValue(CONSTRUCT_ICFG, CONSTRUCT_ICFG_DEFAULT);
 		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT);
 		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
 		preferences.setValue(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS, ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS_DEFAULT);
@@ -231,6 +260,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 			debugLoggingValue = preferences.getBoolean(DEBUG_LOGGING);
 			normalizeGraphElementAddressesValue = preferences.getBoolean(NORMALIZE_GRAPH_ELEMENT_ADDRESSES);
 //			initializeAnalysisPropertiesValue = preferences.getBoolean(INITIALIZE_ANALYSIS_PROPERTIES);
+			constructICFGValue = preferences.getBoolean(CONSTRUCT_ICFG);
 			computeControlFlowGraphDominanceValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE);
 			computeExceptionalControlFlowGraphDominanceValue = preferences.getBoolean(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES);
 			addMasterEntryExitContainmentRelationships = preferences.getBoolean(ADD_MASTER_ENTRY_EXIT_CONTAINMENT_RELATIONSHIPS);

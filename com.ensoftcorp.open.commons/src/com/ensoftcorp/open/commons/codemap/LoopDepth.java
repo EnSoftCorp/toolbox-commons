@@ -29,6 +29,10 @@ public class LoopDepth extends PrioritizedCodemapStage {
 
 	@Override
 	public String[] getCodemapStageDependencies() {
+		
+		// TODO: Does this depend on DLI executing first??? ~BH
+		// If so this may need to be moved down to accompany loop detection algorithms
+		
 		return new String[]{};
 	}
 
