@@ -77,7 +77,7 @@ public class RecursiveFunctions extends Property {
 
 	// jgrapht library version
 	public static Q getRecursiveMethods() {
-		Q callgraph = resolve(Query.universe().nodes(XCSG.Method).induce(Query.universe().edges(XCSG.Call)));
+		Q callgraph = resolve(Query.universe().nodes(XCSG.Function).induce(Query.universe().edges(XCSG.Call)));
 		StronglyConnectedComponents adapter = new StronglyConnectedComponents(callgraph);
 		AtlasSet<Node> recursionNodes = new AtlasHashSet<Node>();
 		AtlasSet<Edge> recursionEdges = new AtlasHashSet<Edge>();
