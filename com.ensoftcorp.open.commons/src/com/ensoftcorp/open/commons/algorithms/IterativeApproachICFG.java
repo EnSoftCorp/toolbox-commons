@@ -1,8 +1,5 @@
 package com.ensoftcorp.open.commons.algorithms;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
@@ -15,7 +12,6 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
-import com.ensoftcorp.open.commons.analyzers.RecursiveFunctions;
 
 /**
  * 
@@ -26,7 +22,6 @@ import com.ensoftcorp.open.commons.analyzers.RecursiveFunctions;
 
 public class IterativeApproachICFG {
 	private AtlasSet<Node> cg;
-	private AtlasSet<Node> excludeRecursive;
 	private AtlasSet<Node> expendableCFNodes;
 	private String ICFGEdge = "InterproceduralControlFlow_Edge";
 	private long PreID = 0L;
@@ -42,42 +37,10 @@ public class IterativeApproachICFG {
 		edgesToRemove = new AtlasHashSet<Edge>();
 	}
 
-	// store all the control flow nodes in excludeRecursive which have callsites and
-	// which are responsible for recursion.
-	public void getRecursionCFNodes() {
-		// find strongly connected component to detect recursion
-		Q SCC = RecursiveFunctions.getRecursiveMethods();
-		Map<Node, Node> recursiveFunction = new HashMap<Node, Node>();
-		excludeRecursive = new AtlasHashSet<Node>();
-		AtlasSet<Edge> edges = SCC.eval().edges();
-		for (Edge e : edges) {
-			if (!e.taggedWith(XCSG.C.Provisional.NominalCall)) {
-				recursiveFunction.put(e.from(), e.to());
-			}
-		}
-		for (Map.Entry<Node, Node> entry : recursiveFunction.entrySet()) {
-			Node from = entry.getKey();
-
-			Node to = entry.getValue();
-			Q allCallSite = CommonQueries.cfg(from).contained().nodes(XCSG.CallSite);
-			for (Node n : allCallSite.eval().nodes()) {
-				Node target = Common.toQ(n).parent().eval().nodes().one();
-				AtlasSet<Node> targetFunction = Query.universe().edges(XCSG.InvokedFunction).successors(Common.toQ(n))
-						.eval().nodes();
-				for (Node nd : targetFunction) {
-					if (to.equals(nd)) {
-						excludeRecursive.add(target);
-					}
-				}
-
-			}
-		}
-	}
-
 	// store all the control flow nodes in expendableCFNodes which have callsites
 	// and are expendable
 	public void getExpendableCFNode(Q functions, Q functionsToExpand) {
-		AtlasSet<Node> ls = new AtlasHashSet<Node>();
+		expendableCFNodes = new AtlasHashSet<Node>();
 		if (cg == null) {
 			cg = Query.universe().edges(XCSG.Call).forward(functions).eval().nodes();
 		}
@@ -95,11 +58,10 @@ public class IterativeApproachICFG {
 			for (Node m : callSites) {
 				if (as.contains(CommonQueries.getContainingFunction(m))) {
 					Node cfgNode = Common.toQ(m).parent().eval().nodes().one();
-					ls.add(cfgNode);
+					expendableCFNodes.add(cfgNode);
 				}
 			}
 		}
-		expendableCFNodes = Common.toQ(ls).difference(Common.toQ(excludeRecursive)).eval().nodes();
 	}
 
 	// Find successors of the expendableCFNodes and connect it's callsite's to the
@@ -187,7 +149,7 @@ public class IterativeApproachICFG {
 
 	public static Q geticfg(Q functions) {
 		IterativeApproachICFG icfg = new IterativeApproachICFG();
-		icfg.getRecursionCFNodes();
+		//icfg.getRecursionCFNodes();
 		icfg.getExpendableCFNode(functions, Common.empty());
 		return icfg.getICFG();
 	}
@@ -198,7 +160,7 @@ public class IterativeApproachICFG {
 
 	public static Q geticfg(Q functions, Q functionsToExpand) {
 		IterativeApproachICFG icfg = new IterativeApproachICFG();
-		icfg.getRecursionCFNodes();
+		//icfg.getRecursionCFNodes();
 		icfg.getExpendableCFNode(functions, functionsToExpand);
 		return icfg.getICFG();
 	}
