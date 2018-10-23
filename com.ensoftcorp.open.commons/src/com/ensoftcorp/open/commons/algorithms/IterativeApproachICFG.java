@@ -6,13 +6,13 @@ import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
-
 /**
  * 
  * Interprocedural Control Flow Graph
@@ -24,8 +24,10 @@ public class IterativeApproachICFG {
 	private AtlasSet<Node> cg;
 	private AtlasSet<Node> expendableCFNodes;
 	private String ICFGEdge = "InterproceduralControlFlow_Edge";
-	private long PreID = 0L;
-	private long Counter = 0L;
+	public static String ICFGEntryEdge = "ICFG.InterproceduralControlFlowEntry_Edge";
+	public static String ICFGExitEdge = "ICFG.InterproceduralControlFlowExit_Edge";
+	public static String ICFGCallsiteAttribute = "ICFG.CallSite";
+	private String callsiteID = "";
 	private AtlasSet<GraphElement> icfgElements;
 	private Q successorsToConnect;
 	private AtlasSet<Edge> edgesToRemove;
@@ -44,13 +46,16 @@ public class IterativeApproachICFG {
 		if (cg == null) {
 			cg = Query.universe().edges(XCSG.Call).forward(functions).eval().nodes();
 		}
-		if (cg.size() == 1)
-			return;
+//		if (cg.size() == 1)
+//			return;
 		AtlasSet<Node> as = new AtlasHashSet<Node>();
 		if (!CommonQueries.isEmpty(functionsToExpand))
 			as.addAll(functionsToExpand.eval().nodes());
 		else {
-			as.addAll(cg);
+			if (cg.size() == 1) 
+				as.add(cg.getFirst());
+			else
+			     as.addAll(cg);
 		}
 		for (Node n : as) {
 			AtlasSet<Node> callSites = Query.universe().edges(XCSG.InvokedFunction).predecessors(Common.toQ(n)).eval()
@@ -78,6 +83,7 @@ public class IterativeApproachICFG {
 				if (targets.size() == 1) {
 					successorsToConnect = CommonQueries.cfg(targets.getFirst()).roots();
 				}
+				callsiteID = callsites.eval().nodes().one().getAttr(Attr.Node.CALL_SITE_ID).toString();
 				connectSuccessors(Common.toQ(n));
 			}
 
@@ -118,21 +124,21 @@ public class IterativeApproachICFG {
 
 	private void connectEdges(Node u, Node v, boolean temp) {
 		Q betweenControlFlow = Common.universe().edges(XCSG.ControlFlow_Edge).betweenStep(Common.toQ(u), Common.toQ(v));
+		   
 		AtlasSet<Edge> betweenEdges = betweenControlFlow.eval().edges();
 		if (betweenEdges.size() == 0) {
 			Edge e = Graph.U.createEdge(u, v);
 			if (temp) {
 				if (u.taggedWith(XCSG.controlFlowExitPoint)) {
-					e.putAttr(XCSG.name, "CallID " + this.PreID);
-					e.tag("CallID");
-					e.tag("CallID" + this.PreID);
+					e.putAttr(ICFGCallsiteAttribute, callsiteID);
+					e.putAttr(XCSG.name, "CID_" + callsiteID);
+					e.tag(ICFGExitEdge);
 				}
 
 			} else {
-				this.PreID = Counter++;
-				e.putAttr(XCSG.name, "CallID " + this.PreID);
-				e.tag("CallID");
-				e.tag("CallID" + this.PreID);
+				e.putAttr(ICFGCallsiteAttribute, callsiteID);
+				e.putAttr(XCSG.name, "CID_" + callsiteID);
+				e.tag(ICFGEntryEdge);
 			}
 			e.tag(ICFGEdge);
 			e.tag(XCSG.ControlFlow_Edge);
