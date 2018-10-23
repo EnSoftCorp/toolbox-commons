@@ -33,7 +33,7 @@ public class LoopDepth extends PrioritizedCodemapStage {
 	}
 
 	@Override
-	public void performIndexing(IProgressMonitor monitor) {
+	public boolean performIndexing(IProgressMonitor monitor) {
 		Q loopHeaders = Query.universe().nodes(XCSG.Loop).nodes(XCSG.Language.C, XCSG.Language.CPP, XCSG.Language.Java).difference(Query.universe().nodes(XCSG.Language.Jimple));
 		Q edges = Query.universe().edges(XCSG.LoopChild);
 		Q loops = loopHeaders.reverseStepOn(edges);
@@ -42,6 +42,7 @@ public class LoopDepth extends PrioritizedCodemapStage {
 		for (Node loopHeader : level1LoopHeaders) {
 			recordLoopDepth(loopHeader, 1);
 		}
+		return true;
 	}
 
 	private void recordLoopDepth(Node loopHeader, int depth) {

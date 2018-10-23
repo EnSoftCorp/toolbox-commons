@@ -39,12 +39,14 @@ public class NormalizedAddress extends PrioritizedCodemapStage {
 	}
 
 	@Override
-	public void performIndexing(IProgressMonitor monitor) {
-		if(CommonsPreferences.isAddressNormalizationEnabled()){
+	public boolean performIndexing(IProgressMonitor monitor) {
+		boolean runIndexer = CommonsPreferences.isAddressNormalizationEnabled();
+		if(runIndexer){
 			Log.info("Assigning normalized graph element addresses...");
 			normalized = false;
 			assignNormalizedAddresses();
 		}
+		return runIndexer;
 	}
 	
 	/**

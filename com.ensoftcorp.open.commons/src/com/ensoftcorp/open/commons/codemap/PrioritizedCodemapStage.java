@@ -31,10 +31,13 @@ public abstract class PrioritizedCodemapStage {
 	public abstract String[] getCodemapStageDependencies();
 	
 	/**
-	 * The codemap stage indexing task to be performed
+	 * The codemap stage indexing task to be performed. 
+	 * 
 	 * @param monitor
+	 * 
+	 * @return Returns true if the codemap stage was actually run.
 	 */
-	public abstract void performIndexing(IProgressMonitor monitor);
+	public abstract boolean performIndexing(IProgressMonitor monitor);
 	
 	@Override
 	public String toString() {

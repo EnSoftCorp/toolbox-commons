@@ -43,23 +43,24 @@ public class AtlasToolboxCodemapStage implements ToolboxIndexingStage {
 				monitor.setTaskName(codemapStage.getDisplayName());
 				try {
 					long start = System.nanoTime();
-					codemapStage.performIndexing(monitor);
-					long stop = System.nanoTime();
-					DecimalFormat decimalFormat = new DecimalFormat("#.##");
-					double time = (stop - start)/1000.0/1000.0; // ms
-					if(time < 100) {
-						Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "ms");
-					} else {
-						time = (stop - start)/1000.0/1000.0/1000.0; // s
-						if(time < 60) {
-							Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "s");
+					if(codemapStage.performIndexing(monitor)) {
+						long stop = System.nanoTime();
+						DecimalFormat decimalFormat = new DecimalFormat("#.##");
+						double time = (stop - start)/1000.0/1000.0; // ms
+						if(time < 100) {
+							Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "ms");
 						} else {
-							time = (stop - start)/1000.0/1000.0/1000.0/60.0; // m
+							time = (stop - start)/1000.0/1000.0/1000.0; // s
 							if(time < 60) {
-								Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "m");
+								Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "s");
 							} else {
-								time = (stop - start)/1000.0/1000.0/1000.0/60.0/60.0; // h
-								Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "h");
+								time = (stop - start)/1000.0/1000.0/1000.0/60.0; // m
+								if(time < 60) {
+									Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "m");
+								} else {
+									time = (stop - start)/1000.0/1000.0/1000.0/60.0/60.0; // h
+									Log.info("Finished " + codemapStage.getDisplayName() + " in " + decimalFormat.format(time) + "h");
+								}
 							}
 						}
 					}

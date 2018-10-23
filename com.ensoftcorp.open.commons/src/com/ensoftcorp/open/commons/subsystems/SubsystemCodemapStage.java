@@ -36,7 +36,7 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 	}
 
 	@Override
-	public void performIndexing(IProgressMonitor monitor) {
+	public boolean performIndexing(IProgressMonitor monitor) {
 		Subsystems.loadSubsystemContributions();
 
 		Set<Subsystem> subsystems = Subsystems.getRegisteredSubsystems();
@@ -50,7 +50,7 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 		}
 		
 		boolean logged = false;
-		
+		boolean ranIndexer = false;
 		if(hasEnabledSubystemCategory){
 			for (Subsystem subsystem : subsystems) {
 				if(!logged){
@@ -62,10 +62,12 @@ public class SubsystemCodemapStage extends PrioritizedCodemapStage {
 				} else {
 					if(SubsystemPreferences.isSubsystemCategoryEnabled(subsystem.getCategory())){
 						subsystem.tagSubsystem();
+						ranIndexer = true;
 					}
 				}
 			}
 		}
+		return ranIndexer;
 	}
 
 }

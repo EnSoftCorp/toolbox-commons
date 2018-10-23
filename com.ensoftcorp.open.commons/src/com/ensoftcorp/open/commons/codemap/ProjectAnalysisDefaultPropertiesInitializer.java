@@ -33,7 +33,7 @@ public class ProjectAnalysisDefaultPropertiesInitializer extends PrioritizedCode
 	}
 
 	@Override
-	public void performIndexing(IProgressMonitor monitor) {
+	public boolean performIndexing(IProgressMonitor monitor) {
 //		if(CommonsPreferences.isInitializingAnalysisPropertiesEnabled()) {
 			for(Node projectNode : Query.universe().nodes(XCSG.Project).eval().nodes()){
 				IProject project = WorkspaceUtils.getProject(projectNode.getAttr(XCSG.name).toString());
@@ -46,6 +46,7 @@ public class ProjectAnalysisDefaultPropertiesInitializer extends PrioritizedCode
 					}
 				}
 			}
+			return true;
 //		}
 	}
 

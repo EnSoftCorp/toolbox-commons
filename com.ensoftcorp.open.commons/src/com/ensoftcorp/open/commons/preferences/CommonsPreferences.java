@@ -8,6 +8,14 @@ import com.ensoftcorp.open.commons.log.Log;
 
 public class CommonsPreferences extends AbstractPreferenceInitializer {
 
+	/**
+	 * Returns the preference store used for these preferences
+	 * @return
+	 */
+	public static IPreferenceStore getPreferenceStore() {
+		return Activator.getDefault().getPreferenceStore();
+	}
+	
 	private static boolean initialized = false;
 	
 	/**
@@ -95,7 +103,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	 * Enable/disable computing control flow graph dominance trees
 	 */
 	public static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE = "COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE";
-	public static final Boolean COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT = false;
+	public static final Boolean COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT = true;
 	private static boolean computeControlFlowGraphDominanceValue = COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT;
 	
 	/**

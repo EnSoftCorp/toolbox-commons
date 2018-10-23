@@ -1,3 +1,4 @@
+
 package com.ensoftcorp.open.commons.analyzers;
 
 import java.util.Collections;
@@ -57,13 +58,15 @@ public class Analyzers extends PrioritizedCodemapStage {
 	}
 
 	@Override
-	public void performIndexing(IProgressMonitor monitor) {
+	public boolean performIndexing(IProgressMonitor monitor) {
 		boolean logged = false;
 		ANALYZER_RESULTS.clear();
 		ANALYZERS.clear();
 		Analyzers.loadAnalyzerContributions();
 		Set<Analyzer> analyzers = Analyzers.getRegisteredAnalyzers();
+		boolean ranIndexer = false;
 		for(Analyzer analyzer : analyzers){
+			ranIndexer = true;
 			if(AnalyzerPreferences.isAnalyzerCachingEnabled(analyzer.getName())){
 				if(!logged){
 					Log.info("Running analyzers...");
@@ -82,10 +85,57 @@ public class Analyzers extends PrioritizedCodemapStage {
 				
 				cacheResults(analyzer, results);
 				
-				// TODO: create some sort of callback
-//				DashboardView.refreshRequired();
+				for(AnalyzerResultChangedCallback callback : CALLBACKS) {
+					callback.callback();
+				}
 			}
 		}
+		return ranIndexer;
+	}
+	
+	public static abstract class AnalyzerResultChangedCallback {
+		private String name;
+		
+		public AnalyzerResultChangedCallback(String name) {
+			this.name = name;
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			return result;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			AnalyzerResultChangedCallback other = (AnalyzerResultChangedCallback) obj;
+			if (name == null) {
+				if (other.name != null)
+					return false;
+			} else if (!name.equals(other.name))
+				return false;
+			return true;
+		}
+		
+		public abstract void callback();
+	}
+	
+	private static final Set<AnalyzerResultChangedCallback> CALLBACKS = new HashSet<AnalyzerResultChangedCallback>();
+	
+	public static void registerAnalyzerResultChangedCallback(AnalyzerResultChangedCallback callback) {
+		CALLBACKS.add(callback);
+	}
+	
+	public static void unregisterAnalyzerResultChangedCallback(AnalyzerResultChangedCallback callback) {
+		CALLBACKS.remove(callback);
 	}
 	
 	public static void clearCachedResults(){
