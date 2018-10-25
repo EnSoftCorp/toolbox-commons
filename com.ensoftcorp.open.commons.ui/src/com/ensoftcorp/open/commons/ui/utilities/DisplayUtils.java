@@ -8,6 +8,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import org.apache.commons.lang3.text.WordUtils;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
@@ -242,37 +246,47 @@ public class DisplayUtils {
 	 * @param title A title to indicate the graph content
 	 */
 	public static void show(final Q q, final IMarkup markup, final boolean extend, final String title) {
-		final Display display = getDisplay();
-		display.syncExec(new Runnable(){
+		Job job = new Job("Re-map Workspace") {
 			@Override
-			public void run() {
-				try {
-					long graphSize = CommonQueries.nodeSize(q);
-					boolean showGraph = false;
-					if (graphSize > LARGE_GRAPH_WARNING) {
-						MessageBox mb = new MessageBox(getShell(display), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-						mb.setText("Warning");
-						mb.setMessage("The graph you are about to display has " + graphSize + " nodes.  " 
-								+ "Displaying large graphs may cause Eclipse to become unresponsive." 
-								+ "\n\nDo you want to continue?");
-						int response = mb.open();
-						if (response == SWT.YES) {
-							showGraph = true; // user says let's do it!!
+			protected IStatus run(IProgressMonitor arg0) {
+				final Display display = getDisplay();
+				display.syncExec(new Runnable(){
+					@Override
+					public void run() {
+						try {
+							long graphSize = CommonQueries.nodeSize(q);
+							boolean showGraph = false;
+							if (graphSize > LARGE_GRAPH_WARNING) {
+								MessageBox mb = new MessageBox(getShell(display), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+								mb.setText("Warning");
+								mb.setMessage("The graph you are about to display has " + graphSize + " nodes.  " 
+										+ "Displaying large graphs may cause Eclipse to become unresponsive." 
+										+ "\n\nDo you want to continue?");
+								int response = mb.open();
+								if (response == SWT.YES) {
+									showGraph = true; // user says let's do it!!
+								}
+							} else {
+								// graph is small enough to display
+								showGraph = true;
+							}
+							if (showGraph) {
+								Q extended = Query.universe().edges(XCSG.Contains).reverse(q).union(q);
+								Q displayExpr = extend ? extended : q;
+								DisplayUtil.displayGraph((markup != null ? markup : new Markup()), displayExpr.eval(), title);
+							}
+						} catch (Exception e){
+							DisplayUtils.showError(e, "Could not display graph.");
 						}
-					} else {
-						// graph is small enough to display
-						showGraph = true;
 					}
-					if (showGraph) {
-						Q extended = Query.universe().edges(XCSG.Contains).reverse(q).union(q);
-						Q displayExpr = extend ? extended : q;
-						DisplayUtil.displayGraph((markup != null ? markup : new Markup()), displayExpr.eval(), title);
-					}
-				} catch (Exception e){
-					DisplayUtils.showError(e, "Could not display graph.");
-				}
+				});
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {}
+				return Status.OK_STATUS;
 			}
-		});
+		};
+		job.schedule();
 	}
 	
 	/**
