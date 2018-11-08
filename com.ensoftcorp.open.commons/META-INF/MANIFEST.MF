@@ -17,7 +17,8 @@ Require-Bundle:
  org.apache.commons.io;bundle-version="2.2.0";visibility:=reexport,
  org.apache.commons.lang3;bundle-version="3.1.0";visibility:=reexport,
  org.jgrapht;bundle-version="1.0.1",
- org.junit
+ org.junit,
+ org.json.simple
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Export-Package: com.ensoftcorp.open.commons.algorithms;

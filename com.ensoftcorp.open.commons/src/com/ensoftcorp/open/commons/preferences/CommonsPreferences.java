@@ -1,10 +1,13 @@
 package com.ensoftcorp.open.commons.preferences;
 
+import java.io.File;
+
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.ensoftcorp.open.commons.Activator;
 import com.ensoftcorp.open.commons.log.Log;
+import com.ensoftcorp.open.commons.utilities.OSUtils;
 
 public class CommonsPreferences extends AbstractPreferenceInitializer {
 
@@ -43,6 +46,37 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 			loadPreferences();
 		}
 		return debugLoggingValue;
+	}
+
+	/**
+	 * Configure path to cloc
+	 */
+	public static final String CLOC_PATH = "CLOC_PATH";
+	public static final String CLOC_PATH_DEFAULT = OSUtils.isWindows() ? "cloc.exe" : "cloc"; // assume clock is on the environment path
+	private static String clocPathValue = CLOC_PATH_DEFAULT;
+	
+	/**
+	 * Configures path to cloc
+	 */
+	public static void configureClocPath(File clocPath){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(CLOC_PATH, clocPath.getAbsolutePath());
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns the path to cloc
+	 * @return
+	 */
+	public static File getClocPath(){
+		if(!initialized){
+			loadPreferences();
+		}
+		if(clocPathValue != null) {
+			return new File(clocPathValue);
+		} else {
+			return null;
+		}
 	}
 	
 //	/**
@@ -228,6 +262,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		preferences.setDefault(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
 //		preferences.setDefault(INITIALIZE_ANALYSIS_PROPERTIES, INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT);
 		preferences.setDefault(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
+		preferences.setDefault(CLOC_PATH, CLOC_PATH_DEFAULT);
 		preferences.setDefault(CONSTRUCT_ICFG, CONSTRUCT_ICFG_DEFAULT);
 		preferences.setDefault(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT);
 		preferences.setDefault(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
@@ -243,6 +278,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 		preferences.setValue(DEBUG_LOGGING, DEBUG_LOGGING_DEFAULT);
 //		preferences.setValue(INITIALIZE_ANALYSIS_PROPERTIES, INITIALIZE_ANALYSIS_PROPERTIES_DEFAULT);
 		preferences.setValue(NORMALIZE_GRAPH_ELEMENT_ADDRESSES, NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DEFAULT);
+		preferences.setValue(CLOC_PATH, CLOC_PATH_DEFAULT);
 		preferences.setValue(CONSTRUCT_ICFG, CONSTRUCT_ICFG_DEFAULT);
 		preferences.setValue(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE, COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DEFAULT);
 		preferences.setValue(COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DEFAULT);
@@ -259,6 +295,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 			debugLoggingValue = preferences.getBoolean(DEBUG_LOGGING);
 			normalizeGraphElementAddressesValue = preferences.getBoolean(NORMALIZE_GRAPH_ELEMENT_ADDRESSES);
+			clocPathValue = preferences.getString(CLOC_PATH);
 //			initializeAnalysisPropertiesValue = preferences.getBoolean(INITIALIZE_ANALYSIS_PROPERTIES);
 			constructICFGValue = preferences.getBoolean(CONSTRUCT_ICFG);
 			computeControlFlowGraphDominanceValue = preferences.getBoolean(COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE);

@@ -2,6 +2,7 @@ package com.ensoftcorp.open.commons.ui.preferences;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.ui.IWorkbench;
@@ -18,6 +19,7 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 
 	private static final String DEBUG_LOGGING_DESCRIPTION = "Debug logging";
 	private static final String NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DESCRIPTION = "Compute normalized graph element addresses";
+	private static final String CLOC_PATH_DESCRIPTION = "Path to CLOC logical line of code counter";
 	private static final String CONSTRUCT_ICFG_DESCRIPTION = "Construct inter-procedural control flow graphs (ICFGs)";
 	private static final String COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DESCRIPTION = "Compute control flow graph dominance";
 	private static final String COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DESCRIPTION = "Compute exceptional control flow graph dominance";
@@ -52,6 +54,7 @@ public class CommonsPreferencesPage extends FieldEditorPreferencePage implements
 	protected void createFieldEditors() {
 		addField(new BooleanFieldEditor(CommonsPreferences.DEBUG_LOGGING, "&" + DEBUG_LOGGING_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(CommonsPreferences.NORMALIZE_GRAPH_ELEMENT_ADDRESSES, "&" + NORMALIZE_GRAPH_ELEMENT_ADDRESSES_DESCRIPTION, getFieldEditorParent()));
+		addField(new FileFieldEditor(CommonsPreferences.CLOC_PATH, "&" + CLOC_PATH_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(CommonsPreferences.CONSTRUCT_ICFG, "&" + CONSTRUCT_ICFG_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(CommonsPreferences.COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE, "&" + COMPUTE_CONTROL_FLOW_GRAPH_DOMINANCE_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(CommonsPreferences.COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES, "&" + COMPUTE_EXCEPTIONAL_CONTROL_FLOW_GRAPH_DOMINANCE_TREES_DESCRIPTION, getFieldEditorParent()));

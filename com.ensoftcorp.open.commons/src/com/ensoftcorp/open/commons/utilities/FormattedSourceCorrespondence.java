@@ -20,9 +20,11 @@ import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.index.common.SourceCorrespondence;
+import com.ensoftcorp.atlas.core.indexing.IIndexListener;
+import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.atlas.core.query.Q;
-import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
 
 /**
  * A convenience utility wrapper for pretty printing SourceCorrespondence line numbers and other properties 
@@ -32,7 +34,33 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	
 	// on demand cache of relative file paths -> character ranges for each line number
 	// a line number is represented by the index of the linked list
-	private static HashMap<String, LinkedList<Long>> cache = new HashMap<String, LinkedList<Long>>();
+	private static final HashMap<String, LinkedList<Long>> cache = new HashMap<String, LinkedList<Long>>();
+	
+	// index listener clears cache on index change
+	private static final IIndexListener indexListener = new IIndexListener(){
+		@Override
+		public void indexOperationCancelled(IndexOperation op) {}
+	
+		@Override
+		public void indexOperationComplete(IndexOperation op) {}
+	
+		@Override
+		public void indexOperationError(IndexOperation op, Throwable error) {}
+	
+		@Override
+		public void indexOperationScheduled(IndexOperation op) {}
+	
+		@Override
+		public void indexOperationStarted(IndexOperation op) {
+			if(cache != null) {
+				cache.clear();
+			}
+		}
+	};
+	
+	static {
+		IndexingUtil.addListener(indexListener);
+	}
 	
 	private SourceCorrespondence sc;
 	private String name;
@@ -181,20 +209,12 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	}
 	
 	/**
-	 * The the internal cache for all source files
-	 * You should do this if the source file content or location changes
-	 */
-	public static void clearCache(){
-		cache = new HashMap<String, LinkedList<Long>>();
-	}
-	
-	/**
 	 * Builds a private static cache of of the new line boundaries for a given source file
 	 * @param sourceFile
 	 * @return
 	 * @throws IOException
 	 */
-	public static LinkedList<Long> cacheFile(IFile sourceFile) throws IOException {
+	private static LinkedList<Long> cacheFile(IFile sourceFile) throws IOException {
 		IProject project = sourceFile.getProject();
 		File baseDirectory = project.getLocation().toFile();
 		File file = sourceFile.getLocation().toFile();
@@ -304,25 +324,16 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 	
 	/**
 	 * Given a Q, creates a pretty print summary the source graph element locations, line number ranges,
-	 * and names of graph elements that were methods (if enabled)
+	 * and names of graph elements that were functions (if enabled)
 	 * of 
 	 * @param q
 	 * @return
 	 * @throws IOException 
 	 */
-	public static String summarize(Q q, boolean includeMethodNames) throws IOException {
-		return summarize(getSourceCorrespondents(q),
-				getSourceCorrespondents(includeMethodNames ? q.nodes(XCSG.Method) : Common.empty()));
-	}
-
-	// helper method for summarizing source correspondents
-	private static String summarize(Collection<FormattedSourceCorrespondence> allSources,
-									Collection<FormattedSourceCorrespondence> methods) throws IOException {
-		StringBuilder result = new StringBuilder();
-
+	public static String summarize(Q q, boolean includeFunctionNames) throws IOException {
 		// get the files and the line numbers in the source correspondents
 		Map<String, SortedSet<LineNumberRange>> filesToLineNumbers = new HashMap<String, SortedSet<LineNumberRange>>();
-		for (FormattedSourceCorrespondence fsc : allSources) {
+		for (FormattedSourceCorrespondence fsc : getSourceCorrespondents(q)) {
 			if (filesToLineNumbers.containsKey(fsc.getRelativeFile())) {
 				LineNumberRange line = new LineNumberRange(fsc.getLineNumbers());
 				filesToLineNumbers.get(fsc.getRelativeFile()).add(line);
@@ -332,34 +343,38 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 				filesToLineNumbers.put(fsc.getRelativeFile(), lineNumbersSet);
 			}
 		}
-
-		// get the names of methods (grouped by file) of the methods source
+		
+		StringBuilder summary = new StringBuilder();
+		
+		// get the names of functions (grouped by file) of the functions source
 		// correspondents note not using a set here, because the Q should insure there are no
-		// duplicates also duplicate method names may be present in a given file
+		// duplicates also duplicate function names may be present in a given file
 		// (considering inner classes and other structures)
-		Map<String, LinkedList<String>> filesToMethods = new HashMap<String, LinkedList<String>>();
-		for (FormattedSourceCorrespondence sc : methods) {
-			if (sc.hasName()) {
-				if (filesToMethods.containsKey(sc.getRelativeFile())) {
-					filesToMethods.get(sc.getRelativeFile()).add(sc.getName());
-				} else {
-					LinkedList<String> names = new LinkedList<String>();
-					names.add(sc.getName());
-					filesToMethods.put(sc.getRelativeFile(), names);
+		Map<String, LinkedList<String>> filesToFunctions = new HashMap<String, LinkedList<String>>();
+		if(includeFunctionNames) {
+			for(Node node : CommonQueries.getContainingFunctions(q.retainNodes()).eval().nodes()) {
+				FormattedSourceCorrespondence sc = FormattedSourceCorrespondence.getSourceCorrespondent(node);
+				if (sc.hasName()) {
+					if (filesToFunctions.containsKey(sc.getRelativeFile())) {
+						filesToFunctions.get(sc.getRelativeFile()).add(sc.getName());
+					} else {
+						LinkedList<String> names = new LinkedList<String>();
+						names.add(sc.getName());
+						filesToFunctions.put(sc.getRelativeFile(), names);
+					}
 				}
 			}
 		}
 
 		if (filesToLineNumbers.size() == 0) {
-			result.append("Empty.");
+			summary.append("Empty.");
 		} else if (filesToLineNumbers.size() == 1) {
-			result.append("File: ");
+			summary.append("File: ");
 		} else {
-			result.append("Files:\n");
+			summary.append("Files:\n");
 		}
 		for (Entry<String, SortedSet<LineNumberRange>> entry : filesToLineNumbers.entrySet()) {
-			SortedSet<LineNumberRange> condensedLineNumbers = condenseLineNumbers(entry
-					.getValue());
+			SortedSet<LineNumberRange> condensedLineNumbers = condenseLineNumbers(entry.getValue());
 			String plurality = "s";
 			if (condensedLineNumbers.size() == 1) {
 				if (!condensedLineNumbers.first().lines.contains("-")) {
@@ -369,36 +384,65 @@ public class FormattedSourceCorrespondence implements Comparable<FormattedSource
 
 			// print the filename and line numbers
 			if (!condensedLineNumbers.isEmpty()) {
-				result.append(entry.getKey()
+				summary.append(entry.getKey()
 						+ " "
 						+ condensedLineNumbers.toString()
 								.replace("[", "(line" + plurality + " ")
 								.replace("]", ")\n"));
 			} else {
 				// not sure this is even a case, but its here for good measure
-				result.append(entry.getKey() + "\n");
+				summary.append(entry.getKey() + "\n");
 			}
 
-			// print the methods for that file
-			if (filesToMethods.containsKey(entry.getKey())) {
-				LinkedList<String> methodNames = filesToMethods.get(entry.getKey());
-				if (methodNames.size() == 1) {
-					result.append("Method: ");
-				} else if (methodNames.size() > 1) {
-					result.append("Methods: ");
+			// print the functions for that file
+			if (filesToFunctions.containsKey(entry.getKey())) {
+				LinkedList<String> functionNames = filesToFunctions.get(entry.getKey());
+				if (functionNames.size() == 1) {
+					summary.append("Function: ");
+				} else if (functionNames.size() > 1) {
+					summary.append("Functions: ");
 				}
-				for (String name : methodNames) {
-					result.append(name + ", ");
+				for (String name : functionNames) {
+					summary.append(name + ", ");
 				}
-				if (!methodNames.isEmpty()) {
-					result.delete(result.length() - 2, result.length());
+				if (!functionNames.isEmpty()) {
+					summary.delete(summary.length() - 2, summary.length());
 				}
-				result.append("\n");
+				summary.append("\n");
 			}
-			result.append("\n");
+			summary.append("\n");
 		}
 
-		return result.toString().trim();
+		return summary.toString().trim();
+	}
+	
+	/**
+	 * Given a Q gets the mapping of relative files to the line number ranges for each summarized element
+	 * of 
+	 * @param q
+	 * @return
+	 * @throws IOException 
+	 */
+	public static Map<File, SortedSet<LineNumberRange>> summarize(Q q) throws IOException {
+		return summarize(getSourceCorrespondents(q));
+	}
+
+	// helper function for summarizing source correspondents
+	private static Map<File, SortedSet<LineNumberRange>> summarize(Collection<FormattedSourceCorrespondence> graphElements) throws IOException {
+		// get the files and the line numbers in the source correspondents
+		Map<File, SortedSet<LineNumberRange>> filesToLineNumbers = new HashMap<File, SortedSet<LineNumberRange>>();
+		for (FormattedSourceCorrespondence fsc : graphElements) {
+			if (filesToLineNumbers.containsKey(fsc.getFile())) {
+				LineNumberRange line = new LineNumberRange(fsc.getLineNumbers());
+				filesToLineNumbers.get(fsc.getFile()).add(line);
+			} else {
+				SortedSet<LineNumberRange> lineNumbersSet = new TreeSet<LineNumberRange>();
+				lineNumbersSet.add(new LineNumberRange(fsc.getLineNumbers()));
+				filesToLineNumbers.put(fsc.getFile(), lineNumbersSet);
+			}
+		}
+		
+		return filesToLineNumbers;
 	}
 
 	/**
