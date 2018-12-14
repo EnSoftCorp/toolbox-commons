@@ -47,7 +47,7 @@ public final class SetDefinitions {
 	 * libraries, or any "floating" nodes).
 	 */
 	public static Q app() {
-		return Query.universe().difference(libraries(), primitiveTypes(), arrayTypes());
+		return Query.universe().nodes(XCSG.Project).difference(libraries(), primitiveTypes(), arrayTypes());
 	}
 
 }
