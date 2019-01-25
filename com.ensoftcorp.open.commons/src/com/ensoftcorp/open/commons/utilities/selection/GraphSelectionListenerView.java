@@ -1,7 +1,11 @@
 package com.ensoftcorp.open.commons.utilities.selection;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.progress.UIJob;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
@@ -21,6 +25,41 @@ public abstract class GraphSelectionListenerView extends ViewPart {
 	private IAtlasSelectionListener selectionListener = null;
 	private Shell shell = null;
 	private boolean selectionListenerEnabled = true;
+	private IAtlasSelectionEvent pendingEvent = null;
+	
+	private SelectionJob selectionJob = new SelectionJob("Graph Selection Listener");
+	
+	/**
+	 * Handles delayed processing of the selection event
+	 */
+	private class SelectionJob extends UIJob {
+
+		public SelectionJob(String name) {
+			super(name);
+		}
+
+		@Override
+		public IStatus runInUIThread(IProgressMonitor monitor) {
+			IAtlasSelectionEvent event = pendingEvent;
+			pendingEvent = null;
+			if (event == null) 
+				return Status.OK_STATUS;
+
+			try {
+				selection = event.getSelection().eval();
+			} catch (Exception e){
+				selection = null;
+			}
+			// ignore selections originating from the same part
+			if (event.getContributingPart() == GraphSelectionListenerView.this) {
+				return Status.OK_STATUS;
+			}
+			selectionChangedHandler();
+
+			return Status.OK_STATUS;
+		}
+		
+	}
 	
 	/**
 	 * This method should be invoked at the end of the ViewPart's
@@ -57,17 +96,19 @@ public abstract class GraphSelectionListenerView extends ViewPart {
 		
 		// add the index listener
 		IndexingUtil.addListener(indexListener);
-		
+				
 		// setup the Atlas selection event listener
 		selectionListener = new IAtlasSelectionListener(){
 			@Override
 			public void selectionChanged(IAtlasSelectionEvent atlasSelection) {
-				try {
-					selection = atlasSelection.getSelection().eval();
-				} catch (Exception e){
-					selection = null;
-				}
-				selectionChangedHandler();
+				pendingEvent = atlasSelection;
+				// Graph selections currently fire for every intermediate selection, 
+				// e.g. when everything is selected and then deselected, events are
+				// fired for n, n-1, n-2, ..., 0 nodes.  This can overwhelm a listener
+				// and it isn't strictly necessary to respond to all events, just the
+				// last one.
+				// This delays for another 0.1 seconds before trying to process the last event. 
+				selectionJob.schedule(100);
 			}			
 		};
 		
@@ -173,7 +214,7 @@ public abstract class GraphSelectionListenerView extends ViewPart {
 	public abstract void indexBecameAccessible();
 	
 	/**
-	 * Returns true is an index currently exists
+	 * Returns true if an index currently exists
 	 * @return
 	 */
 	public boolean indexExists(){
