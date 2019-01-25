@@ -50,6 +50,7 @@
 
 	<!-- add toolbox commons smart views -->
     <extension point="com.ensoftcorp.atlas.ui.smartViewScript">
+      <script class="com.ensoftcorp.open.commons.ui.views.smart.SelectionSmartView" />
       <script class="com.ensoftcorp.open.commons.ui.views.smart.UniversalGraphExplorerSmartView" />
       <script class="com.ensoftcorp.open.commons.ui.views.smart.CodePainterSmartView" />
       <script class="com.ensoftcorp.open.commons.ui.views.smart.ControlFlowDominanceFrontierSmartView" />
