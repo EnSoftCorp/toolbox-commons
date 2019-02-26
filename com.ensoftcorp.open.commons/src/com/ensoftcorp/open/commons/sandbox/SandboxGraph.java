@@ -570,8 +570,8 @@ public class SandboxGraph {
 			SandboxNode next = frontier.one();
 			frontier.remove(next);
 			for(SandboxEdge edge : reverseStep(next).edges()){
-				if(result.nodes().add(edge.to())){
-					frontier.add(edge.to());
+				if(result.nodes().add(edge.from())){
+					frontier.add(edge.from());
 				}
 				result.edges().add(edge);
 			}
