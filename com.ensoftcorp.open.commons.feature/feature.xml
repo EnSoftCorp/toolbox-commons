@@ -2,7 +2,7 @@
 <feature
       id="com.ensoftcorp.open.commons.feature"
       label="Toolbox Commons"
-      version="3.3.7.qualifier"
+      version="3.3.8.qualifier"
       provider-name="EnSoft Corp.">
 
    <description url="https://ensoftcorp.github.io/toolbox-commons">
@@ -54,7 +54,7 @@ SOFTWARE.
       <import plugin="org.apache.commons.lang3" version="3.1.0" match="greaterOrEqual"/>
       <import plugin="org.jgrapht" version="1.0.1" match="greaterOrEqual"/>
       <import plugin="org.junit"/>
-      <import plugin="com.ensoftcorp.open.commons" version="3.3.7" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.open.commons" version="3.3.8" match="greaterOrEqual"/>
    </requires>
 
    <plugin
