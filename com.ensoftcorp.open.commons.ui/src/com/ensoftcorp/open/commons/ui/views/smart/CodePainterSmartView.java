@@ -5,7 +5,7 @@ import java.util.Set;
 
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
-import com.ensoftcorp.atlas.core.log.Log;
+import com.ensoftcorp.open.commons.ui.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
 import com.ensoftcorp.atlas.core.script.StyledResult;
