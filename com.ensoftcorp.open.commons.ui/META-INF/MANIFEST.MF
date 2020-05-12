@@ -8,17 +8,6 @@ Bundle-Vendor: EnSoft Corp.
 Require-Bundle: com.ensoftcorp.open.commons;bundle-version="3.3.8";visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Import-Package: com.ensoftcorp.atlas.core.db,
- com.ensoftcorp.atlas.core.db.graph,
- com.ensoftcorp.atlas.core.db.set,
- com.ensoftcorp.atlas.core.db.tags,
- com.ensoftcorp.atlas.core.highlight,
- com.ensoftcorp.atlas.core.indexing,
- com.ensoftcorp.atlas.core.markup,
- com.ensoftcorp.atlas.core.query,
- com.ensoftcorp.atlas.core.script,
- com.ensoftcorp.atlas.core.xcsg,
- com.ensoftcorp.open.commons.preferences
 Automatic-Module-Name: com.ensoftcorp.open.commons.ui
 Export-Package: com.ensoftcorp.open.commons.ui.components,
  com.ensoftcorp.open.commons.ui.handlers,
