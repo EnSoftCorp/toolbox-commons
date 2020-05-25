@@ -20,6 +20,7 @@ import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 
+// TODO: this shouldn't really depend on Atlas UI interfaces directly, maybe a similar proxy interface instead?
 public abstract class CodePainter extends Configurable implements IResizableScript, IExplorableScript {
 
 	private boolean highlightSelections = true;

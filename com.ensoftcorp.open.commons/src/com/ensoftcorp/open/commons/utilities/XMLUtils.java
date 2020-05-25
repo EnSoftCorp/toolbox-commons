@@ -121,6 +121,7 @@ public class XMLUtils {
 		Document document = null;
 		InputStream is = null;
 		try {
+			@SuppressWarnings("deprecation")
 			String xmlString = FileUtils.readFileToString(file);
 			is = new ByteArrayInputStream(xmlString.getBytes());
 			document = getAnnotatedDOM(is);
