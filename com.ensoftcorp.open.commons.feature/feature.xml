@@ -2,7 +2,7 @@
 <feature
       id="com.ensoftcorp.open.commons.feature"
       label="Toolbox Commons"
-      version="3.6.0.qualifier"
+      version="3.7.0.qualifier"
       provider-name="EnSoft Corp.">
 
    <description url="https://ensoftcorp.github.io/toolbox-commons">
@@ -10,13 +10,13 @@
    </description>
 
    <copyright url="https://ensoftcorp.github.io/toolbox-commons">
-      Copyright (c) 2015, 2020 EnSoft Corp.
+      Copyright (c) 2015, 2021 EnSoft Corp.
    </copyright>
 
    <license url="https://raw.githubusercontent.com/EnSoftCorp/toolbox-commons/master/LICENSE">
       MIT License (MIT)
 
-Copyright (c) 2015, 2020 EnSoft Corp.
+Copyright (c) 2015, 2021 EnSoft Corp.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the &quot;Software&quot;), to deal
@@ -51,15 +51,15 @@ SOFTWARE.
       <import plugin="org.jgrapht" version="1.0.1" match="greaterOrEqual"/>
       <import plugin="org.junit"/>
       <import plugin="org.json.simple"/>
-      <import plugin="com.ensoftcorp.atlas.db" version="3.6.0" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.db.common" version="3.6.0" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.db.implementation" version="3.6.0" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas" version="3.6.0" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.core" version="3.6.0" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.atlas.ui" version="3.6.0" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.db" version="3.7.0" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.db.common" version="3.7.0" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.db.implementation" version="3.7.0" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas" version="3.7.0" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.core" version="3.7.0" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.atlas.ui" version="3.7.0" match="greaterOrEqual"/>
       <import plugin="org.apache.commons.io" version="2.2.0" match="greaterOrEqual"/>
       <import plugin="org.apache.commons.lang3" version="3.1.0" match="greaterOrEqual"/>
-      <import plugin="com.ensoftcorp.open.commons" version="3.6.0" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.open.commons" version="3.7.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
