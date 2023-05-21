@@ -21,6 +21,10 @@ If you want to install from source for bleeding edge changes, first grab a copy 
 ## Changelog
 Note that version numbers are based off [Atlas](http://www.ensoftcorp.com/atlas/download/) version numbers.
 
+### 3.9.2
+- Updates for Atlas dependencies
+- Changed default preference to stop assuming Cloc utility is installed
+
 ### 3.6.0
 - Updates for Atlas dependencies
 
