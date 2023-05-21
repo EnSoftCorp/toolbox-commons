@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Toolbox Commons
 Bundle-SymbolicName: com.ensoftcorp.open.commons;singleton:=true
-Bundle-Version: 4.2.3.qualifier
+Bundle-Version: 3.9.2.qualifier
 Bundle-Vendor: EnSoft Corp.
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: 
@@ -15,12 +15,12 @@ Require-Bundle:
  org.jgrapht;bundle-version="1.0.1",
  org.junit,
  org.json.simple,
- com.ensoftcorp.atlas.db;bundle-version="3.6.0";visibility:=reexport,
- com.ensoftcorp.atlas.db.common;bundle-version="3.6.0";visibility:=reexport,
- com.ensoftcorp.atlas.db.implementation;bundle-version="3.6.0";visibility:=reexport,
- com.ensoftcorp.atlas;bundle-version="3.6.0";visibility:=reexport,
- com.ensoftcorp.atlas.core;bundle-version="3.6.0";visibility:=reexport,
- com.ensoftcorp.atlas.ui;bundle-version="3.6.0";visibility:=reexport,
+ com.ensoftcorp.atlas.db;bundle-version="3.9.2";visibility:=reexport,
+ com.ensoftcorp.atlas.db.common;bundle-version="3.9.2";visibility:=reexport,
+ com.ensoftcorp.atlas.db.implementation;bundle-version="3.9.2";visibility:=reexport,
+ com.ensoftcorp.atlas;bundle-version="3.9.2";visibility:=reexport,
+ com.ensoftcorp.atlas.core;bundle-version="3.9.2";visibility:=reexport,
+ com.ensoftcorp.atlas.ui;bundle-version="3.9.2";visibility:=reexport,
  org.apache.commons.io;bundle-version="2.2.0";visibility:=reexport,
  org.apache.commons.lang3;bundle-version="3.1.0";visibility:=reexport
 Bundle-ActivationPolicy: lazy

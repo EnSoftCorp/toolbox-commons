@@ -52,7 +52,7 @@ public class CommonsPreferences extends AbstractPreferenceInitializer {
 	 * Configure path to cloc
 	 */
 	public static final String CLOC_PATH = "CLOC_PATH";
-	public static final String CLOC_PATH_DEFAULT = OSUtils.isWindows() ? "cloc.exe" : "cloc"; // assume clock is on the environment path
+	public static final String CLOC_PATH_DEFAULT = ""; // don't assume cloc is on the environment path
 	private static String clocPathValue = CLOC_PATH_DEFAULT;
 	
 	/**

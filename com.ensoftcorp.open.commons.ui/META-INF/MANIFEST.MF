@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Toolbox Commons User Interface
 Bundle-SymbolicName: com.ensoftcorp.open.commons.ui;singleton:=true
-Bundle-Version: 4.2.3.qualifier
+Bundle-Version: 3.9.2.qualifier
 Bundle-Activator: com.ensoftcorp.open.commons.ui.Activator
 Bundle-Vendor: EnSoft Corp.
-Require-Bundle: com.ensoftcorp.open.commons;bundle-version="3.6.0";visibility:=reexport
+Require-Bundle: com.ensoftcorp.open.commons;bundle-version="3.9.2";visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: com.ensoftcorp.open.commons.ui
